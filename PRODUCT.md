@@ -37,7 +37,7 @@ Confirmed in MVP / current build intent:
 - Interactive 3D model with exploded view and toxin hotspots + detail popups
 - Result comparison (pre vs post, improvement)
 - Admin dashboard with aggregate stats and CSV export
-- Supabase-backed storage for users, consent, and quiz results
+- Supabase-backed storage for users, consent, quiz results, and per-question answers
 - Deploy target: Vercel (web)
 
 Out of MVP scope (must not be assumed present): leaderboard / social sharing, heat / X-ray modes, AI chatbot, badge / achievement systems, full multi-language product.

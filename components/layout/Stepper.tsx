@@ -41,9 +41,9 @@ export function Stepper({ current, className }: StepperProps) {
               className={cn(
                 "font-medium",
                 active
-                  ? "text-primary"
+                  ? "text-textPrimary"
                   : done
-                    ? "text-textPrimary"
+                    ? "text-textSecondary"
                     : "text-textDisabled"
               )}
             >

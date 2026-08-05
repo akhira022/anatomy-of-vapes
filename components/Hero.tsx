@@ -2,8 +2,13 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useHydrated } from "@/hooks/useRequirePhase";
+import { isLoggedIn, phaseToPath } from "@/lib/phase";
+import { useQuizStore } from "@/store/useQuizStore";
 
 const HeroVapeCanvas = dynamic(
   () =>
@@ -21,6 +26,27 @@ const HeroVapeCanvas = dynamic(
 
 export function Hero() {
   const reduceMotion = useReducedMotion();
+  const hydrated = useHydrated();
+  const router = useRouter();
+  const nickname = useQuizStore((s) => s.nickname);
+  const consentAccepted = useQuizStore((s) => s.consentAccepted);
+  const currentPhase = useQuizStore((s) => s.currentPhase);
+  const logout = useQuizStore((s) => s.logout);
+  const resetProgress = useQuizStore((s) => s.resetProgress);
+
+  const loggedIn =
+    hydrated && isLoggedIn({ nickname, consentAccepted });
+
+  const handleLogout = () => {
+    logout();
+    toast.success("ออกจากระบบแล้ว");
+  };
+
+  const handleRestart = () => {
+    resetProgress();
+    toast.message("เริ่มรอบใหม่ด้วยบัญชีเดิม");
+    router.push("/pretest");
+  };
 
   return (
     <section
@@ -66,18 +92,60 @@ export function Hero() {
           </p>
 
           <motion.div
-            className="mt-10"
-            whileHover={reduceMotion ? undefined : { scale: 1.03 }}
-            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+            className="mt-10 flex w-full max-w-sm flex-col items-center gap-3"
+            whileHover={reduceMotion ? undefined : { scale: 1.01 }}
             transition={{ duration: 0.15 }}
           >
-            <Button
-              render={<Link href="/register" />}
-              nativeButton={false}
-              className="h-14 rounded-2xl px-10 text-base font-semibold shadow-glowRed sm:text-lg"
-            >
-              เริ่มเรียนรู้
-            </Button>
+            {loggedIn ? (
+              <>
+                <p className="text-sm text-textSecondary">
+                  สวัสดี คุณ{nickname}
+                </p>
+                <Button
+                  render={<Link href={phaseToPath(currentPhase)} />}
+                  nativeButton={false}
+                  className="h-14 w-full rounded-2xl px-10 text-base font-semibold shadow-glowRed sm:text-lg"
+                >
+                  ดำเนินการต่อ
+                </Button>
+                <div className="flex w-full gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-12 flex-1 rounded-2xl text-base"
+                    onClick={handleRestart}
+                  >
+                    เรียนใหม่
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-12 flex-1 rounded-2xl text-base"
+                    onClick={handleLogout}
+                  >
+                    ออกจากระบบ
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Button
+                  render={<Link href="/register" />}
+                  nativeButton={false}
+                  className="h-14 w-full rounded-2xl px-10 text-base font-semibold shadow-glowRed sm:text-lg"
+                >
+                  เริ่มเรียนรู้
+                </Button>
+                <Button
+                  render={<Link href="/login" />}
+                  nativeButton={false}
+                  variant="outline"
+                  className="h-12 w-full rounded-2xl text-base"
+                >
+                  เข้าสู่ระบบ
+                </Button>
+              </>
+            )}
           </motion.div>
         </motion.div>
       </div>

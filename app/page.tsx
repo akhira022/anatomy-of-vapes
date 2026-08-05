@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Box, ClipboardList, FlaskConical } from "lucide-react";
 import { Hero } from "@/components/Hero";
+import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
 
 const features = [
   {
@@ -29,7 +30,7 @@ export default function Home() {
       <header className="absolute inset-x-0 top-0 z-50">
         <nav
           aria-label="หลัก"
-          className="mx-auto flex h-14 max-w-5xl items-center px-4 sm:h-16 sm:px-6"
+          className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6"
         >
           <Link
             href="/"
@@ -37,6 +38,7 @@ export default function Home() {
           >
             Anatomy of Vapes
           </Link>
+          <UserSessionMenu />
         </nav>
       </header>
 

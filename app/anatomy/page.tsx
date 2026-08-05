@@ -28,12 +28,11 @@ const VapeScene = dynamic(
   }
 );
 
-type ViewMode = "whole" | "exploded" | "toxin";
+type ViewMode = "whole" | "exploded";
 
 const modeOptions = [
   ["whole", "ทั้งชิ้น"],
   ["exploded", "แยกชิ้นส่วน"],
-  ["toxin", "สารพิษ"],
 ] as const;
 
 export default function AnatomyPage() {
@@ -55,8 +54,14 @@ export default function AnatomyPage() {
     [selectedHotspotId]
   );
 
-  const allVisited = visitedHotspots.length >= hotspots.length;
-  const exploded = mode === "exploded" || mode === "toxin";
+  const remaining = useMemo(
+    () => hotspots.filter((h) => !visitedHotspots.includes(h.id)),
+    [visitedHotspots]
+  );
+
+  const nextHotspot = remaining[0] ?? null;
+  const allVisited = remaining.length === 0;
+  const remainingCount = remaining.length;
 
   if (!hydrated || !ready) {
     return (
@@ -70,7 +75,7 @@ export default function AnatomyPage() {
     setSelectedHotspotId(id);
     markHotspotVisited(id);
     setPopupOpen(true);
-    if (mode === "whole") setMode("toxin");
+    if (mode === "whole") setMode("exploded");
   };
 
   const goPosttest = () => {
@@ -83,17 +88,22 @@ export default function AnatomyPage() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <AppNavbar title="สำรวจ 3 มิติ" showBack backHref="/pretest" />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-4 sm:px-6">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-3 px-4 py-4 sm:gap-4 sm:px-6">
         <Stepper current="anatomy" />
 
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div
+          role="group"
+          aria-label="โหมดการดูโมเดล"
+          className="flex gap-2 overflow-x-auto pb-1"
+        >
           {modeOptions.map(([id, label]) => (
             <button
               key={id}
               type="button"
               onClick={() => setMode(id)}
+              aria-pressed={mode === id}
               className={cn(
-                "shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-normal",
+                "min-h-11 shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors duration-normal",
                 mode === id
                   ? "border-primary bg-primary text-white"
                   : "border-border bg-card text-textSecondary hover:text-textPrimary"
@@ -104,36 +114,65 @@ export default function AnatomyPage() {
           ))}
         </div>
 
-        <div className="relative h-[min(52dvh,420px)] w-full shrink-0 sm:h-[min(60dvh,560px)]">
+        <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,520px)]">
           <VapeScene
-            exploded={exploded}
+            exploded={mode === "exploded"}
             visitedHotspots={visitedHotspots}
             selectedHotspotId={selectedHotspotId}
             onHotspotClick={handleHotspotClick}
           />
         </div>
 
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        <section
+          aria-labelledby="exploration-status"
+          className="rounded-2xl border border-border bg-card p-4 shadow-card"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs tracking-wide text-textSecondary">
+              <p
+                id="exploration-status"
+                className="text-sm font-medium text-textSecondary"
+              >
                 จุดที่สำรวจแล้ว
               </p>
-              <p className="font-heading text-lg font-semibold text-textPrimary">
+              <p
+                className="font-heading text-2xl font-semibold text-textPrimary"
+                aria-live="polite"
+              >
                 {visitedHotspots.length}/{hotspots.length}
               </p>
             </div>
             {selected ? (
               <Badge variant="destructive">{selected.label}</Badge>
             ) : (
-              <Badge variant="outline">แตะจุดสีแดงบนโมเดล</Badge>
+              <Badge variant="outline">แตะจุดสีแดงหรือเลือกจากรายการ</Badge>
             )}
           </div>
+
+          {!allVisited ? (
+            <p className="mt-3 rounded-xl bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary">
+              ยังเหลืออีก{" "}
+              <span className="font-semibold text-primary">
+                {remainingCount} จุด
+              </span>
+              {nextHotspot ? (
+                <>
+                  {" "}
+                  — ต่อไปลองสำรวจ{" "}
+                  <span className="font-semibold">{nextHotspot.label}</span>
+                </>
+              ) : null}
+            </p>
+          ) : (
+            <p className="mt-3 rounded-xl bg-success/10 px-3 py-2.5 text-sm font-medium text-success">
+              สำรวจครบแล้ว พร้อมไปทำแบบทดสอบหลังเรียน
+            </p>
+          )}
 
           <p className="mt-3 text-sm leading-relaxed text-textSecondary">
             {selected
               ? selected.description
-              : "หมุนโมเดล เปิดโหมดแยกชิ้นส่วน แล้วสำรวจจุดสารพิษให้ครบทุกจุดเพื่อไปทำแบบทดสอบหลังเรียน"}
+              : "หมุนโมเดล เปิดโหมดแยกชิ้นส่วน แล้วสำรวจจุดสารพิษให้ครบทุกจุด"}
           </p>
 
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -146,21 +185,27 @@ export default function AnatomyPage() {
             >
               ดูรายละเอียด
             </Button>
-            <Button
-              type="button"
-              className="h-11 flex-1 rounded-2xl font-semibold"
-              disabled={!allVisited}
-              onClick={goPosttest}
-            >
-              ถัดไป: แบบทดสอบหลังเรียน
-              <ArrowRight className="size-4" />
-            </Button>
+            {allVisited ? (
+              <Button
+                type="button"
+                className="h-11 flex-1 rounded-2xl font-semibold shadow-glowRed"
+                onClick={goPosttest}
+              >
+                ถัดไป: แบบทดสอบหลังเรียน
+                <ArrowRight className="size-4" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 flex-1 rounded-2xl text-textSecondary"
+                disabled
+                aria-disabled="true"
+              >
+                สำรวจอีก {remainingCount} จุดก่อนไปต่อ
+              </Button>
+            )}
           </div>
-          {!allVisited ? (
-            <p className="mt-2 text-center text-xs text-warning">
-              สำรวจจุดสารพิษให้ครบก่อนจึงจะไปต่อได้
-            </p>
-          ) : null}
         </section>
 
         <HotspotList

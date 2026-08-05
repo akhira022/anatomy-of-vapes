@@ -46,6 +46,10 @@ interface QuizState {
   markHotspotVisited: (hotspotId: string) => void;
   setSelectedHotspotId: (id: string | null) => void;
   setResultSaved: (saved: boolean) => void;
+  /** Clear quiz progress but keep the same learner identity */
+  resetProgress: () => void;
+  /** Full logout — clear identity and progress */
+  logout: () => void;
   resetQuiz: () => void;
 }
 
@@ -143,6 +147,22 @@ export const useQuizStore = create<QuizState>()(
       setSelectedHotspotId: (id) => set({ selectedHotspotId: id }),
 
       setResultSaved: (saved) => set({ resultSaved: saved }),
+
+      resetProgress: () => {
+        const { userId, nickname, grade, consentAccepted, resultSaved } =
+          get();
+        set({
+          ...initialState,
+          userId,
+          nickname,
+          grade,
+          consentAccepted,
+          resultSaved,
+          currentPhase: "pretest",
+        });
+      },
+
+      logout: () => set(initialState),
 
       resetQuiz: () => set(initialState),
     }),

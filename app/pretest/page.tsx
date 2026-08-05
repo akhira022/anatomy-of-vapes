@@ -31,7 +31,7 @@ export default function PretestPage() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <AppNavbar title="แบบทดสอบก่อนเรียน" showBack backHref="/register" />
+      <AppNavbar title="แบบทดสอบก่อนเรียน" showBack backHref="/" />
       <main className="flex-1">
         <QuizEngine type="pretest" questions={pretestQuestions} />
       </main>

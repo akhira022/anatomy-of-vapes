@@ -31,14 +31,23 @@ export function HotspotMarker({
             onClick(id);
           }}
           className={cn(
-            "size-5 rounded-full border-2 border-white shadow-glowRed transition-transform duration-normal",
-            visited ? "bg-success" : "bg-primary animate-hotspot-pulse",
-            selected && "scale-125 ring-2 ring-white"
+            "flex size-11 items-center justify-center rounded-full",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            selected && "scale-110"
           )}
-        />
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "size-5 rounded-full border-2 border-white shadow-glowRed transition-transform duration-normal",
+              visited ? "bg-success shadow-glowGreen" : "bg-primary animate-hotspot-pulse",
+              selected && "scale-125 ring-2 ring-white"
+            )}
+          />
+        </button>
       </Html>
       <mesh visible={false}>
-        <sphereGeometry args={[0.12, 8, 8]} />
+        <sphereGeometry args={[0.16, 8, 8]} />
       </mesh>
     </group>
   );

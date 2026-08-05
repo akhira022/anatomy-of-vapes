@@ -85,9 +85,9 @@ export default function AdminPage() {
           ยังไม่ได้ตั้งค่า Supabase
         </h1>
         <p className="text-sm text-textSecondary">
-          คัดลอก `.env.example` เป็น `.env.local` ใส่ URL/anon key
+          คัดลอก `.env.example` เป็น `.env.local` ใส่ URL/anon key จริง
           แล้วรัน SQL ใน `supabase/migrations/001_init.sql`
-          จากนั้นสร้างผู้ใช้ Auth สำหรับแอดมิน
+          จากนั้นสร้างผู้ใช้ Auth สำหรับแอดมิน — ดูรายละเอียดใน `docs/SETUP.md`
         </p>
         <Button render={<Link href="/admin/login" />} nativeButton={false}>
           ไปหน้า Login

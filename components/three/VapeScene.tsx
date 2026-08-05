@@ -109,40 +109,40 @@ export function VapeScene({
       <div className="pointer-events-none absolute inset-y-3 right-3 z-10 flex flex-col gap-2">
         <Button
           type="button"
-          size="icon"
+          size="icon-lg"
           variant="secondary"
           aria-label="ซูมเข้า"
-          className="pointer-events-auto rounded-xl border border-border bg-card/90"
+          className="pointer-events-auto size-11 rounded-xl border border-border bg-card/90"
           onClick={() => zoomBy(-0.12)}
         >
-          <ZoomIn className="size-4" />
+          <ZoomIn className="size-5" />
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="icon-lg"
           variant="secondary"
           aria-label="ซูมออก"
-          className="pointer-events-auto rounded-xl border border-border bg-card/90"
+          className="pointer-events-auto size-11 rounded-xl border border-border bg-card/90"
           onClick={() => zoomBy(0.12)}
         >
-          <ZoomOut className="size-4" />
+          <ZoomOut className="size-5" />
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="icon-lg"
           variant="secondary"
           aria-label="รีเซ็ตมุมมอง"
-          className="pointer-events-auto rounded-xl border border-border bg-card/90"
+          className="pointer-events-auto size-11 rounded-xl border border-border bg-card/90"
           onClick={resetCamera}
         >
-          <RotateCcw className="size-4" />
+          <RotateCcw className="size-5" />
         </Button>
         <Button
           type="button"
-          size="icon"
+          size="icon-lg"
           variant="secondary"
           aria-label="เต็มจอ"
-          className="pointer-events-auto rounded-xl border border-border bg-card/90"
+          className="pointer-events-auto size-11 rounded-xl border border-border bg-card/90"
           onClick={() => {
             const el = rootRef.current;
             if (!el) return;
@@ -153,7 +153,7 @@ export function VapeScene({
             }
           }}
         >
-          <Maximize2 className="size-4" />
+          <Maximize2 className="size-5" />
         </Button>
       </div>
     </div>

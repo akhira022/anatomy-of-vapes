@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-04T14:31:00.000Z",
+  "title": "Design System: Anatomy of Vapes",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Signal Red",
+        "canonical": "#E53935",
+        "tonalRamp": ["#3B0A09", "#6B1412", "#9B1E1A", "#C62828", "#E53935", "#EF6A66", "#F59B98", "#FCE8E7"]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Primary Hover",
+        "canonical": "#C62828",
+        "tonalRamp": ["#3B0A09", "#5C1010", "#8B1A18", "#C62828", "#D84A46", "#E57370", "#F0A3A1", "#FCE8E7"]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Void Black",
+        "canonical": "#080808",
+        "tonalRamp": ["#050505", "#080808", "#0F0F0F", "#141414", "#1C1C1C", "#2A2A2A", "#6B7280", "#E5E7EB"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#141414",
+        "tonalRamp": ["#080808", "#0F0F0F", "#141414", "#1C1C1C", "#202020", "#2A2A2A", "#6B7280", "#F3F4F6"]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Surface 2",
+        "canonical": "#202020",
+        "tonalRamp": ["#080808", "#141414", "#1C1C1C", "#202020", "#2A2A2A", "#3F3F46", "#9CA3AF", "#F9FAFB"]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "canonical": "#1C1C1C",
+        "tonalRamp": ["#080808", "#141414", "#1C1C1C", "#202020", "#2A2A2A", "#52525B", "#A1A1AA", "#FAFAFA"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "canonical": "#2A2A2A",
+        "tonalRamp": ["#141414", "#1C1C1C", "#2A2A2A", "#3F3F46", "#52525B", "#71717A", "#A1A1AA", "#E4E4E7"]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Text Primary",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["#6B7280", "#9CA3AF", "#D1D5DB", "#E5E7EB", "#F3F4F6", "#F9FAFB", "#FFFFFF", "#FFFFFF"]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Text Secondary",
+        "canonical": "#9CA3AF",
+        "tonalRamp": ["#374151", "#4B5563", "#6B7280", "#9CA3AF", "#D1D5DB", "#E5E7EB", "#F3F4F6", "#FFFFFF"]
+      },
+      "text-disabled": {
+        "role": "neutral",
+        "displayName": "Text Disabled",
+        "canonical": "#6B7280",
+        "tonalRamp": ["#1F2937", "#374151", "#4B5563", "#6B7280", "#9CA3AF", "#D1D5DB", "#E5E7EB", "#F9FAFB"]
+      },
+      "success": {
+        "role": "secondary",
+        "displayName": "Success",
+        "canonical": "#22C55E",
+        "tonalRamp": ["#052E16", "#14532D", "#166534", "#16A34A", "#22C55E", "#4ADE80", "#86EFAC", "#DCFCE7"]
+      },
+      "warning": {
+        "role": "secondary",
+        "displayName": "Warning",
+        "canonical": "#F59E0B",
+        "tonalRamp": ["#451A03", "#78350F", "#B45309", "#D97706", "#F59E0B", "#FBBF24", "#FDE68A", "#FFFBEB"]
+      },
+      "error": {
+        "role": "secondary",
+        "displayName": "Error",
+        "canonical": "#EF4444",
+        "tonalRamp": ["#450A0A", "#7F1D1D", "#B91C1C", "#DC2626", "#EF4444", "#F87171", "#FECACA", "#FEF2F2"]
+      },
+      "info": {
+        "role": "secondary",
+        "displayName": "Info",
+        "canonical": "#3B82F6",
+        "tonalRamp": ["#172554", "#1E3A8A", "#1D4ED8", "#2563EB", "#3B82F6", "#60A5FA", "#BFDBFE", "#EFF6FF"]
+      },
+      "toxic": {
+        "role": "tertiary",
+        "displayName": "Toxic Violet",
+        "canonical": "#8B5CF6",
+        "tonalRamp": ["#2E1065", "#4C1D95", "#6D28D9", "#7C3AED", "#8B5CF6", "#A78BFA", "#DDD6FE", "#F5F3FF"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Landing brand lockup only." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles and result emphasis." },
+      "title": { "displayName": "Title", "purpose": "Card and panel titles." },
+      "body": { "displayName": "Body", "purpose": "Thai instructional and educational copy." },
+      "label": { "displayName": "Label", "purpose": "Form labels, helpers, badges." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 4px 24px rgba(0, 0, 0, 0.4)", "purpose": "Resting panels and cards." },
+      { "name": "popup", "value": "0 8px 32px rgba(0, 0, 0, 0.55)", "purpose": "Modals and hotspot detail." },
+      { "name": "glow-red", "value": "0 0 20px rgba(229, 57, 53, 0.45)", "purpose": "Danger / primary emphasis." },
+      { "name": "glow-green", "value": "0 0 20px rgba(34, 197, 94, 0.4)", "purpose": "Completion / success emphasis." }
+    ],
+    "motion": [
+      { "name": "fast", "value": "150ms", "purpose": "Button press / micro feedback." },
+      { "name": "normal", "value": "200ms", "purpose": "Default UI color transitions." },
+      { "name": "slow", "value": "300ms", "purpose": "Panel / mode transitions." },
+      { "name": "slower", "value": "500ms", "purpose": "Entrance / hero motion." },
+      { "name": "hotspot-pulse", "value": "2s ease-in-out infinite", "purpose": "Unvisited hotspot attention; disabled under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Learner primary CTA — Signal Red, large touch height.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">เริ่มเรียนรู้</button>",
+      "css": ".ds-btn-primary { background: var(--primary, #E53935); color: #fff; padding: 12px 40px; height: 56px; border: none; border-radius: 24px; font-family: \"Space Grotesk\", sans-serif; font-weight: 600; font-size: 16px; cursor: pointer; transition: background 150ms ease; } .ds-btn-primary:hover { background: var(--primary-hover, #C62828); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.5); } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action on dark background.",
+      "html": "<button class=\"ds-btn-outline\" type=\"button\">ดูรายละเอียด</button>",
+      "css": ".ds-btn-outline { background: #080808; color: #fff; padding: 12px 24px; height: 44px; border: 1px solid #2A2A2A; border-radius: 24px; font-family: \"Noto Sans Thai\", sans-serif; font-weight: 500; font-size: 14px; cursor: pointer; transition: background 150ms ease, color 150ms ease; } .ds-btn-outline:hover { background: #141414; } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.5); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Registration and form fields on dark surfaces.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"กรอกชื่อเล่น\" />",
+      "css": ".ds-input { width: 100%; height: 44px; padding: 8px 10px; border: 1px solid #2A2A2A; border-radius: 12px; background: transparent; color: #fff; font-family: \"Noto Sans Thai\", sans-serif; font-size: 16px; } .ds-input::placeholder { color: #9CA3AF; } .ds-input:focus-visible { outline: none; border-color: #E53935; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.35); } .ds-input[aria-invalid=\"true\"] { border-color: #EF4444; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge-default",
+      "description": "Compact status / chemical label pill.",
+      "html": "<span class=\"ds-badge\">LAB REPORT</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; height: 20px; padding: 2px 8px; border-radius: 999px; background: #E53935; color: #fff; font-family: \"Noto Sans Thai\", sans-serif; font-size: 12px; font-weight: 500; }"
+    },
+    {
+      "name": "Card Surface",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Grouped learner panel on charcoal card.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">จุดที่สำรวจแล้ว</h3><p class=\"ds-card-body\">1/5</p></div>",
+      "css": ".ds-card { background: #1C1C1C; color: #fff; border: 1px solid #2A2A2A; border-radius: 24px; padding: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); font-family: \"Noto Sans Thai\", sans-serif; } .ds-card-title { margin: 0; font-family: \"Space Grotesk\", sans-serif; font-size: 14px; font-weight: 600; } .ds-card-body { margin: 8px 0 0; color: #9CA3AF; font-size: 14px; line-height: 1.6; }"
+    },
+    {
+      "name": "App Navbar",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Sticky dark header with back control and title.",
+      "html": "<header class=\"ds-nav\"><button class=\"ds-nav-back\" aria-label=\"ย้อนกลับ\" type=\"button\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M19 12H5\"/><path d=\"M12 19l-7-7 7-7\"/></svg></button><span class=\"ds-nav-title\">Anatomy 3D</span></header>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 8px; height: 56px; padding: 0 16px; background: rgba(8,8,8,0.95); border-bottom: 1px solid #2A2A2A; color: #fff; } .ds-nav-back { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: none; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; } .ds-nav-back:hover { background: #141414; } .ds-nav-back:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.5); } .ds-nav-title { font-family: \"Space Grotesk\", sans-serif; font-weight: 700; font-size: 16px; }"
+    },
+    {
+      "name": "Hotspot Marker",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Unvisited toxin hotspot — pulsing Signal Red disc.",
+      "html": "<button class=\"ds-hotspot\" type=\"button\" aria-label=\"จุดสารพิษ\"></button>",
+      "css": ".ds-hotspot { width: 44px; height: 44px; border-radius: 999px; border: 2px solid #E53935; background: rgba(229,57,53,0.35); box-shadow: 0 0 20px rgba(229,57,53,0.45); cursor: pointer; } .ds-hotspot:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(229,57,53,0.55), 0 0 20px rgba(229,57,53,0.45); } @media (prefers-reduced-motion: no-preference) { .ds-hotspot { animation: ds-hotspot-pulse 2s ease-in-out infinite; } } @keyframes ds-hotspot-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.75; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Explore the Truth Inside",
+    "overview": "The visual system is a dark, clinical-danger education interface: near-black voids, restrained charcoal surfaces, and a single sharp red accent that means risk, selection, and primary action. Typography pairs Space Grotesk for brand/headings with Noto Sans Thai for readable Thai body copy. Density is mobile-first and task-oriented—Operate surfaces stay quieter than the Persuade landing hero. Depth comes from soft card/popup shadows plus intentional red/green glow only on danger or completion signals.",
+    "keyCharacteristics": [
+      "Dark-first (#080808) educational product UI",
+      "One primary accent red for danger + CTA (use sparingly)",
+      "Dual type: Space Grotesk + Noto Sans Thai",
+      "Soft-radius containers (12–24px), pill for chips/modes",
+      "Signature interactions: hotspot pulse, exploded 3D, glow on danger/success"
+    ],
+    "rules": [
+      { "name": "The One Red Rule", "body": "Primary red is for danger signals and the single most important action on a screen—not every active chrome piece at once.", "section": "colors" },
+      { "name": "The No Grid Wallpaper Rule", "body": "Do not use tiled hairline grid-line gradients as decorative page backgrounds; reserve structural lines for real measurement/canvas contexts.", "section": "colors" },
+      { "name": "The Brand-First Rule", "body": "On the landing first viewport, “Anatomy of Vapes” is the loudest type; Thai subtitle and body support it—they do not overpower it.", "section": "typography" },
+      { "name": "The Phone Session Rule", "body": "Design every learner path as if held in one hand in a noisy classroom—large primary controls, minimal competing chrome.", "section": "layout" },
+      { "name": "The Glow-With-Meaning Rule", "body": "Red/green glow is semantic feedback, not ambient decoration on every surface.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the first landing viewport to brand + one headline/support line + one CTA + one visual anchor.",
+      "Do use Signal Red for danger markers and the true primary action of the moment.",
+      "Do write learner-facing instructional copy primarily in Thai; keep English for brand and necessary chemical names as secondary.",
+      "Do respect prefers-reduced-motion for hotspot pulse and entrance motion.",
+      "Do size interactive targets for thumbs (aim 44×44 CSS px on learner-critical controls)."
+    ],
+    "donts": [
+      "Don't tile decorative CSS grid-line backgrounds on marketing or learning pages.",
+      "Don't flood a screen with primary red on tabs, pills, markers, and CTAs simultaneously.",
+      "Don't invent partner claims, medical testimonials, or clinical guarantees not in Evidence on Hand.",
+      "Don't treat green visited markers as “safe/healthy”—they mean completed exploration in this product.",
+      "Don't add purple atmospheric decoration as a general theme; toxic violet is semantic, not wallpaper."
+    ]
+  }
+}

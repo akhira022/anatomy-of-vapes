@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Menu } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
 
 interface AppNavbarProps {
   title?: string;
@@ -41,15 +42,7 @@ export function AppNavbar({
             {title}
           </span>
         </div>
-        {rightSlot ?? (
-          <button
-            type="button"
-            aria-label="เมนู"
-            className="flex size-10 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
-          >
-            <Menu className="size-5" />
-          </button>
-        )}
+        {rightSlot ?? <UserSessionMenu />}
       </nav>
     </header>
   );

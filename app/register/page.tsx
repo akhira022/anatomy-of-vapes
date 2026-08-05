@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { AppNavbar } from "@/components/layout/AppNavbar";
+import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
 import { PdpaModal } from "@/components/popup/PdpaModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,21 +20,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createUser, saveConsent } from "@/lib/db";
+import { createUser, findUserByNickname, hasQuizResult, saveConsent } from "@/lib/db";
+import { isLoggedIn, phaseToPath } from "@/lib/phase";
 import {
   gradeOptions,
   registerSchema,
   type RegisterFormValues,
 } from "@/lib/validations";
+import { useHydrated } from "@/hooks/useRequirePhase";
 import { useQuizStore } from "@/store/useQuizStore";
 import type { Grade } from "@/types";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const hydrated = useHydrated();
   const [submitting, setSubmitting] = useState(false);
+  const nickname = useQuizStore((s) => s.nickname);
+  const consentAccepted = useQuizStore((s) => s.consentAccepted);
+  const currentPhase = useQuizStore((s) => s.currentPhase);
   const setUser = useQuizStore((s) => s.setUser);
   const setConsentAccepted = useQuizStore((s) => s.setConsentAccepted);
   const setPhase = useQuizStore((s) => s.setPhase);
+  const setResultSaved = useQuizStore((s) => s.setResultSaved);
   const resetQuiz = useQuizStore((s) => s.resetQuiz);
 
   const {
@@ -49,9 +58,37 @@ export default function RegisterPage() {
     },
   });
 
+  useEffect(() => {
+    if (!hydrated) return;
+    if (isLoggedIn({ nickname, consentAccepted })) {
+      router.replace(phaseToPath(currentPhase));
+    }
+  }, [hydrated, nickname, consentAccepted, currentPhase, router]);
+
   const onSubmit = async (values: RegisterFormValues) => {
     setSubmitting(true);
     try {
+      const existing = await findUserByNickname(values.nickname);
+      if (existing && "error" in existing) {
+        const canContinueOffline =
+          existing.error.includes("ออฟไลน์") ||
+          existing.error.includes("migration");
+        if (!canContinueOffline) {
+          toast.error(existing.error);
+          return;
+        }
+      } else if (existing) {
+        resetQuiz();
+        setUser(existing.nickname, existing.grade as Grade, existing.id);
+        setConsentAccepted(true);
+        const alreadySaved = await hasQuizResult(existing.id);
+        setResultSaved(alreadySaved === true);
+        setPhase("pretest");
+        toast.success("พบบัญชีเดิม — เข้าสู่ระบบให้แล้ว");
+        router.push("/pretest");
+        return;
+      }
+
       resetQuiz();
       const created = await createUser({
         nickname: values.nickname,
@@ -86,7 +123,12 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <AppNavbar title="ลงทะเบียน" showBack backHref="/" />
+      <AppNavbar
+        title="ลงทะเบียน"
+        showBack
+        backHref="/"
+        rightSlot={<UserSessionMenu />}
+      />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-8 sm:px-6">
         <h1 className="font-heading text-2xl font-bold text-textPrimary">
           ยินยอมและเริ่มต้น
@@ -183,6 +225,15 @@ export default function RegisterPage() {
             >
               ไม่ยอมรับ
             </Button>
+            <p className="text-center text-sm text-textSecondary">
+              เคยลงทะเบียนแล้ว?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                เข้าสู่ระบบ
+              </Link>
+            </p>
           </div>
         </form>
       </main>

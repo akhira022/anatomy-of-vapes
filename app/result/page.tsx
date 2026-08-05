@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Trophy, Star } from "lucide-react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
@@ -12,15 +13,18 @@ import { useQuizStore } from "@/store/useQuizStore";
 import { toast } from "sonner";
 
 export default function ResultPage() {
+  const router = useRouter();
   const hydrated = useHydrated();
   const ready = useRequirePhase("result");
   const nickname = useQuizStore((s) => s.nickname);
   const userId = useQuizStore((s) => s.userId);
   const preScore = useQuizStore((s) => s.preScore);
   const postScore = useQuizStore((s) => s.postScore);
+  const preAnswers = useQuizStore((s) => s.preAnswers);
+  const postAnswers = useQuizStore((s) => s.postAnswers);
   const resultSaved = useQuizStore((s) => s.resultSaved);
   const setResultSaved = useQuizStore((s) => s.setResultSaved);
-  const resetQuiz = useQuizStore((s) => s.resetQuiz);
+  const resetProgress = useQuizStore((s) => s.resetProgress);
 
   const improvement = postScore - preScore;
   const improved = improvement > 0;
@@ -42,6 +46,8 @@ export default function ResultPage() {
         postScore,
         preTotal: 5,
         postTotal: 5,
+        preAnswers,
+        postAnswers,
       });
       if (cancelled) return;
       if ("error" in result) {
@@ -49,6 +55,9 @@ export default function ResultPage() {
         return;
       }
       setResultSaved(true);
+      if (result.skipped) {
+        toast.message("รอบนี้เป็นแบบฝึกซ้ำ — ไม่บันทึกลงฐานข้อมูล");
+      }
     })();
 
     return () => {
@@ -61,6 +70,8 @@ export default function ResultPage() {
     userId,
     preScore,
     postScore,
+    preAnswers,
+    postAnswers,
     setResultSaved,
   ]);
 
@@ -144,8 +155,10 @@ export default function ResultPage() {
             type="button"
             variant="outline"
             className="h-12 rounded-2xl text-base"
-            render={<Link href="/register" onClick={() => resetQuiz()} />}
-            nativeButton={false}
+            onClick={() => {
+              resetProgress();
+              router.push("/pretest");
+            }}
           >
             เรียนอีกครั้ง
           </Button>

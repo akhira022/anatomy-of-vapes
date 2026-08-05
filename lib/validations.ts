@@ -25,6 +25,16 @@ export const registerSchema = z.object({
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
+export const learnerLoginSchema = z.object({
+  nickname: z
+    .string()
+    .trim()
+    .min(2, "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร")
+    .max(20, "ชื่อต้องไม่เกิน 20 ตัวอักษร"),
+});
+
+export type LearnerLoginFormValues = z.infer<typeof learnerLoginSchema>;
+
 export const adminLoginSchema = z.object({
   email: z.string().email("อีเมลไม่ถูกต้อง"),
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),

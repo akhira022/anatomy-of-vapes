@@ -29,6 +29,15 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
     return () => document.removeEventListener("fullscreenchange", sync);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
   if (!portalTarget) return null;
 
   return createPortal(
@@ -73,12 +82,13 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
               </div>
               <Button
                 type="button"
-                size="icon-sm"
+                size="icon-lg"
                 variant="ghost"
                 aria-label="ปิด"
+                className="size-11 shrink-0"
                 onClick={onClose}
               >
-                <X className="size-4" />
+                <X className="size-5" />
               </Button>
             </div>
 
@@ -101,14 +111,14 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
 
               {myth ? (
                 <div className="rounded-xl border border-toxic/40 bg-toxic/10 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-toxic">
-                    Myth vs Fact
+                  <p className="text-xs font-semibold tracking-wide text-toxic">
+                    ความเข้าใจผิด vs ข้อเท็จจริง
                   </p>
                   <p className="mt-2 text-sm text-textSecondary">
-                    <span className="font-semibold text-error">❌ {myth.myth}</span>
+                    <span className="font-semibold text-error">ความเข้าใจผิด: {myth.myth}</span>
                   </p>
                   <p className="mt-1 text-sm text-textPrimary">
-                    <span className="font-semibold text-success">✅ {myth.fact}</span>
+                    <span className="font-semibold text-success">ข้อเท็จจริง: {myth.fact}</span>
                   </p>
                 </div>
               ) : null}
