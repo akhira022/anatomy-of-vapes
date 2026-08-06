@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Trophy, Star } from "lucide-react";
+import { Box, Trophy, Star } from "lucide-react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { Button } from "@/components/ui/button";
 import { saveQuizResult } from "@/lib/db";
@@ -152,6 +152,14 @@ export default function ResultPage() {
 
         <div className="mt-auto flex w-full flex-col gap-3 pt-10">
           <Button
+            render={<Link href="/anatomy" />}
+            nativeButton={false}
+            className="h-12 rounded-2xl text-base font-semibold shadow-glowRed"
+          >
+            <Box className="size-5" aria-hidden="true" />
+            ดูโมเดลอีกครั้ง
+          </Button>
+          <Button
             type="button"
             variant="outline"
             className="h-12 rounded-2xl text-base"
@@ -165,7 +173,8 @@ export default function ResultPage() {
           <Button
             render={<Link href="/" />}
             nativeButton={false}
-            className="h-12 rounded-2xl text-base font-semibold"
+            variant="ghost"
+            className="h-12 rounded-2xl text-base"
           >
             กลับหน้าหลัก
           </Button>

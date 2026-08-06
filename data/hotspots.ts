@@ -9,14 +9,16 @@ export interface HotspotContent extends HotspotData {
   mythId?: string;
 }
 
-/** เนื้อหาจุดสำรวจบนโมเดล 3D */
+/** เนื้อหาจุดสำรวจบนโมเดล 3D
+ * position = offset จากศูนย์กลางชิ้น (meshName) ไม่ใช่พิกัดโลก
+ */
 export const hotspots: HotspotContent[] = [
   {
     id: "hs-nicotine",
     chapter: 1,
     label: "นิโคติน",
     description: "สารเสพติดหลักในน้ำยาบุหรี่ไฟฟ้า",
-    position: { x: 0, y: 1.2, z: 0.35 },
+    position: { x: 0, y: 0.06, z: 0.48 },
     meshName: "mouthpiece",
     classification: "สารเสพติด",
     foundIn: "น้ำยาบุหรี่ไฟฟ้าและไอที่สูดเข้าไป",
@@ -30,7 +32,7 @@ export const hotspots: HotspotContent[] = [
     chapter: 2,
     label: "พีจีและวีจี",
     description: "ตัวทำละลายที่สร้างไอและรสชาติ",
-    position: { x: 0.15, y: 0.35, z: 0.4 },
+    position: { x: 0.18, y: 0.12, z: 0.48 },
     meshName: "coilTank",
     classification: "ตัวทำละลาย",
     foundIn: "ส่วนประกอบหลักของน้ำยาบุหรี่ไฟฟ้า",
@@ -44,7 +46,7 @@ export const hotspots: HotspotContent[] = [
     chapter: 2,
     label: "ฟอร์มาลดีไฮด์",
     description: "สารก่อมะเร็งที่อาจเกิดเมื่อความร้อนสูง",
-    position: { x: -0.2, y: 0.2, z: 0.45 },
+    position: { x: -0.2, y: 0.02, z: 0.5 },
     meshName: "coilTank",
     classification: "สารก่อมะเร็ง",
     foundIn: "เกิดจากการสลายตัวของน้ำยาเมื่อคอยล์ร้อนจัด",
@@ -58,7 +60,7 @@ export const hotspots: HotspotContent[] = [
     chapter: 2,
     label: "อะโครลีน",
     description: "สารพิษที่ระคายเคืองปอดรุนแรง",
-    position: { x: 0.25, y: 0.05, z: 0.35 },
+    position: { x: 0.22, y: -0.1, z: 0.46 },
     meshName: "coilTank",
     classification: "สารระคายเคือง",
     foundIn: "เกิดเมื่อพีจี/วีจีถูกความร้อนสูง",
@@ -71,7 +73,7 @@ export const hotspots: HotspotContent[] = [
     chapter: 3,
     label: "ลิเธียมและโลหะหนัก",
     description: "ความเสี่ยงจากแบตเตอรี่และโลหะหนัก",
-    position: { x: 0, y: -0.85, z: 0.35 },
+    position: { x: 0, y: 0.08, z: 0.48 },
     meshName: "battery",
     classification: "ความเสี่ยงทางกายภาพ",
     foundIn: "แบตเตอรี่ลิเธียม แผงวงจร และชิ้นส่วนโลหะ",

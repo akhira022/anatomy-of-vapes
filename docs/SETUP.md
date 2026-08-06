@@ -81,7 +81,7 @@ node scripts/apply-supabase-migration.mjs
 - Quiz copy: `data/quiz-questions.ts`
 - Hotspot copy: `data/hotspots.ts`
 - Myth vs Fact: `data/myths.ts`
-- 3D model: swap `components/three/VapeModel.tsx` for `public/models/vape.glb` via `useGLTF`
+- 3D model parts: `public/models/mouthpiece.glb`, `coilTank.glb`, `battery.glb` (loaded in `components/three/VapeModel.tsx`)
 
 ## 6. Deploy (Vercel)
 

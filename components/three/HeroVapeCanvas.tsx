@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { VapeModel } from "@/components/three/VapeModel";
 import { usePreferLite3D } from "@/hooks/usePreferLite3D";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 interface HeroVapeCanvasProps {
   reducedMotion?: boolean;
@@ -11,6 +12,11 @@ interface HeroVapeCanvasProps {
 
 export function HeroVapeCanvas({ reducedMotion = false }: HeroVapeCanvasProps) {
   const lite = usePreferLite3D();
+  const { theme } = useTheme();
+  const sceneBg = useMemo(
+    () => (theme === "light" ? "#f7f7f8" : "#080808"),
+    [theme]
+  );
 
   return (
     <Canvas
@@ -20,9 +26,12 @@ export function HeroVapeCanvas({ reducedMotion = false }: HeroVapeCanvasProps) {
       gl={{ antialias: !lite, alpha: true, powerPreference: "high-performance" }}
       style={{ background: "transparent" }}
     >
-      <color attach="background" args={["#080808"]} />
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[3, 5, 2]} intensity={1.15} />
+      <color attach="background" args={[sceneBg]} />
+      <ambientLight intensity={theme === "light" ? 0.95 : 0.7} />
+      <directionalLight
+        position={[3, 5, 2]}
+        intensity={theme === "light" ? 1.35 : 1.15}
+      />
       <pointLight position={[-2, 1, 2]} intensity={0.45} color="#E53935" />
       <Suspense fallback={null}>
         <group position={[0, -0.15, 0]} scale={1.05}>

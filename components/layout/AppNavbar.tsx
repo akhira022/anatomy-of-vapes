@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
 
 interface AppNavbarProps {
@@ -42,7 +43,10 @@ export function AppNavbar({
             {title}
           </span>
         </div>
-        {rightSlot ?? <UserSessionMenu />}
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          {rightSlot ?? <UserSessionMenu />}
+        </div>
       </nav>
     </header>
   );

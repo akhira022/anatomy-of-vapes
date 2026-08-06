@@ -44,6 +44,15 @@ export function useRequirePhase(required: AppPhase) {
       return;
     }
 
+    // Completed learners may reopen anatomy in review mode without leaving result phase.
+    if (
+      required === "anatomy" &&
+      currentPhase === "result"
+    ) {
+      setReady(true);
+      return;
+    }
+
     if (
       required === "posttest" &&
       visitedHotspots.length < hotspots.length &&

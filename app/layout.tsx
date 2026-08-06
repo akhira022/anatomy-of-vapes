@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Noto_Sans_Thai, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
-import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { ThemedToaster } from "@/components/theme/ThemedToaster";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -35,23 +37,24 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${spaceGrotesk.variable} ${notoSansThai.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${notoSansThai.variable} ${geistMono.variable} dark h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        {children}
-        <Toaster theme="dark" richColors position="top-center" />
+        <ThemeProvider>
+          {children}
+          <ThemedToaster />
+        </ThemeProvider>
         <Analytics />
         {gaId ? (
           <>
-            <script
-              async
+            <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
             />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`,
-              }}
-            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`}
+            </Script>
           </>
         ) : null}
       </body>

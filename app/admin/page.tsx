@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ResultsTable } from "@/components/dashboard/ResultsTable";
 import { ExportButton } from "@/components/dashboard/ExportButton";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { getAdminStats, type AdminStats } from "@/lib/db";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -148,6 +149,7 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <ExportButton rows={rows} />
             <Button
               type="button"

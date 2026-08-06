@@ -59,7 +59,7 @@ export function Hero() {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_35%,transparent_20%,rgba(8,8,8,0.55)_70%,#080808_100%)]"
+        className="pointer-events-none absolute inset-0 bg-hero-vignette"
       />
       <div
         aria-hidden="true"
@@ -101,13 +101,33 @@ export function Hero() {
                 <p className="text-sm text-textSecondary">
                   สวัสดี คุณ{nickname}
                 </p>
-                <Button
-                  render={<Link href={phaseToPath(currentPhase)} />}
-                  nativeButton={false}
-                  className="h-14 w-full rounded-2xl px-10 text-base font-semibold shadow-glowRed sm:text-lg"
-                >
-                  ดำเนินการต่อ
-                </Button>
+                {currentPhase === "result" ? (
+                  <>
+                    <Button
+                      render={<Link href="/anatomy" />}
+                      nativeButton={false}
+                      className="h-14 w-full rounded-2xl px-10 text-base font-semibold shadow-glowRed sm:text-lg"
+                    >
+                      ดูโมเดลอีกครั้ง
+                    </Button>
+                    <Button
+                      render={<Link href="/result" />}
+                      nativeButton={false}
+                      variant="outline"
+                      className="h-12 w-full rounded-2xl text-base"
+                    >
+                      ดูผลลัพธ์
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    render={<Link href={phaseToPath(currentPhase)} />}
+                    nativeButton={false}
+                    className="h-14 w-full rounded-2xl px-10 text-base font-semibold shadow-glowRed sm:text-lg"
+                  >
+                    ดำเนินการต่อ
+                  </Button>
+                )}
                 <div className="flex w-full gap-2">
                   <Button
                     type="button"

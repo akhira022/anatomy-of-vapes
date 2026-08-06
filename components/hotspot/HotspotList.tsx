@@ -60,7 +60,7 @@ export function HotspotList({
                   className={cn(
                     "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
                     visited
-                      ? "border-success bg-success text-background"
+                      ? "border-success bg-success text-white"
                       : "border-primary bg-primary/20 text-primary"
                   )}
                   aria-hidden="true"

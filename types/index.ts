@@ -71,7 +71,7 @@ export interface HotspotData {
   label: string;
   description: string;
   position: HotspotPosition;
-  /** ชื่อ mesh/part บนโมเดล (ถ้ามี) */
+  /** ชื่อ mesh/part บนโมเดล — position เป็น offset จากศูนย์กลางชิ้นนี้ */
   meshName?: string;
   /** รูปประกอบ */
   imageUrl?: string;

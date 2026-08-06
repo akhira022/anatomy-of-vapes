@@ -42,12 +42,16 @@ export default function AnatomyPage() {
   const [mode, setMode] = useState<ViewMode>("whole");
   const [popupOpen, setPopupOpen] = useState(false);
 
+  const currentPhase = useQuizStore((s) => s.currentPhase);
   const visitedHotspots = useQuizStore((s) => s.visitedHotspots);
   const selectedHotspotId = useQuizStore((s) => s.selectedHotspotId);
   const markHotspotVisited = useQuizStore((s) => s.markHotspotVisited);
   const setSelectedHotspotId = useQuizStore((s) => s.setSelectedHotspotId);
   const setPhase = useQuizStore((s) => s.setPhase);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
+
+  /** After post-test, learners can revisit the model without restarting the flow. */
+  const isReview = currentPhase === "result";
 
   const selected = useMemo(
     () => hotspots.find((h) => h.id === selectedHotspotId) ?? null,
@@ -78,18 +82,37 @@ export default function AnatomyPage() {
     if (mode === "whole") setMode("exploded");
   };
 
+  const goNextHotspot = () => {
+    if (!nextHotspot) return;
+    handleHotspotClick(nextHotspot.id);
+  };
+
   const goPosttest = () => {
-    if (!allVisited) return;
+    if (!allVisited || isReview) return;
     setQuestionIndex(0);
     setPhase("posttest");
     router.push("/posttest");
   };
 
+  const goResult = () => {
+    router.push("/result");
+  };
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <AppNavbar title="สำรวจ 3 มิติ" showBack backHref="/pretest" />
+      <AppNavbar
+        title={isReview ? "ทบทวนโมเดล 3D" : "สำรวจ 3 มิติ"}
+        showBack
+        backHref={isReview ? "/result" : "/pretest"}
+      />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-3 px-4 py-4 sm:gap-4 sm:px-6">
-        <Stepper current="anatomy" />
+        {isReview ? (
+          <p className="rounded-2xl border border-border bg-card px-4 py-3 text-sm leading-relaxed text-textSecondary">
+            โหมดทบทวน — สำรวจโมเดลและจุดสารพิษได้อิสระ ไม่กระทบคะแนนที่ทำไว้แล้ว
+          </p>
+        ) : (
+          <Stepper current="anatomy" />
+        )}
 
         <div
           role="group"
@@ -117,9 +140,15 @@ export default function AnatomyPage() {
         <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,520px)]">
           <VapeScene
             exploded={mode === "exploded"}
+            onExplodedChange={(next) =>
+              setMode(next ? "exploded" : "whole")
+            }
             visitedHotspots={visitedHotspots}
             selectedHotspotId={selectedHotspotId}
             onHotspotClick={handleHotspotClick}
+            hotspotItems={hotspots}
+            nextHotspotId={nextHotspot?.id ?? null}
+            onNextHotspot={goNextHotspot}
           />
         </div>
 
@@ -149,7 +178,11 @@ export default function AnatomyPage() {
             )}
           </div>
 
-          {!allVisited ? (
+          {isReview ? (
+            <p className="mt-3 rounded-xl bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary">
+              ทบทวนจุดสารพิษได้ตามต้องการ — กดกลับเมื่อพร้อม
+            </p>
+          ) : !allVisited ? (
             <p className="mt-3 rounded-xl bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary">
               ยังเหลืออีก{" "}
               <span className="font-semibold text-primary">
@@ -176,6 +209,16 @@ export default function AnatomyPage() {
           </p>
 
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            {!allVisited && nextHotspot ? (
+              <Button
+                type="button"
+                className="h-11 flex-1 rounded-2xl font-semibold shadow-glowRed"
+                onClick={goNextHotspot}
+              >
+                จุดถัดไป: {nextHotspot.label}
+                <ArrowRight className="size-4" />
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -185,7 +228,16 @@ export default function AnatomyPage() {
             >
               ดูรายละเอียด
             </Button>
-            {allVisited ? (
+            {isReview ? (
+              <Button
+                type="button"
+                className="h-11 flex-1 rounded-2xl font-semibold shadow-glowRed"
+                onClick={goResult}
+              >
+                กลับไปดูผลลัพธ์
+                <ArrowRight className="size-4" />
+              </Button>
+            ) : allVisited ? (
               <Button
                 type="button"
                 className="h-11 flex-1 rounded-2xl font-semibold shadow-glowRed"
