@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { useQuizStore } from "@/store/useQuizStore";
 import type { AppPhase } from "@/types";
 import { hotspots } from "@/data/hotspots";
@@ -19,7 +19,7 @@ function phaseIndex(phase: AppPhase) {
 }
 
 export function useRequirePhase(required: AppPhase) {
-  const router = useRouter();
+  const router = useAppRouter();
   const [ready, setReady] = useState(false);
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);

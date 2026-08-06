@@ -2,10 +2,12 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { usePreferLite3D } from "@/hooks/usePreferLite3D";
 import { useHydrated } from "@/hooks/useRequirePhase";
 import { isLoggedIn, phaseToPath } from "@/lib/phase";
 import { useQuizStore } from "@/store/useQuizStore";
@@ -16,18 +18,29 @@ const HeroVapeCanvas = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-hero-atmosphere"
+      <ModelLoadingOverlay
+        className="absolute inset-0"
+        label="กำลังโหลดโมเดล…"
       />
     ),
   }
 );
 
+/** Lightweight hero backdrop — avoids ~16MB GLB + Three.js on phones. */
+function HeroStaticBackdrop() {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-background" aria-hidden="true">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_38%,color-mix(in_oklab,var(--primary)_32%,transparent),transparent_62%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_70%,color-mix(in_oklab,var(--primary)_12%,transparent),transparent_50%)] opacity-80" />
+    </div>
+  );
+}
+
 export function Hero() {
   const reduceMotion = useReducedMotion();
+  const lite3d = usePreferLite3D();
   const hydrated = useHydrated();
-  const router = useRouter();
+  const router = useAppRouter();
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const currentPhase = useQuizStore((s) => s.currentPhase);
@@ -54,7 +67,11 @@ export function Hero() {
       className="relative isolate flex min-h-[min(100dvh,52rem)] flex-col justify-end overflow-hidden bg-background"
     >
       <div className="absolute inset-0" aria-hidden="true">
-        <HeroVapeCanvas reducedMotion={Boolean(reduceMotion)} />
+        {lite3d ? (
+          <HeroStaticBackdrop />
+        ) : (
+          <HeroVapeCanvas reducedMotion={Boolean(reduceMotion)} />
+        )}
       </div>
 
       <div

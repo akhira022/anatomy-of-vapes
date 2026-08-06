@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { ArrowRight } from "lucide-react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { Stepper } from "@/components/layout/Stepper";
@@ -21,9 +22,7 @@ const VapeScene = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full items-center justify-center rounded-2xl border border-border bg-surface text-textSecondary">
-        กำลังโหลดโมเดล 3 มิติ...
-      </div>
+      <ModelLoadingOverlay className="h-full min-h-[20rem] w-full rounded-2xl border border-border" />
     ),
   }
 );
@@ -36,11 +35,17 @@ const modeOptions = [
 ] as const;
 
 export default function AnatomyPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const hydrated = useHydrated();
   const ready = useRequirePhase("anatomy");
   const [mode, setMode] = useState<ViewMode>("whole");
   const [popupOpen, setPopupOpen] = useState(false);
+
+  useEffect(() => {
+    void import("@/components/three/VapeModel").then((m) => {
+      m.preloadVapeModels();
+    });
+  }, []);
 
   const currentPhase = useQuizStore((s) => s.currentPhase);
   const visitedHotspots = useQuizStore((s) => s.visitedHotspots);

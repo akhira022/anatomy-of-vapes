@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { HotspotContent } from "@/data/hotspots";
 import { getMythById } from "@/data/myths";
+import {
+  SCENE_FULLSCREEN_EVENT,
+  getSceneFullscreenRoot,
+} from "@/lib/scene-fullscreen";
 
 interface HotspotPopupProps {
   hotspot: HotspotContent | null;
@@ -19,14 +23,20 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
   const myth = getMythById(hotspot?.mythId);
   const [portalTarget, setPortalTarget] = useState<Element | null>(null);
 
-  // Fullscreen only shows descendants of the fullscreen element, so portal into it.
+  // Native + CSS fullscreen only show descendants of the fullscreen root.
   useEffect(() => {
     const sync = () => {
-      setPortalTarget(document.fullscreenElement ?? document.body);
+      setPortalTarget(getSceneFullscreenRoot() ?? document.body);
     };
     sync();
     document.addEventListener("fullscreenchange", sync);
-    return () => document.removeEventListener("fullscreenchange", sync);
+    document.addEventListener("webkitfullscreenchange", sync);
+    document.addEventListener(SCENE_FULLSCREEN_EVENT, sync);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      document.removeEventListener("webkitfullscreenchange", sync);
+      document.removeEventListener(SCENE_FULLSCREEN_EVENT, sync);
+    };
   }, []);
 
   useEffect(() => {
@@ -44,7 +54,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
     <AnimatePresence>
       {open && hotspot ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
+          className="fixed inset-0 z-[110] flex items-end justify-center bg-black/60 p-4 sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

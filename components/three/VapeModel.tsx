@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { invalidate, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import type { Group, Object3D } from "three";
 import { Box3, Vector3 } from "three";
@@ -46,6 +46,17 @@ type PartMetrics = {
   height: number;
   diameter: number;
 };
+
+/** Bounds only — no clone (layout math must stay cheap). */
+function measureScene(scene: Object3D) {
+  const box = new Box3().setFromObject(scene);
+  const size = new Vector3();
+  box.getSize(size);
+  return {
+    height: Math.max(size.y, 0.001),
+    diameter: Math.max(size.x, size.z, 0.001),
+  };
+}
 
 function prepareScene(scene: Object3D, castShadows: boolean): PartMetrics {
   const root = scene.clone(true);
@@ -96,6 +107,8 @@ function PartModel({
   castShadows: boolean;
 }) {
   const groupRef = useRef<Group>(null);
+  const settled = useRef(false);
+  const mounted = useRef(false);
   const { scene } = useGLTF(path);
 
   const { root } = useMemo(
@@ -104,13 +117,31 @@ function PartModel({
   );
 
   useLayoutEffect(() => {
-    if (groupRef.current) groupRef.current.position.y = targetY;
+    const group = groupRef.current;
+    if (!group) return;
+    if (!mounted.current) {
+      group.position.y = targetY;
+      mounted.current = true;
+      settled.current = true;
+      invalidate();
+      return;
+    }
+    settled.current = false;
+    invalidate();
   }, [targetY]);
 
   useFrame((_, delta) => {
-    if (!groupRef.current) return;
-    groupRef.current.position.y +=
-      (targetY - groupRef.current.position.y) * Math.min(1, delta * 4);
+    const group = groupRef.current;
+    if (!group || settled.current) return;
+    const cur = group.position.y;
+    const diff = targetY - cur;
+    if (Math.abs(diff) < 0.0004) {
+      group.position.y = targetY;
+      settled.current = true;
+      return;
+    }
+    group.position.y += diff * Math.min(1, delta * 5);
+    invalidate();
   });
 
   return (
@@ -140,9 +171,9 @@ export function VapeModel({
   const batt = useGLTF(MODEL_PATHS.battery);
 
   const layout = useMemo(() => {
-    const mouthM = prepareScene(mouth.scene, false);
-    const coilM = prepareScene(coil.scene, false);
-    const battM = prepareScene(batt.scene, false);
+    const mouthM = measureScene(mouth.scene);
+    const coilM = measureScene(coil.scene);
+    const battM = measureScene(batt.scene);
 
     const mouthS = scalesFor("mouthpiece", mouthM.diameter, mouthM.height);
     const coilS = scalesFor("coilTank", coilM.diameter, coilM.height);
@@ -182,6 +213,7 @@ export function VapeModel({
   useFrame((_, delta) => {
     if (!autoSpin || !rootRef.current) return;
     rootRef.current.rotation.y += delta * 0.35;
+    invalidate();
   });
 
   const yOf = (part: PartKey) =>
@@ -232,6 +264,9 @@ export function VapeModel({
   );
 }
 
-useGLTF.preload(MODEL_PATHS.mouthpiece);
-useGLTF.preload(MODEL_PATHS.coilTank);
-useGLTF.preload(MODEL_PATHS.battery);
+/** Call from the anatomy route only — avoid preloading ~16MB GLBs on the homepage. */
+export function preloadVapeModels() {
+  useGLTF.preload(MODEL_PATHS.mouthpiece);
+  useGLTF.preload(MODEL_PATHS.coilTank);
+  useGLTF.preload(MODEL_PATHS.battery);
+}

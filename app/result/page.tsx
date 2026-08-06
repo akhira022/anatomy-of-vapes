@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { motion } from "framer-motion";
 import { Box, Trophy, Star } from "lucide-react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
@@ -13,7 +13,7 @@ import { useQuizStore } from "@/store/useQuizStore";
 import { toast } from "sonner";
 
 export default function ResultPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const hydrated = useHydrated();
   const ready = useRequirePhase("result");
   const nickname = useQuizStore((s) => s.nickname);

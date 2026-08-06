@@ -1,8 +1,20 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
-import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import {
+  ContactShadows,
+  Environment,
+  OrbitControls,
+  PerformanceMonitor,
+} from "@react-three/drei";
 import { VapeModel } from "@/components/three/VapeModel";
 import {
   Check,
@@ -16,13 +28,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePreferLite3D } from "@/hooks/usePreferLite3D";
+import { useSceneFullscreen } from "@/hooks/useSceneFullscreen";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import type { HotspotContent } from "@/data/hotspots";
+import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
 import {
   AnatomyTutorialOverlay,
   HINT_STORAGE_KEY,
 } from "@/components/three/AnatomyTutorialOverlay";
+import { ModelReadySignal } from "@/components/three/ModelReadySignal";
 
 interface OrbitControlsHandle {
   reset: () => void;
@@ -41,6 +56,21 @@ interface VapeSceneProps {
   onNextHotspot?: () => void;
 }
 
+/** Keeps demand-mode canvas painting while explode lerp / camera settle. */
+function InvalidateOnChange({
+  exploded,
+  selectedHotspotId,
+}: {
+  exploded: boolean;
+  selectedHotspotId: string | null;
+}) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    invalidate();
+  }, [exploded, selectedHotspotId, invalidate]);
+  return null;
+}
+
 export function VapeScene({
   exploded,
   onExplodedChange,
@@ -53,8 +83,13 @@ export function VapeScene({
 }: VapeSceneProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<OrbitControlsHandle | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const invalidateRef = useRef<() => void>(() => {});
+  const { isFullscreen, cssFullscreen, toggle: toggleFullscreen, enter } =
+    useSceneFullscreen(rootRef);
   const [showHint, setShowHint] = useState(false);
+  const [modelLoading, setModelLoading] = useState(true);
+  const [dpr, setDpr] = useState<[number, number]>([1, 1.25]);
+  const onModelReady = useCallback(() => setModelLoading(false), []);
   const lite = usePreferLite3D();
   const { theme } = useTheme();
   const isLight = theme === "light";
@@ -71,14 +106,14 @@ export function VapeScene({
     hotspotItems.find((h) => h.id === nextHotspotId)?.label ?? null;
 
   useEffect(() => {
-    const sync = () => {
-      const el = rootRef.current;
-      setIsFullscreen(Boolean(el && document.fullscreenElement === el));
-    };
-    document.addEventListener("fullscreenchange", sync);
-    sync();
-    return () => document.removeEventListener("fullscreenchange", sync);
-  }, []);
+    setDpr(lite ? [1, 1] : [1, 1.5]);
+  }, [lite]);
+
+  useEffect(() => {
+    // CSS/native fullscreen changes layout — force canvas resize + paint.
+    window.dispatchEvent(new Event("resize"));
+    invalidateRef.current();
+  }, [isFullscreen, cssFullscreen]);
 
   useEffect(() => {
     try {
@@ -101,6 +136,7 @@ export function VapeScene({
 
   const resetCamera = () => {
     controlsRef.current?.reset();
+    invalidateRef.current();
   };
 
   const zoomBy = (delta: number) => {
@@ -108,16 +144,7 @@ export function VapeScene({
     if (!controls) return;
     controls.object.position.multiplyScalar(1 + delta);
     controls.update();
-  };
-
-  const toggleFullscreen = () => {
-    const el = rootRef.current;
-    if (!el) return;
-    if (!document.fullscreenElement) {
-      void el.requestFullscreen?.();
-    } else {
-      void document.exitFullscreen?.();
-    }
+    invalidateRef.current();
   };
 
   const controlBtn =
@@ -126,22 +153,53 @@ export function VapeScene({
   return (
     <div
       ref={rootRef}
-      className="relative h-full w-full overflow-hidden rounded-2xl border border-border bg-surface"
+      className={cn(
+        "relative h-full w-full overflow-hidden rounded-2xl border border-border bg-surface",
+        cssFullscreen &&
+          "fixed inset-0 z-[100] h-[100dvh] max-h-[100dvh] w-[100vw] rounded-none border-0"
+      )}
     >
+      {modelLoading ? (
+        <ModelLoadingOverlay className="absolute inset-0 z-[5]" />
+      ) : null}
+
       <div className="absolute inset-0">
         <Canvas
           className="touch-none"
           style={{ width: "100%", height: "100%", display: "block" }}
           camera={{ position: [0, 0.2, 4.2], fov: 42 }}
-          dpr={lite ? [1, 1.25] : [1, 1.75]}
-          gl={{ antialias: !lite, powerPreference: "high-performance" }}
+          dpr={dpr}
+          frameloop="demand"
+          performance={{ min: 0.5, max: 1, debounce: 200 }}
+          gl={{
+            antialias: !lite,
+            powerPreference: lite ? "low-power" : "high-performance",
+            stencil: false,
+            depth: true,
+          }}
           resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
-          onCreated={({ gl }) => {
+          onCreated={({ gl, invalidate }) => {
+            invalidateRef.current = invalidate;
             gl.domElement.style.width = "100%";
             gl.domElement.style.height = "100%";
             gl.domElement.style.display = "block";
           }}
         >
+          <PerformanceMonitor
+            onIncline={() =>
+              setDpr((prev) => {
+                const next: [number, number] = lite ? [1, 1.15] : [1, 1.5];
+                return prev[1] === next[1] ? prev : next;
+              })
+            }
+            onDecline={() =>
+              setDpr((prev) => (prev[1] === 1 ? prev : [1, 1]))
+            }
+          />
+          <InvalidateOnChange
+            exploded={exploded}
+            selectedHotspotId={selectedHotspotId}
+          />
           <color attach="background" args={[sceneBg]} />
           <ambientLight
             intensity={lite ? (isLight ? 0.95 : 0.75) : isLight ? 0.8 : 0.55}
@@ -159,6 +217,7 @@ export function VapeScene({
               onHotspotClick={onHotspotClick}
               castShadows={!lite}
             />
+            <ModelReadySignal onReady={onModelReady} />
             {!lite ? <Environment preset="city" /> : null}
             {!lite ? (
               <ContactShadows
@@ -173,7 +232,7 @@ export function VapeScene({
                 position={[0, -1.55, 0]}
                 receiveShadow={false}
               >
-                <circleGeometry args={[2.2, 32]} />
+                <circleGeometry args={[2.2, 24]} />
                 <meshBasicMaterial
                   color={groundColor}
                   transparent
@@ -186,9 +245,13 @@ export function VapeScene({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ref={controlsRef as any}
             enablePan={false}
+            enableDamping
+            dampingFactor={0.08}
             minDistance={2.4}
             maxDistance={7}
             maxPolarAngle={Math.PI * 0.85}
+            rotateSpeed={lite ? 0.85 : 1}
+            zoomSpeed={lite ? 0.85 : 1}
           />
         </Canvas>
       </div>
@@ -197,10 +260,7 @@ export function VapeScene({
         open={showHint}
         onDismiss={dismissHint}
         onEnterFullscreen={() => {
-          const el = rootRef.current;
-          if (el && !document.fullscreenElement) {
-            void el.requestFullscreen?.();
-          }
+          void enter();
         }}
       />
 
@@ -267,7 +327,7 @@ export function VapeScene({
           variant="secondary"
           aria-label={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
           className={controlBtn}
-          onClick={toggleFullscreen}
+          onClick={() => void toggleFullscreen()}
         >
           {isFullscreen ? (
             <Minimize2 className="size-5" />
@@ -291,7 +351,7 @@ export function VapeScene({
       ) : null}
 
       {isFullscreen ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-background/95 via-background/80 to-transparent px-3 pb-3 pt-8">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-background/95 via-background/80 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8">
           <div
             role="list"
             aria-label="จุดสารพิษ"

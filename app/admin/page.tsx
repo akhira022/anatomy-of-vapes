@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import {
   BarChart3,
   LogOut,
@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 type Tab = "overview" | "results" | "export";
 
 export default function AdminPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const [tab, setTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);

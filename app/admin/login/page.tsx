@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import {
 } from "@/lib/validations";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const [submitting, setSubmitting] = useState(false);
   const {
     register,

@@ -11,6 +11,7 @@ export function usePreferLite3D() {
 
   useEffect(() => {
     const narrow = window.matchMedia("(max-width: 768px)").matches;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
     const cores = navigator.hardwareConcurrency ?? 4;
     const memory = (
       navigator as Navigator & { deviceMemory?: number }
@@ -19,8 +20,11 @@ export function usePreferLite3D() {
     const saveData = (
       navigator as Navigator & { connection?: { saveData?: boolean } }
     ).connection?.saveData;
+    const iOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-    setLite(Boolean(narrow || lowEnd || saveData));
+    setLite(Boolean(narrow || coarse || lowEnd || saveData || iOS));
   }, []);
 
   return lite;

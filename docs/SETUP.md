@@ -83,6 +83,22 @@ node scripts/apply-supabase-migration.mjs
 - Myth vs Fact: `data/myths.ts`
 - 3D model parts: `public/models/mouthpiece.glb`, `coilTank.glb`, `battery.glb` (loaded in `components/three/VapeModel.tsx`)
 
+## 5.1 ทดสอบบนมือถือจริง (LAN)
+
+1. มือถือและ PC ต่อ **Wi‑Fi เดียวกัน** (ปิด VPN ชั่วคราว)
+2. หยุด `npm run dev` เดิม แล้วรัน:
+
+```bash
+npm run dev:mobile
+```
+
+3. ดู URL ที่พิมพ์ในคอนโซล (หรือรัน `npm run mobile:url` แยก)
+4. เปิดลิงก์ `http://192.168.x.x:3000` ใน Safari / Chrome บนมือถือ
+
+ถ้าเปิดไม่ได้: Windows → Firewall → Allow an app → Node.js หรือเปิดพอร์ต **3000** TCP ขาเข้า
+
+Supabase ใช้ URL บน cloud อยู่แล้ว — ไม่ต้องแก้ `.env.local` สำหรับ LAN (ต่างจาก localhost API)
+
 ## 6. Deploy (Vercel)
 
 1. Import the GitHub repo into Vercel

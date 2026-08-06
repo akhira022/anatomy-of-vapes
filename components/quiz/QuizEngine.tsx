@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuizProgress } from "@/components/quiz/QuizProgress";
@@ -16,7 +16,7 @@ interface QuizEngineProps {
 }
 
 export function QuizEngine({ type, questions }: QuizEngineProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const currentQuestionIndex = useQuizStore((s) => s.currentQuestionIndex);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);

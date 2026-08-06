@@ -22,7 +22,14 @@ export function HotspotMarker({
 }: HotspotMarkerProps) {
   return (
     <group position={position}>
-      <Html center distanceFactor={6} zIndexRange={[10, 0]}>
+      <Html
+        center
+        distanceFactor={6}
+        zIndexRange={[10, 0]}
+        style={{ pointerEvents: "none" }}
+        // Skip expensive occlusion / depth tests — markers are always tappable.
+        occlude={false}
+      >
         <button
           type="button"
           aria-label={`จุดสำรวจ: ${label}`}
@@ -31,7 +38,7 @@ export function HotspotMarker({
             onClick(id);
           }}
           className={cn(
-            "flex size-11 items-center justify-center rounded-full",
+            "pointer-events-auto flex size-11 items-center justify-center rounded-full",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             selected && "scale-110"
           )}
@@ -40,15 +47,14 @@ export function HotspotMarker({
             aria-hidden="true"
             className={cn(
               "size-5 rounded-full border-2 border-white shadow-glowRed transition-transform duration-normal",
-              visited ? "bg-success shadow-glowGreen" : "bg-primary animate-hotspot-pulse",
+              visited
+                ? "bg-success shadow-glowGreen"
+                : "bg-primary animate-hotspot-pulse",
               selected && "scale-125 ring-2 ring-white"
             )}
           />
         </button>
       </Html>
-      <mesh visible={false}>
-        <sphereGeometry args={[0.16, 8, 8]} />
-      </mesh>
     </group>
   );
 }

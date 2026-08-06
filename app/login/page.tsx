@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ import { useQuizStore } from "@/store/useQuizStore";
 import type { Grade } from "@/types";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const hydrated = useHydrated();
   const [submitting, setSubmitting] = useState(false);
   const nickname = useQuizStore((s) => s.nickname);

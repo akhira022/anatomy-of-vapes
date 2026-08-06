@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { useQuizStore } from "@/store/useQuizStore";
 import { isLoggedIn } from "@/lib/phase";
 
 export function UserSessionMenu() {
-  const router = useRouter();
+  const router = useAppRouter();
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const logout = useQuizStore((s) => s.logout);

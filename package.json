@@ -1,9 +1,11 @@
 {
   "name": "anatomy-of-vapes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:mobile": "node scripts/print-mobile-url.mjs && next dev -H 0.0.0.0 -p 3000",
+    "mobile:url": "node scripts/print-mobile-url.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
