@@ -20,7 +20,7 @@ export function HotspotPanel({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-card p-4 shadow-card",
+        "rounded-lg border border-border bg-card p-4 shadow-card",
         className
       )}
     >

@@ -1,6 +1,6 @@
 import os from "node:os";
 
-const port = process.env.PORT ?? process.env.npm_config_port ?? "3000";
+const port = process.env.PORT ?? process.env.npm_config_port ?? "3001";
 
 /** Prefer typical home Wi‑Fi; skip virtual / VPN adapters when possible. */
 const skipName = /virtualbox|vmware|vethernet|hyper-v|loopback|wsl|docker|hamachi|tailscale|zerotier/i;

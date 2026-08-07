@@ -129,7 +129,7 @@ export default function RegisterPage() {
         backHref="/"
         rightSlot={<UserSessionMenu />}
       />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-8 sm:px-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8 text-left sm:px-10">
         <h1 className="font-heading text-2xl font-bold text-textPrimary">
           ยินยอมและเริ่มต้น
         </h1>
@@ -140,7 +140,7 @@ export default function RegisterPage() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-8 flex flex-1 flex-col gap-5"
+          className="mt-8 flex flex-1 flex-col gap-6"
         >
           <div className="space-y-2">
             <Label htmlFor="nickname">ชื่อเล่น</Label>
@@ -148,7 +148,7 @@ export default function RegisterPage() {
               id="nickname"
               placeholder="กรอกชื่อเล่น"
               autoComplete="nickname"
-              className="h-11 rounded-xl"
+              className="h-11 rounded-lg"
               {...register("nickname")}
             />
             {errors.nickname ? (
@@ -166,7 +166,7 @@ export default function RegisterPage() {
                   value={field.value}
                   onValueChange={(value) => field.onChange(value)}
                 >
-                  <SelectTrigger className="h-11 w-full rounded-xl">
+                  <SelectTrigger className="h-11 w-full rounded-lg">
                     <SelectValue placeholder="เลือกระดับการศึกษา" />
                   </SelectTrigger>
                   <SelectContent>
@@ -184,24 +184,31 @@ export default function RegisterPage() {
             ) : null}
           </div>
 
-          <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
+          <div className="space-y-2 rounded-lg border-2 border-border bg-card p-5 light:border-textPrimary/20 light:bg-surface">
             <Controller
               name="consent"
               control={control}
               render={({ field }) => (
-                <label className="flex items-start gap-3 text-sm leading-relaxed text-textPrimary">
+                <div className="flex items-start gap-3 text-sm leading-relaxed text-textPrimary">
                   <Checkbox
+                    id="pdpa-consent"
                     checked={field.value}
                     onCheckedChange={(checked) =>
                       field.onChange(checked === true)
                     }
-                    className="mt-0.5 border-white/40 bg-transparent data-checked:border-primary data-checked:bg-primary"
+                    className="mt-0.5 size-5 shrink-0 rounded-[5px] border-[2.5px] border-primary bg-background shadow-sm data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground light:bg-white light:data-checked:bg-primary light:data-checked:text-white"
                   />
-                  <span>
-                    ข้าพเจ้ายินยอมให้เก็บข้อมูลตาม{" "}
-                    <PdpaModal /> เพื่อใช้ในการเรียนรู้และวิจัยทางการศึกษา
-                  </span>
-                </label>
+                  <p className="min-w-0">
+                    <label htmlFor="pdpa-consent" className="cursor-pointer">
+                      ข้าพเจ้ายินยอมให้เก็บข้อมูลตาม{" "}
+                    </label>
+                    <PdpaModal />
+                    <label htmlFor="pdpa-consent" className="cursor-pointer">
+                      {" "}
+                      เพื่อใช้ในการเรียนรู้และวิจัยทางการศึกษา
+                    </label>
+                  </p>
+                </div>
               )}
             />
             {errors.consent ? (
@@ -209,23 +216,23 @@ export default function RegisterPage() {
             ) : null}
           </div>
 
-          <div className="mt-auto flex flex-col gap-3 pt-4">
+          <div className="mt-auto flex flex-col items-start gap-3 pt-4">
             <Button
               type="submit"
               disabled={submitting}
-              className="h-12 rounded-2xl text-base font-semibold"
+              className="h-11 w-auto rounded-lg px-6 text-base font-semibold"
             >
               {submitting ? "กำลังบันทึก..." : "ยอมรับและเริ่มทำแบบทดสอบ"}
             </Button>
             <Button
               type="button"
               variant="outline"
-              className="h-12 rounded-2xl text-base"
+              className="h-11 w-auto rounded-lg px-6 text-base"
               onClick={onDecline}
             >
               ไม่ยอมรับ
             </Button>
-            <p className="text-center text-sm text-textSecondary">
+            <p className="text-sm text-textSecondary">
               เคยลงทะเบียนแล้ว?{" "}
               <Link
                 href="/login"

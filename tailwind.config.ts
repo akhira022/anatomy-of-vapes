@@ -21,8 +21,16 @@ const config: Config = {
         textDisabled: "var(--text-disabled)",
       },
       fontFamily: {
-        heading: ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
-        body: ["var(--font-noto-sans-thai)", "Noto Sans Thai", "sans-serif"],
+        heading: [
+          "var(--font-ibm-plex-sans-thai)",
+          "IBM Plex Sans Thai",
+          "sans-serif",
+        ],
+        body: [
+          "var(--font-ibm-plex-sans-thai)",
+          "IBM Plex Sans Thai",
+          "sans-serif",
+        ],
       },
       boxShadow: {
         card: "var(--shadow-card)",

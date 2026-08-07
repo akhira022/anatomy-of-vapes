@@ -148,13 +148,13 @@ export function VapeScene({
   };
 
   const controlBtn =
-    "pointer-events-auto size-11 rounded-xl border border-border bg-card/90";
+    "pointer-events-auto size-11 rounded-lg border border-border bg-card/90";
 
   return (
     <div
       ref={rootRef}
       className={cn(
-        "relative h-full w-full overflow-hidden rounded-2xl border border-border bg-surface",
+        "relative h-full w-full overflow-hidden rounded-lg border border-border bg-surface",
         cssFullscreen &&
           "fixed inset-0 z-[100] h-[100dvh] max-h-[100dvh] w-[100vw] rounded-none border-0"
       )}
@@ -183,6 +183,8 @@ export function VapeScene({
             gl.domElement.style.width = "100%";
             gl.domElement.style.height = "100%";
             gl.domElement.style.display = "block";
+            // First paint before Suspense finishes + after layout.
+            invalidate();
           }}
         >
           <PerformanceMonitor
@@ -216,6 +218,7 @@ export function VapeScene({
               selectedHotspotId={selectedHotspotId}
               onHotspotClick={onHotspotClick}
               castShadows={!lite}
+              lite={lite}
             />
             <ModelReadySignal onReady={onModelReady} />
             {!lite ? <Environment preset="city" /> : null}
@@ -224,7 +227,8 @@ export function VapeScene({
                 position={[0, -1.6, 0]}
                 opacity={isLight ? 0.28 : 0.45}
                 scale={8}
-                blur={2.5}
+                blur={2}
+                frames={1}
               />
             ) : (
               <mesh
@@ -232,7 +236,7 @@ export function VapeScene({
                 position={[0, -1.55, 0]}
                 receiveShadow={false}
               >
-                <circleGeometry args={[2.2, 24]} />
+                <circleGeometry args={[2.2, 16]} />
                 <meshBasicMaterial
                   color={groundColor}
                   transparent
@@ -245,7 +249,7 @@ export function VapeScene({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ref={controlsRef as any}
             enablePan={false}
-            enableDamping
+            enableDamping={!lite}
             dampingFactor={0.08}
             minDistance={2.4}
             maxDistance={7}
@@ -265,7 +269,7 @@ export function VapeScene({
       />
 
       {!showHint && isFullscreen ? (
-        <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-xl border border-border bg-card/90 px-3 py-2 text-sm text-textPrimary shadow-card">
+        <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg border border-border bg-card/90 px-3 py-2 text-sm text-textPrimary shadow-card">
           สำรวจแล้ว {visitedCount}/{hotspotTotal}
           <span className="mt-0.5 block text-xs text-textSecondary">
             {exploded ? "โหมดแยกชิ้นส่วน" : "โหมดทั้งชิ้น"}
@@ -341,7 +345,7 @@ export function VapeScene({
         <div className="pointer-events-none absolute inset-x-3 bottom-[5.75rem] z-10 sm:bottom-[6.25rem]">
           <Button
             type="button"
-            className="pointer-events-auto h-11 w-full rounded-2xl font-semibold shadow-glowRed sm:mx-auto sm:max-w-sm"
+            className="pointer-events-auto mx-auto h-11 w-auto rounded-lg px-6 font-semibold shadow-glowRed"
             onClick={onNextHotspot}
           >
             จุดถัดไป{nextLabel ? `: ${nextLabel}` : ""}
@@ -367,7 +371,7 @@ export function VapeScene({
                   role="listitem"
                   onClick={() => onHotspotClick(item.id)}
                   className={cn(
-                    "flex min-h-11 min-w-[7.5rem] shrink-0 items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors duration-normal",
+                    "flex min-h-11 min-w-[7.5rem] shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors duration-normal",
                     selected
                       ? "border-primary bg-primary text-white"
                       : visited

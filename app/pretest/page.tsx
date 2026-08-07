@@ -21,6 +21,26 @@ export default function PretestPage() {
     setPhase("pretest");
   }, [ready, setPretestQuestions, setQuestionIndex, setPhase]);
 
+  // Warm GLB cache during pretest so anatomy opens faster.
+  useEffect(() => {
+    if (!ready) return;
+    const idle =
+      typeof requestIdleCallback === "function"
+        ? requestIdleCallback
+        : (cb: () => void) => window.setTimeout(cb, 1200);
+    const cancel =
+      typeof cancelIdleCallback === "function"
+        ? cancelIdleCallback
+        : (id: number) => window.clearTimeout(id);
+
+    const id = idle(() => {
+      void import("@/components/three/VapeModel").then((m) => {
+        m.preloadVapeModels();
+      });
+    });
+    return () => cancel(id as number);
+  }, [ready]);
+
   if (!hydrated || !ready) {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-background text-textSecondary">

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Box, ClipboardList, FlaskConical } from "lucide-react";
 import { Hero } from "@/components/Hero";
+import { PartnerLogos } from "@/components/layout/PartnerLogos";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
@@ -44,21 +44,21 @@ const learningSteps = [
 export default function Home() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <header className="absolute inset-x-0 top-0 z-50">
+      <header className="absolute inset-x-0 top-0 z-50 light:bg-gradient-to-b light:from-background light:via-background/80 light:to-transparent">
         <nav
           aria-label="หลัก"
           className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6"
         >
           <Link
             href="/"
-            className="font-heading text-sm font-semibold tracking-wide text-textPrimary/80 transition-colors hover:text-textPrimary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="font-heading text-sm font-semibold tracking-wide text-textPrimary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Anatomy of Vapes
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/#contact"
-              className="hidden text-sm text-textSecondary transition-colors hover:text-textPrimary sm:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="hidden text-sm font-medium text-textPrimary/70 transition-colors hover:text-textPrimary sm:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               ติดต่อเรา
             </Link>
@@ -155,13 +155,7 @@ export default function Home() {
             <p className="mt-2 max-w-md text-sm text-textSecondary">
               เครือข่ายสื่อสร้างสรรค์และส่งเสริมสุขภาพ
             </p>
-            <Image
-              src="/images/partners.png"
-              alt="โลโก้พันธมิตรโครงการ คิดดี IDOL, ยกกำลังสุข และ สสส."
-              width={900}
-              height={160}
-              className="mt-8 h-auto w-full max-w-xl object-contain opacity-90"
-            />
+            <PartnerLogos className="mt-8 max-w-3xl" density="section" />
           </div>
         </section>
       </main>

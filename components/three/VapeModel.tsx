@@ -3,7 +3,7 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { invalidate, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import type { Group, Object3D } from "three";
+import type { Group, Material, Mesh, Object3D, Texture } from "three";
 import { Box3, Vector3 } from "three";
 import { HotspotMarker } from "@/components/hotspot/HotspotMarker";
 import { hotspots } from "@/data/hotspots";
@@ -16,6 +16,8 @@ export interface VapeModelProps {
   showHotspots?: boolean;
   castShadows?: boolean;
   autoSpin?: boolean;
+  /** Strip PBR maps / use unlit materials for phones. */
+  lite?: boolean;
 }
 
 const MODEL_PATHS = {
@@ -58,19 +60,54 @@ function measureScene(scene: Object3D) {
   };
 }
 
-function prepareScene(scene: Object3D, castShadows: boolean): PartMetrics {
-  const root = scene.clone(true);
+function asMaterials(material: Material | Material[]): Material[] {
+  return Array.isArray(material) ? material : [material];
+}
+
+/** Soften GPU cost without replacing materials (avoids invisible / black meshes). */
+function tuneMaterials(root: Object3D, castShadows: boolean, lite: boolean) {
   root.traverse((obj: Object3D) => {
-    const mesh = obj as Object3D & {
-      isMesh?: boolean;
-      castShadow?: boolean;
-      receiveShadow?: boolean;
-    };
-    if (mesh.isMesh) {
-      mesh.castShadow = castShadows;
-      mesh.receiveShadow = castShadows;
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    mesh.castShadow = castShadows;
+    mesh.receiveShadow = castShadows;
+    mesh.frustumCulled = true;
+
+    if (!lite) return;
+
+    for (const mat of asMaterials(mesh.material)) {
+      const m = mat as Material & {
+        normalMap?: Texture | null;
+        emissiveMap?: Texture | null;
+        metalnessMap?: Texture | null;
+        roughnessMap?: Texture | null;
+        aoMap?: Texture | null;
+        envMapIntensity?: number;
+        metalness?: number;
+        roughness?: number;
+        needsUpdate?: boolean;
+      };
+      // Keep baseColor map; drop extras that phones struggle to sample.
+      if (m.normalMap) m.normalMap = null;
+      if (m.emissiveMap) m.emissiveMap = null;
+      if (m.metalnessMap) m.metalnessMap = null;
+      if (m.roughnessMap) m.roughnessMap = null;
+      if (m.aoMap) m.aoMap = null;
+      if (typeof m.metalness === "number") m.metalness = Math.min(m.metalness, 0.25);
+      if (typeof m.roughness === "number") m.roughness = Math.max(m.roughness, 0.55);
+      if (typeof m.envMapIntensity === "number") m.envMapIntensity = 0;
+      m.needsUpdate = true;
     }
   });
+}
+
+function prepareScene(
+  scene: Object3D,
+  castShadows: boolean,
+  lite: boolean
+): PartMetrics {
+  const root = scene.clone(true);
+  tuneMaterials(root, castShadows, lite);
 
   const box = new Box3().setFromObject(root);
   const center = new Vector3();
@@ -100,11 +137,13 @@ function PartModel({
   scale,
   targetY,
   castShadows,
+  lite,
 }: {
   path: string;
   scale: [number, number, number];
   targetY: number;
   castShadows: boolean;
+  lite: boolean;
 }) {
   const groupRef = useRef<Group>(null);
   const settled = useRef(false);
@@ -112,8 +151,8 @@ function PartModel({
   const { scene } = useGLTF(path);
 
   const { root } = useMemo(
-    () => prepareScene(scene, castShadows),
-    [scene, castShadows]
+    () => prepareScene(scene, castShadows, lite),
+    [scene, castShadows, lite]
   );
 
   useLayoutEffect(() => {
@@ -163,6 +202,7 @@ export function VapeModel({
   showHotspots = true,
   castShadows = true,
   autoSpin = false,
+  lite = false,
 }: VapeModelProps) {
   const rootRef = useRef<Group>(null);
 
@@ -226,18 +266,21 @@ export function VapeModel({
         scale={layout.mouthpiece.scale}
         targetY={yOf("mouthpiece")}
         castShadows={castShadows}
+        lite={lite}
       />
       <PartModel
         path={MODEL_PATHS.coilTank}
         scale={layout.coilTank.scale}
         targetY={yOf("coilTank")}
         castShadows={castShadows}
+        lite={lite}
       />
       <PartModel
         path={MODEL_PATHS.battery}
         scale={layout.battery.scale}
         targetY={yOf("battery")}
         castShadows={castShadows}
+        lite={lite}
       />
 
       {showHotspots && onHotspotClick
@@ -256,6 +299,7 @@ export function VapeModel({
                 visited={visitedHotspots.includes(hs.id)}
                 selected={selectedHotspotId === hs.id}
                 onClick={onHotspotClick}
+                animatePulse={!lite}
               />
             );
           })
@@ -264,9 +308,11 @@ export function VapeModel({
   );
 }
 
-/** Call from the anatomy route only — avoid preloading ~16MB GLBs on the homepage. */
+/** Call from pretest/anatomy — avoid loading ~13MB GLBs on the homepage. */
 export function preloadVapeModels() {
   useGLTF.preload(MODEL_PATHS.mouthpiece);
   useGLTF.preload(MODEL_PATHS.coilTank);
   useGLTF.preload(MODEL_PATHS.battery);
 }
+
+export const VAPE_MODEL_URLS = Object.values(MODEL_PATHS);

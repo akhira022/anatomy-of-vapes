@@ -86,14 +86,14 @@ export default function ResultPage() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <AppNavbar title="ผลลัพธ์" showBack backHref="/" />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-4 py-10 text-center sm:px-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-10 text-left sm:px-10">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="flex size-20 items-center justify-center rounded-full bg-primary/15 text-primary shadow-glowRed"
+          className="flex size-16 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-glowRed"
         >
-          <Trophy className="size-10" />
+          <Trophy className="size-8" />
         </motion.div>
 
         <h1 className="mt-6 font-heading text-3xl font-bold text-textPrimary">
@@ -109,7 +109,7 @@ export default function ResultPage() {
         </div>
 
         <motion.div
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3"
+          className="mt-4 flex w-full items-center justify-start gap-2 rounded-lg border border-border bg-card px-4 py-3"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -150,11 +150,11 @@ export default function ResultPage() {
           </motion.div>
         ) : null}
 
-        <div className="mt-auto flex w-full flex-col gap-3 pt-10">
+        <div className="mt-auto flex w-full flex-col items-start gap-3 pt-10">
           <Button
             render={<Link href="/anatomy" />}
             nativeButton={false}
-            className="h-12 rounded-2xl text-base font-semibold shadow-glowRed"
+            className="h-11 w-auto rounded-lg px-6 text-base font-semibold shadow-glowRed"
           >
             <Box className="size-5" aria-hidden="true" />
             ดูโมเดลอีกครั้ง
@@ -162,7 +162,7 @@ export default function ResultPage() {
           <Button
             type="button"
             variant="outline"
-            className="h-12 rounded-2xl text-base"
+            className="h-11 w-auto rounded-lg px-6 text-base"
             onClick={() => {
               resetProgress();
               router.push("/pretest");
@@ -174,7 +174,7 @@ export default function ResultPage() {
             render={<Link href="/" />}
             nativeButton={false}
             variant="ghost"
-            className="h-12 rounded-2xl text-base"
+            className="h-11 w-auto rounded-lg px-6 text-base"
           >
             กลับหน้าหลัก
           </Button>
@@ -199,8 +199,8 @@ function ScoreCard({
     <div
       className={
         highlight
-          ? "rounded-2xl border border-primary/40 bg-primary/10 p-4"
-          : "rounded-2xl border border-border bg-card p-4"
+          ? "rounded-lg border border-primary/40 bg-primary/10 p-4"
+          : "rounded-lg border border-border bg-card p-4"
       }
     >
       <p className="text-xs tracking-wide text-textSecondary">{label}</p>

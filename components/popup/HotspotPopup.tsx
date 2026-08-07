@@ -65,7 +65,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="hotspot-title"
-            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-popup sm:p-6"
+            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card p-5 shadow-popup sm:p-6"
             initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
@@ -120,7 +120,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
               />
 
               {myth ? (
-                <div className="rounded-xl border border-toxic/40 bg-toxic/10 p-4">
+                <div className="rounded-lg border border-toxic/40 bg-toxic/10 p-4">
                   <p className="text-xs font-semibold tracking-wide text-toxic">
                     ความเข้าใจผิด vs ข้อเท็จจริง
                   </p>
@@ -136,7 +136,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
 
             <Button
               type="button"
-              className="mt-6 h-11 w-full rounded-2xl font-semibold"
+              className="mt-6 h-11 w-auto rounded-lg px-6 font-semibold"
               onClick={onClose}
             >
               ปิด
@@ -159,7 +159,7 @@ function InfoBlock({
   body: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-3.5">
+    <div className="rounded-lg border border-border bg-surface p-3.5">
       <div className="flex items-center gap-2 font-medium text-textPrimary">
         {icon}
         {title}

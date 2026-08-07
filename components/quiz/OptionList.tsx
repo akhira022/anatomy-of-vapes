@@ -20,7 +20,7 @@ export function OptionList({ options, selectedId, onSelect }: OptionListProps) {
               type="button"
               onClick={() => onSelect(option.id)}
               className={cn(
-                "flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-normal",
+                "flex w-full items-start gap-3 rounded-lg border px-4 py-3.5 text-left transition-all duration-normal",
                 selected
                   ? "border-primary bg-primary/10 shadow-glowRed"
                   : "border-border bg-card hover:border-primary/50 hover:bg-surface2"
@@ -36,7 +36,7 @@ export function OptionList({ options, selectedId, onSelect }: OptionListProps) {
               >
                 {option.label}
               </span>
-              <span className="text-sm leading-relaxed text-textPrimary sm:text-base">
+              <span className="font-body text-sm font-medium leading-relaxed text-textPrimary sm:text-base">
                 {option.text}
               </span>
             </button>

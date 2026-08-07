@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { PartnerLogos } from "@/components/layout/PartnerLogos";
 
 const exploreLinks = [
   { href: "/register", label: "เริ่มเรียนรู้" },
@@ -39,13 +39,7 @@ export function SiteFooter() {
           <p className="mt-6 text-xs font-medium tracking-wide text-textSecondary">
             สนับสนุนโดย
           </p>
-          <Image
-            src="/images/partners.png"
-            alt="โลโก้พันธมิตรโครงการ คิดดี IDOL, ยกกำลังสุข และ สสส."
-            width={900}
-            height={160}
-            className="mt-2 h-auto w-full max-w-xs object-contain opacity-85"
-          />
+          <PartnerLogos className="mt-3" density="footer" />
         </div>
 
         <nav aria-labelledby="footer-explore" className="md:col-span-2">

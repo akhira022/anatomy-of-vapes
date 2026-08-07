@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Noto_Sans_Thai, Space_Grotesk } from "next/font/google";
+import { Geist_Mono, IBM_Plex_Sans_Thai } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { NavigationProgressBar } from "@/components/layout/NavigationProgressBar";
@@ -7,14 +7,10 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ThemedToaster } from "@/components/theme/ThemedToaster";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-});
-
-const notoSansThai = Noto_Sans_Thai({
-  variable: "--font-noto-sans-thai",
+const ibmPlexSansThai = IBM_Plex_Sans_Thai({
+  variable: "--font-ibm-plex-sans-thai",
   subsets: ["thai", "latin"],
+  weight: ["400", "500", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -38,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${spaceGrotesk.variable} ${notoSansThai.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${ibmPlexSansThai.variable} ${geistMono.variable} dark h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">

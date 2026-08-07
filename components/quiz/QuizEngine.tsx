@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface QuizEngineProps {
 
 export function QuizEngine({ type, questions }: QuizEngineProps) {
   const router = useAppRouter();
+  const reduceMotion = useReducedMotion();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const currentQuestionIndex = useQuizStore((s) => s.currentQuestionIndex);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
@@ -29,7 +31,7 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
 
   if (!question) {
     return (
-      <p className="text-center text-textSecondary">ไม่พบคำถาม</p>
+      <p className="text-left text-textSecondary">ไม่พบคำถาม</p>
     );
   }
 
@@ -56,35 +58,55 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8 text-left sm:px-10">
       <Stepper current={type === "pretest" ? "pretest" : "posttest"} />
       <QuizProgress current={currentQuestionIndex + 1} total={total} />
 
-      <article className="rounded-2xl border border-border bg-card p-5 shadow-card sm:p-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-primary">
-          {type === "pretest" ? "แบบทดสอบก่อนเรียน" : "แบบทดสอบหลังเรียน"}
-        </p>
-        <h2 className="mt-3 font-heading text-xl font-semibold leading-snug text-textPrimary sm:text-2xl">
-          {question.question}
-        </h2>
-        <div className="mt-6">
-          <OptionList
-            options={question.options}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-          />
-        </div>
-      </article>
+      <div className="relative overflow-hidden">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.article
+            key={question.id}
+            initial={
+              reduceMotion ? false : { opacity: 0, x: 12 }
+            }
+            animate={{ opacity: 1, x: 0 }}
+            exit={
+              reduceMotion ? undefined : { opacity: 0, x: -12 }
+            }
+            transition={{
+              duration: reduceMotion ? 0 : 0.22,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            className="rounded-lg border border-border bg-card p-5 shadow-card sm:p-7"
+          >
+            <p className="text-xs font-medium uppercase tracking-wide text-primary">
+              {type === "pretest" ? "แบบทดสอบก่อนเรียน" : "แบบทดสอบหลังเรียน"}
+            </p>
+            <h2 className="mt-3 font-body text-xl font-medium leading-snug text-textPrimary sm:text-2xl">
+              {question.question}
+            </h2>
+            <div className="mt-6">
+              <OptionList
+                options={question.options}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+              />
+            </div>
+          </motion.article>
+        </AnimatePresence>
+      </div>
 
-      <Button
-        size="lg"
-        disabled={!selectedId}
-        onClick={handleNext}
-        className="h-12 w-full rounded-2xl text-base font-semibold"
-      >
-        {isLast ? (type === "pretest" ? "ไปสำรวจ 3 มิติ" : "ดูผลลัพธ์") : "ถัดไป"}
-        <ArrowRight className="size-4" />
-      </Button>
+      <div className="flex justify-start sm:justify-end">
+        <Button
+          size="lg"
+          disabled={!selectedId}
+          onClick={handleNext}
+          className="h-11 w-auto rounded-lg px-6 text-base font-semibold"
+        >
+          {isLast ? (type === "pretest" ? "ไปสำรวจ 3 มิติ" : "ดูผลลัพธ์") : "ถัดไป"}
+          <ArrowRight className="size-4" />
+        </Button>
+      </div>
     </div>
   );
 }

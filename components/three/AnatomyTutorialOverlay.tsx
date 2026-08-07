@@ -9,6 +9,9 @@ export const HINT_STORAGE_KEY = "aov-anatomy-tutorial-v3";
 
 type TutorialStep = 0 | 1 | 2;
 
+/** Seconds before Next / Skip unlocks on each step. */
+const STEP_COOLDOWN_SEC = 3;
+
 const STEPS: Record<
   TutorialStep,
   { title: string; body: string }
@@ -36,6 +39,7 @@ interface AnatomyTutorialOverlayProps {
 
 /**
  * First-run gesture tutorial: zoom, rotate, then fullscreen tip.
+ * Each step waits 3s before Next / Skip so users can read the tip.
  */
 export function AnatomyTutorialOverlay({
   open,
@@ -44,21 +48,32 @@ export function AnatomyTutorialOverlay({
 }: AnatomyTutorialOverlayProps) {
   const reduceMotion = useReducedMotion();
   const [step, setStep] = useState<TutorialStep>(0);
+  const [cooldownLeft, setCooldownLeft] = useState(STEP_COOLDOWN_SEC);
 
   useEffect(() => {
     if (!open) return;
     setStep(0);
-    if (reduceMotion) return;
-    const t1 = window.setTimeout(() => setStep(1), 2800);
-    const t2 = window.setTimeout(() => setStep(2), 5600);
-    return () => {
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-    };
-  }, [open, reduceMotion]);
+  }, [open]);
+
+  // Per-step cooldown — no auto-advance; user taps Next / Skip.
+  useEffect(() => {
+    if (!open) return;
+    setCooldownLeft(STEP_COOLDOWN_SEC);
+    const id = window.setInterval(() => {
+      setCooldownLeft((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(id);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [open, step, reduceMotion]);
 
   const copy = STEPS[reduceMotion ? 2 : step];
   const isLast = reduceMotion || step === 2;
+  const canProceed = cooldownLeft <= 0;
 
   return (
     <AnimatePresence>
@@ -122,32 +137,44 @@ export function AnatomyTutorialOverlay({
                   type="button"
                   variant="outline"
                   className="h-11 flex-1 rounded-2xl"
+                  disabled={!canProceed}
+                  aria-disabled={!canProceed}
                   onClick={() =>
                     setStep((s) => (s < 2 ? ((s + 1) as TutorialStep) : s))
                   }
                 >
-                  ถัดไป
+                  {canProceed ? "ถัดไป" : `ถัดไป (${cooldownLeft})`}
                 </Button>
               ) : onEnterFullscreen ? (
                 <Button
                   type="button"
                   className="h-11 flex-1 rounded-2xl font-semibold shadow-glowRed"
+                  disabled={!canProceed}
+                  aria-disabled={!canProceed}
                   onClick={() => {
                     onEnterFullscreen();
                     onDismiss();
                   }}
                 >
-                  เปิดเต็มจอเลย
-                  <Maximize2 className="size-4" />
+                  {canProceed
+                    ? "เปิดเต็มจอเลย"
+                    : `เปิดเต็มจอเลย (${cooldownLeft})`}
+                  {canProceed ? <Maximize2 className="size-4" /> : null}
                 </Button>
               ) : null}
               <Button
                 type="button"
                 variant={isLast && onEnterFullscreen ? "outline" : "default"}
                 className="h-11 flex-1 rounded-2xl font-semibold"
+                disabled={!canProceed}
+                aria-disabled={!canProceed}
                 onClick={onDismiss}
               >
-                {isLast ? "ไว้ทีหลัง" : "ข้าม"}
+                {canProceed
+                  ? isLast
+                    ? "ไว้ทีหลัง"
+                    : "ข้าม"
+                  : `${isLast ? "ไว้ทีหลัง" : "ข้าม"} (${cooldownLeft})`}
               </Button>
             </div>
           </motion.div>

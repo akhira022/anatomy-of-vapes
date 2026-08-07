@@ -1,7 +1,9 @@
 "use client";
 
-import { Html } from "@react-three/drei";
-import { cn } from "@/lib/utils";
+import { useRef } from "react";
+import { invalidate, useFrame } from "@react-three/fiber";
+import { Billboard } from "@react-three/drei";
+import type { Mesh } from "three";
 
 interface HotspotMarkerProps {
   id: string;
@@ -10,8 +12,14 @@ interface HotspotMarkerProps {
   visited: boolean;
   selected: boolean;
   onClick: (id: string) => void;
+  /** WebGL pulse keeps the demand-loop awake — off on lite devices. */
+  animatePulse?: boolean;
 }
 
+/**
+ * Pure WebGL markers (no Html/DOM sync) — much cheaper while orbiting on phones.
+ * HotspotList remains the accessible fallback for keyboard / screen readers.
+ */
 export function HotspotMarker({
   id,
   label,
@@ -19,42 +27,59 @@ export function HotspotMarker({
   visited,
   selected,
   onClick,
+  animatePulse = false,
 }: HotspotMarkerProps) {
+  const pulseRef = useRef<Mesh>(null);
+  const coreScale = selected ? 1.22 : 1;
+  const fill = visited ? "#22C55E" : "#E53935";
+
+  useFrame(({ clock }) => {
+    const mesh = pulseRef.current;
+    if (!mesh || visited || !animatePulse) return;
+    const t = (Math.sin(clock.elapsedTime * Math.PI) + 1) / 2;
+    mesh.scale.setScalar(1 + t * 0.4);
+    const mat = mesh.material as { opacity: number };
+    mat.opacity = 0.3 + t * 0.4;
+    invalidate();
+  });
+
+  const handleSelect = (e: { stopPropagation: () => void }) => {
+    e.stopPropagation();
+    onClick(id);
+  };
+
   return (
-    <group position={position}>
-      <Html
-        center
-        distanceFactor={6}
-        zIndexRange={[10, 0]}
-        style={{ pointerEvents: "none" }}
-        // Skip expensive occlusion / depth tests — markers are always tappable.
-        occlude={false}
-      >
-        <button
-          type="button"
-          aria-label={`จุดสำรวจ: ${label}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick(id);
-          }}
-          className={cn(
-            "pointer-events-auto flex size-11 items-center justify-center rounded-full",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-            selected && "scale-110"
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className={cn(
-              "size-5 rounded-full border-2 border-white shadow-glowRed transition-transform duration-normal",
-              visited
-                ? "bg-success shadow-glowGreen"
-                : "bg-primary animate-hotspot-pulse",
-              selected && "scale-125 ring-2 ring-white"
-            )}
-          />
-        </button>
-      </Html>
+    <group position={position} userData={{ hotspotId: id, label }}>
+      <Billboard>
+        {/* Large invisible hit target for thumbs */}
+        <mesh onClick={handleSelect} onPointerDown={(e) => e.stopPropagation()}>
+          <circleGeometry args={[0.24, 12]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+
+        {!visited && animatePulse ? (
+          <mesh ref={pulseRef} renderOrder={1}>
+            <circleGeometry args={[0.12, 16]} />
+            <meshBasicMaterial
+              color="#E53935"
+              transparent
+              opacity={0.45}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+        ) : null}
+
+        <mesh scale={coreScale} renderOrder={2} onClick={handleSelect}>
+          <ringGeometry args={[0.07, 0.095, 20]} />
+          <meshBasicMaterial color="#FFFFFF" toneMapped={false} depthWrite={false} />
+        </mesh>
+
+        <mesh scale={coreScale} renderOrder={3} onClick={handleSelect}>
+          <circleGeometry args={[0.07, 16]} />
+          <meshBasicMaterial color={fill} toneMapped={false} depthWrite={false} />
+        </mesh>
+      </Billboard>
     </group>
   );
 }

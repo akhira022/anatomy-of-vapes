@@ -47,7 +47,7 @@ export function HotspotList({
                 type="button"
                 onClick={() => onSelect(item.id)}
                 className={cn(
-                  "flex min-h-11 w-full items-start gap-3 rounded-2xl border px-3.5 py-3 text-left transition-colors duration-normal",
+                  "flex min-h-11 w-full items-start gap-3 rounded-lg border px-3.5 py-3 text-left transition-colors duration-normal",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   selected
                     ? "border-primary bg-primary/10"

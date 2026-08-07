@@ -86,7 +86,7 @@ export default function LoginPage() {
         backHref="/"
         rightSlot={<UserSessionMenu />}
       />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-8 sm:px-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8 text-left sm:px-10">
         <h1 className="font-heading text-2xl font-bold text-textPrimary">
           เข้าสู่ระบบด้วยชื่อเล่น
         </h1>
@@ -97,7 +97,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-8 flex flex-1 flex-col gap-5"
+          className="mt-8 flex flex-1 flex-col gap-6"
         >
           <div className="space-y-2">
             <Label htmlFor="nickname">ชื่อเล่น</Label>
@@ -105,7 +105,7 @@ export default function LoginPage() {
               id="nickname"
               placeholder="กรอกชื่อเล่นที่เคยใช้"
               autoComplete="nickname"
-              className="h-11 rounded-xl"
+              className="h-11 rounded-lg"
               {...register("nickname")}
             />
             {errors.nickname ? (
@@ -113,15 +113,15 @@ export default function LoginPage() {
             ) : null}
           </div>
 
-          <div className="mt-auto flex flex-col gap-3 pt-4">
+          <div className="mt-auto flex flex-col items-start gap-3 pt-4">
             <Button
               type="submit"
               disabled={submitting}
-              className="h-12 rounded-2xl text-base font-semibold"
+              className="h-11 w-auto rounded-lg px-6 text-base font-semibold"
             >
               {submitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
             </Button>
-            <p className="text-center text-sm text-textSecondary">
+            <p className="text-sm text-textSecondary">
               ยังไม่มีบัญชี?{" "}
               <Link
                 href="/register"

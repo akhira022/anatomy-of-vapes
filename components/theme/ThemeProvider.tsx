@@ -19,14 +19,48 @@ import {
   type ThemeMode,
 } from "@/lib/theme";
 
+interface ThemeOrigin {
+  x: number;
+  y: number;
+}
+
 interface ThemeContextValue {
   theme: ThemeMode;
-  setTheme: (theme: ThemeMode) => void;
-  toggleTheme: () => void;
+  setTheme: (theme: ThemeMode, origin?: ThemeOrigin) => void;
+  toggleTheme: (origin?: ThemeOrigin) => void;
   ready: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function runThemeTransition(apply: () => void, origin?: ThemeOrigin) {
+  const doc = document as Document & {
+    startViewTransition?: (callback: () => void) => { finished: Promise<void> };
+  };
+
+  if (!doc.startViewTransition || prefersReducedMotion()) {
+    apply();
+    return;
+  }
+
+  const x = origin?.x ?? window.innerWidth / 2;
+  const y = origin?.y ?? window.innerHeight / 2;
+  const radius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
+
+  const root = document.documentElement;
+  root.style.setProperty("--theme-x", `${x}px`);
+  root.style.setProperty("--theme-y", `${y}px`);
+  root.style.setProperty("--theme-r", `${radius}px`);
+
+  doc.startViewTransition(apply);
+}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   // Same default on server + client first paint — avoid hydration mismatch.
@@ -45,15 +79,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
-  const setTheme = useCallback((next: ThemeMode) => {
-    setThemeState(next);
-    applyThemeClass(next);
-    persistTheme(next);
+  const setTheme = useCallback((next: ThemeMode, origin?: ThemeOrigin) => {
+    runThemeTransition(() => {
+      setThemeState(next);
+      applyThemeClass(next);
+      persistTheme(next);
+    }, origin);
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }, [setTheme, theme]);
+  const toggleTheme = useCallback(
+    (origin?: ThemeOrigin) => {
+      setTheme(theme === "dark" ? "light" : "dark", origin);
+    },
+    [setTheme, theme]
+  );
 
   const value = useMemo(
     () => ({ theme, setTheme, toggleTheme, ready }),

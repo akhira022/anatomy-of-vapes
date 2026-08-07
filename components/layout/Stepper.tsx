@@ -22,7 +22,7 @@ export function Stepper({ current, className }: StepperProps) {
   return (
     <ol
       className={cn(
-        "flex w-full items-center justify-between gap-1 text-xs sm:text-sm",
+        "flex w-full items-start justify-start gap-6 text-xs sm:gap-8 sm:text-sm",
         className
       )}
     >
@@ -30,12 +30,15 @@ export function Stepper({ current, className }: StepperProps) {
         const done = index < activeIndex;
         const active = index === activeIndex;
         return (
-          <li key={step.id} className="flex flex-1 flex-col items-center gap-1">
+          <li key={step.id} className="flex flex-col items-start gap-1.5">
             <span
               className={cn(
-                "h-1.5 w-full rounded-full transition-colors duration-normal",
-                done || active ? "bg-primary" : "bg-border"
+                "size-2.5 rounded-full transition-all duration-normal sm:size-3",
+                active && "scale-110 bg-primary",
+                done && !active && "bg-primary/55",
+                !done && !active && "border border-border bg-transparent"
               )}
+              aria-hidden="true"
             />
             <span
               className={cn(
