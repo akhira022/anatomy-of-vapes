@@ -50,6 +50,7 @@ export default function AnatomyPage() {
   const currentPhase = useQuizStore((s) => s.currentPhase);
   const visitedHotspots = useQuizStore((s) => s.visitedHotspots);
   const selectedHotspotId = useQuizStore((s) => s.selectedHotspotId);
+  const postAnswers = useQuizStore((s) => s.postAnswers);
   const markHotspotVisited = useQuizStore((s) => s.markHotspotVisited);
   const setSelectedHotspotId = useQuizStore((s) => s.setSelectedHotspotId);
   const setPhase = useQuizStore((s) => s.setPhase);
@@ -57,6 +58,8 @@ export default function AnatomyPage() {
 
   /** After post-test, learners can revisit the model without restarting the flow. */
   const isReview = currentPhase === "result";
+  /** Returning learners who skip retake have no local scores — don't send them to empty result. */
+  const hasLocalResult = postAnswers.length > 0;
 
   const selected = useMemo(
     () => hotspots.find((h) => h.id === selectedHotspotId) ?? null,
@@ -100,7 +103,7 @@ export default function AnatomyPage() {
   };
 
   const goResult = () => {
-    router.push("/result");
+    router.push(hasLocalResult ? "/result" : "/");
   };
 
   return (
@@ -108,7 +111,7 @@ export default function AnatomyPage() {
       <AppNavbar
         title={isReview ? "ทบทวนโมเดล 3D" : "สำรวจ 3 มิติ"}
         showBack
-        backHref={isReview ? "/result" : "/pretest"}
+        backHref={isReview ? (hasLocalResult ? "/result" : "/") : "/pretest"}
       />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-6 py-6 text-left sm:gap-5 sm:px-10">
         {isReview ? (
@@ -239,7 +242,7 @@ export default function AnatomyPage() {
                 className="h-11 w-auto rounded-lg px-5 font-semibold shadow-glowRed"
                 onClick={goResult}
               >
-                กลับไปดูผลลัพธ์
+                {hasLocalResult ? "กลับไปดูผลลัพธ์" : "กลับหน้าหลัก"}
                 <ArrowRight className="size-4" />
               </Button>
             ) : allVisited ? (

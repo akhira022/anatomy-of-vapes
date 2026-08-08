@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { motion } from "framer-motion";
 import { Box, Trophy, Star } from "lucide-react";
+import { CompletedLearnerChoice } from "@/components/auth/CompletedLearnerChoice";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { Button } from "@/components/ui/button";
 import { saveQuizResult } from "@/lib/db";
@@ -26,6 +27,7 @@ export default function ResultPage() {
   const setResultSaved = useQuizStore((s) => s.setResultSaved);
   const resetProgress = useQuizStore((s) => s.resetProgress);
 
+  const hasLocalResult = postAnswers.length > 0;
   const improvement = postScore - preScore;
   const improved = improvement > 0;
 
@@ -36,7 +38,7 @@ export default function ResultPage() {
   }, [postScore]);
 
   useEffect(() => {
-    if (!ready || !hydrated || resultSaved || !userId) return;
+    if (!ready || !hydrated || resultSaved || !userId || !hasLocalResult) return;
 
     let cancelled = false;
     (async () => {
@@ -68,6 +70,7 @@ export default function ResultPage() {
     hydrated,
     resultSaved,
     userId,
+    hasLocalResult,
     preScore,
     postScore,
     preAnswers,
@@ -79,6 +82,28 @@ export default function ResultPage() {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-background text-textSecondary">
         กำลังโหลด...
+      </div>
+    );
+  }
+
+  if (!hasLocalResult) {
+    return (
+      <div className="flex min-h-full flex-1 flex-col bg-background">
+        <AppNavbar title="ยินดีต้อนรับกลับ" showBack backHref="/" />
+        <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8 text-left sm:px-10">
+          <CompletedLearnerChoice
+            nickname={nickname || "ผู้เรียน"}
+            onViewModel={() => {
+              toast.success("เข้าโหมดทบทวนโมเดล");
+              router.push("/anatomy");
+            }}
+            onRetake={() => {
+              resetProgress();
+              toast.message("เริ่มทำแบบทดสอบใหม่");
+              router.push("/pretest");
+            }}
+          />
+        </main>
       </div>
     );
   }

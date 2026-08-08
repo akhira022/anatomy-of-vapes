@@ -173,11 +173,13 @@ export function Hero() {
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const currentPhase = useQuizStore((s) => s.currentPhase);
+  const postAnswers = useQuizStore((s) => s.postAnswers);
   const logout = useQuizStore((s) => s.logout);
   const resetProgress = useQuizStore((s) => s.resetProgress);
 
   const loggedIn =
     hydrated && isLoggedIn({ nickname, consentAccepted });
+  const hasLocalResult = postAnswers.length > 0;
 
   const handleLogout = () => {
     logout();
@@ -258,14 +260,25 @@ export function Hero() {
                     >
                       ดูโมเดลอีกครั้ง
                     </Button>
-                    <Button
-                      render={<Link href="/result" />}
-                      nativeButton={false}
-                      variant="outline"
-                      className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
-                    >
-                      ดูผลลัพธ์
-                    </Button>
+                    {hasLocalResult ? (
+                      <Button
+                        render={<Link href="/result" />}
+                        nativeButton={false}
+                        variant="outline"
+                        className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
+                      >
+                        ดูผลลัพธ์
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
+                        onClick={handleRestart}
+                      >
+                        ทำแบบทดสอบใหม่
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <Button
@@ -277,14 +290,16 @@ export function Hero() {
                   </Button>
                 )}
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface"
-                    onClick={handleRestart}
-                  >
-                    เรียนใหม่
-                  </Button>
+                  {hasLocalResult || currentPhase !== "result" ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface"
+                      onClick={handleRestart}
+                    >
+                      เรียนใหม่
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"
