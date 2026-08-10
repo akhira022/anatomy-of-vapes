@@ -51,13 +51,21 @@ export default function AnatomyPage() {
   const visitedHotspots = useQuizStore((s) => s.visitedHotspots);
   const selectedHotspotId = useQuizStore((s) => s.selectedHotspotId);
   const postAnswers = useQuizStore((s) => s.postAnswers);
+  const resultSaved = useQuizStore((s) => s.resultSaved);
   const markHotspotVisited = useQuizStore((s) => s.markHotspotVisited);
   const setSelectedHotspotId = useQuizStore((s) => s.setSelectedHotspotId);
   const setPhase = useQuizStore((s) => s.setPhase);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
 
-  /** After post-test, learners can revisit the model without restarting the flow. */
-  const isReview = currentPhase === "result";
+  /**
+   * Review = finished once and not currently on the active anatomy/posttest path.
+   * Keeps mid-retake "ดูโมเดล" from counting as progress toward posttest.
+   */
+  const isReview =
+    currentPhase === "result" ||
+    (resultSaved &&
+      currentPhase !== "anatomy" &&
+      currentPhase !== "posttest");
   /** Returning learners who skip retake have no local scores — don't send them to empty result. */
   const hasLocalResult = postAnswers.length > 0;
 
@@ -85,7 +93,7 @@ export default function AnatomyPage() {
 
   const handleHotspotClick = (id: string) => {
     setSelectedHotspotId(id);
-    markHotspotVisited(id);
+    if (!isReview) markHotspotVisited(id);
     setPopupOpen(true);
     if (mode === "whole") setMode("exploded");
   };
@@ -145,7 +153,7 @@ export default function AnatomyPage() {
           ))}
         </div>
 
-        <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,520px)]">
+        <div className="relative h-[min(56dvh,440px)] w-full shrink-0 sm:h-[min(64dvh,560px)]">
           <VapeScene
             exploded={mode === "exploded"}
             onExplodedChange={(next) =>
@@ -157,6 +165,7 @@ export default function AnatomyPage() {
             hotspotItems={hotspots}
             nextHotspotId={nextHotspot?.id ?? null}
             onNextHotspot={goNextHotspot}
+            popupOpen={popupOpen && Boolean(selected)}
           />
         </div>
 
@@ -192,14 +201,14 @@ export default function AnatomyPage() {
             </p>
           ) : !allVisited ? (
             <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary">
-              ยังเหลืออีก{" "}
+              สำรวจต่อได้อีก{" "}
               <span className="font-semibold text-primary">
                 {remainingCount} จุด
               </span>
               {nextHotspot ? (
                 <>
                   {" "}
-                  — ต่อไปลองสำรวจ{" "}
+                  — ลองดู{" "}
                   <span className="font-semibold">{nextHotspot.label}</span>
                 </>
               ) : null}
@@ -223,7 +232,7 @@ export default function AnatomyPage() {
                 className="h-11 w-auto rounded-lg px-5 font-semibold shadow-glowRed"
                 onClick={goNextHotspot}
               >
-                จุดถัดไป: {nextHotspot.label}
+                สำรวจต่อ: {nextHotspot.label}
                 <ArrowRight className="size-4" />
               </Button>
             ) : null}
@@ -262,7 +271,7 @@ export default function AnatomyPage() {
                 disabled
                 aria-disabled="true"
               >
-                สำรวจอีก {remainingCount} จุดก่อนไปต่อ
+                สำรวจต่ออีก {remainingCount} จุด
               </Button>
             )}
           </div>

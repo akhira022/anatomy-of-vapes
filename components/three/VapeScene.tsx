@@ -8,13 +8,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   ContactShadows,
   Environment,
   OrbitControls,
   PerformanceMonitor,
 } from "@react-three/drei";
+import { useReducedMotion } from "framer-motion";
 import { VapeModel } from "@/components/three/VapeModel";
 import {
   Check,
@@ -39,6 +40,8 @@ import {
 } from "@/components/three/AnatomyTutorialOverlay";
 import { ModelReadySignal } from "@/components/three/ModelReadySignal";
 
+const IDLE_RESUME_MS = 2500;
+
 interface OrbitControlsHandle {
   reset: () => void;
   update: () => void;
@@ -54,6 +57,8 @@ interface VapeSceneProps {
   hotspotItems: HotspotContent[];
   nextHotspotId?: string | null;
   onNextHotspot?: () => void;
+  /** Pause idle auto-rotate while detail popup is open. */
+  popupOpen?: boolean;
 }
 
 /** Keeps demand-mode canvas painting while explode lerp / camera settle. */
@@ -71,6 +76,15 @@ function InvalidateOnChange({
   return null;
 }
 
+/** Demand-mode needs continuous invalidate while OrbitControls.autoRotate runs. */
+function InvalidateWhileAutoRotate({ active }: { active: boolean }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useFrame(() => {
+    if (active) invalidate();
+  });
+  return null;
+}
+
 export function VapeScene({
   exploded,
   onExplodedChange,
@@ -80,16 +94,20 @@ export function VapeScene({
   hotspotItems,
   nextHotspotId,
   onNextHotspot,
+  popupOpen = false,
 }: VapeSceneProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<OrbitControlsHandle | null>(null);
   const invalidateRef = useRef<() => void>(() => {});
+  const idleTimerRef = useRef<number | null>(null);
   const { isFullscreen, cssFullscreen, toggle: toggleFullscreen, enter } =
     useSceneFullscreen(rootRef);
   const [showHint, setShowHint] = useState(false);
   const [modelLoading, setModelLoading] = useState(true);
+  const [userInteracting, setUserInteracting] = useState(false);
   const [dpr, setDpr] = useState<[number, number]>([1, 1.25]);
   const onModelReady = useCallback(() => setModelLoading(false), []);
+  const reduceMotion = useReducedMotion();
   const lite = usePreferLite3D();
   const { theme } = useTheme();
   const isLight = theme === "light";
@@ -104,6 +122,29 @@ export function VapeScene({
   const remainingCount = Math.max(0, hotspotTotal - visitedCount);
   const nextLabel =
     hotspotItems.find((h) => h.id === nextHotspotId)?.label ?? null;
+
+  const clearIdleTimer = useCallback(() => {
+    if (idleTimerRef.current !== null) {
+      window.clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+  }, []);
+
+  const pauseAutoRotate = useCallback(() => {
+    setUserInteracting(true);
+    clearIdleTimer();
+    idleTimerRef.current = window.setTimeout(() => {
+      setUserInteracting(false);
+      idleTimerRef.current = null;
+    }, IDLE_RESUME_MS);
+  }, [clearIdleTimer]);
+
+  const autoRotate =
+    !reduceMotion &&
+    !modelLoading &&
+    !showHint &&
+    !popupOpen &&
+    !userInteracting;
 
   useEffect(() => {
     setDpr(lite ? [1, 1] : [1, 1.5]);
@@ -125,6 +166,10 @@ export function VapeScene({
     }
   }, []);
 
+  useEffect(() => {
+    return () => clearIdleTimer();
+  }, [clearIdleTimer]);
+
   const dismissHint = () => {
     setShowHint(false);
     try {
@@ -135,11 +180,13 @@ export function VapeScene({
   };
 
   const resetCamera = () => {
+    pauseAutoRotate();
     controlsRef.current?.reset();
     invalidateRef.current();
   };
 
   const zoomBy = (delta: number) => {
+    pauseAutoRotate();
     const controls = controlsRef.current;
     if (!controls) return;
     controls.object.position.multiplyScalar(1 + delta);
@@ -148,7 +195,7 @@ export function VapeScene({
   };
 
   const controlBtn =
-    "pointer-events-auto size-11 rounded-lg border border-border bg-card/90";
+    "pointer-events-auto flex min-h-11 w-[3.35rem] flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-card/90 px-1 py-1.5 text-[0.625rem] font-medium leading-tight text-textPrimary shadow-card";
 
   return (
     <div
@@ -180,6 +227,7 @@ export function VapeScene({
           resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
           onCreated={({ gl, invalidate }) => {
             invalidateRef.current = invalidate;
+            gl.toneMappingExposure = 0.92;
             gl.domElement.style.width = "100%";
             gl.domElement.style.height = "100%";
             gl.domElement.style.display = "block";
@@ -202,14 +250,22 @@ export function VapeScene({
             exploded={exploded}
             selectedHotspotId={selectedHotspotId}
           />
+          <InvalidateWhileAutoRotate active={autoRotate} />
           <color attach="background" args={[sceneBg]} />
+          {/* Lower ambient + stronger key = shading gradient reads the curvature. */}
           <ambientLight
-            intensity={lite ? (isLight ? 0.95 : 0.75) : isLight ? 0.8 : 0.55}
+            intensity={lite ? (isLight ? 0.42 : 0.3) : isLight ? 0.34 : 0.24}
           />
           <directionalLight
-            position={[4, 6, 2]}
-            intensity={lite ? (isLight ? 1.4 : 1.25) : isLight ? 1.3 : 1.1}
+            position={[3.6, 5.6, 2.6]}
+            intensity={lite ? (isLight ? 1.3 : 1.1) : isLight ? 1.2 : 1}
             castShadow={!lite}
+          />
+          {/* Cool rim light from behind separates the silhouette from the dark backdrop — no shadow map, near-zero cost. */}
+          <directionalLight
+            position={[-3.2, 1.8, -3.4]}
+            intensity={lite ? (isLight ? 0.32 : 0.42) : isLight ? 0.28 : 0.36}
+            color={isLight ? "#ffffff" : "#dfe6ff"}
           />
           <Suspense fallback={null}>
             <VapeModel
@@ -221,28 +277,45 @@ export function VapeScene({
               lite={lite}
             />
             <ModelReadySignal onReady={onModelReady} />
-            {!lite ? <Environment preset="city" /> : null}
+            {!lite ? (
+              <Environment preset="city" environmentIntensity={isLight ? 0.48 : 0.4} />
+            ) : null}
             {!lite ? (
               <ContactShadows
                 position={[0, -1.6, 0]}
-                opacity={isLight ? 0.28 : 0.45}
+                opacity={isLight ? 0.34 : 0.5}
                 scale={8}
                 blur={2}
                 frames={1}
               />
             ) : (
-              <mesh
-                rotation={[-Math.PI / 2, 0, 0]}
-                position={[0, -1.55, 0]}
-                receiveShadow={false}
-              >
-                <circleGeometry args={[2.2, 16]} />
-                <meshBasicMaterial
-                  color={groundColor}
-                  transparent
-                  opacity={isLight ? 0.4 : 0.55}
-                />
-              </mesh>
+              <>
+                <mesh
+                  rotation={[-Math.PI / 2, 0, 0]}
+                  position={[0, -1.55, 0]}
+                  receiveShadow={false}
+                >
+                  <circleGeometry args={[2.2, 16]} />
+                  <meshBasicMaterial
+                    color={groundColor}
+                    transparent
+                    opacity={isLight ? 0.42 : 0.58}
+                  />
+                </mesh>
+                {/* Tighter, darker core under the model — cheap fake contact shadow for the no-Environment path. */}
+                <mesh
+                  rotation={[-Math.PI / 2, 0, 0]}
+                  position={[0, -1.548, 0]}
+                  receiveShadow={false}
+                >
+                  <circleGeometry args={[0.85, 16]} />
+                  <meshBasicMaterial
+                    color={groundColor}
+                    transparent
+                    opacity={isLight ? 0.24 : 0.3}
+                  />
+                </mesh>
+              </>
             )}
           </Suspense>
           <OrbitControls
@@ -256,6 +329,9 @@ export function VapeScene({
             maxPolarAngle={Math.PI * 0.85}
             rotateSpeed={lite ? 0.85 : 1}
             zoomSpeed={lite ? 0.85 : 1}
+            autoRotate={autoRotate}
+            autoRotateSpeed={0.55}
+            onStart={pauseAutoRotate}
           />
         </Canvas>
       </div>
@@ -277,12 +353,10 @@ export function VapeScene({
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute inset-y-3 right-3 z-10 flex flex-col gap-2">
+      <div className="pointer-events-none absolute inset-y-3 right-2 z-10 flex flex-col gap-1.5 sm:right-3 sm:gap-2">
         {onExplodedChange ? (
-          <Button
+          <button
             type="button"
-            size="icon-lg"
-            variant="secondary"
             aria-label={exploded ? "รวมชิ้นส่วน" : "แยกชิ้นส่วน"}
             aria-pressed={exploded}
             className={cn(
@@ -290,55 +364,58 @@ export function VapeScene({
               exploded &&
                 "border-primary bg-primary text-white hover:bg-primaryHover"
             )}
-            onClick={() => onExplodedChange(!exploded)}
+            onClick={() => {
+              pauseAutoRotate();
+              onExplodedChange(!exploded);
+            }}
           >
-            <Split className="size-5" />
-          </Button>
+            <Split className="size-4" aria-hidden="true" />
+            <span>{exploded ? "รวมชิ้น" : "แยกชิ้น"}</span>
+          </button>
         ) : null}
-        <Button
+        <button
           type="button"
-          size="icon-lg"
-          variant="secondary"
           aria-label="ซูมเข้า"
           className={controlBtn}
           onClick={() => zoomBy(-0.12)}
         >
-          <ZoomIn className="size-5" />
-        </Button>
-        <Button
+          <ZoomIn className="size-4" aria-hidden="true" />
+          <span>ซูม+</span>
+        </button>
+        <button
           type="button"
-          size="icon-lg"
-          variant="secondary"
           aria-label="ซูมออก"
           className={controlBtn}
           onClick={() => zoomBy(0.12)}
         >
-          <ZoomOut className="size-5" />
-        </Button>
-        <Button
+          <ZoomOut className="size-4" aria-hidden="true" />
+          <span>ซูม−</span>
+        </button>
+        <button
           type="button"
-          size="icon-lg"
-          variant="secondary"
           aria-label="รีเซ็ตมุมมอง"
           className={controlBtn}
           onClick={resetCamera}
         >
-          <RotateCcw className="size-5" />
-        </Button>
-        <Button
+          <RotateCcw className="size-4" aria-hidden="true" />
+          <span>รีเซ็ต</span>
+        </button>
+        <button
           type="button"
-          size="icon-lg"
-          variant="secondary"
           aria-label={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
           className={controlBtn}
-          onClick={() => void toggleFullscreen()}
+          onClick={() => {
+            pauseAutoRotate();
+            void toggleFullscreen();
+          }}
         >
           {isFullscreen ? (
-            <Minimize2 className="size-5" />
+            <Minimize2 className="size-4" aria-hidden="true" />
           ) : (
-            <Maximize2 className="size-5" />
+            <Maximize2 className="size-4" aria-hidden="true" />
           )}
-        </Button>
+          <span>{isFullscreen ? "ย่อ" : "เต็มจอ"}</span>
+        </button>
       </div>
 
       {isFullscreen && onNextHotspot && nextHotspotId ? (
@@ -348,7 +425,7 @@ export function VapeScene({
             className="pointer-events-auto mx-auto h-11 w-auto rounded-lg px-6 font-semibold shadow-glowRed"
             onClick={onNextHotspot}
           >
-            จุดถัดไป{nextLabel ? `: ${nextLabel}` : ""}
+            สำรวจต่อ{nextLabel ? `: ${nextLabel}` : ""}
             <ChevronRight className="size-4" />
           </Button>
         </div>
@@ -363,7 +440,7 @@ export function VapeScene({
           >
             {hotspotItems.map((item) => {
               const visited = visitedHotspots.includes(item.id);
-              const selected = selectedHotspotId === item.id;
+              const isSelected = selectedHotspotId === item.id;
               return (
                 <button
                   key={item.id}
@@ -372,7 +449,7 @@ export function VapeScene({
                   onClick={() => onHotspotClick(item.id)}
                   className={cn(
                     "flex min-h-11 min-w-[7.5rem] shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors duration-normal",
-                    selected
+                    isSelected
                       ? "border-primary bg-primary text-white"
                       : visited
                         ? "border-success/50 bg-card/95 text-textPrimary"
@@ -382,7 +459,7 @@ export function VapeScene({
                   <span
                     className={cn(
                       "flex size-5 shrink-0 items-center justify-center rounded-full border",
-                      selected
+                      isSelected
                         ? "border-white/40 bg-white/20"
                         : visited
                           ? "border-success bg-success text-white"
@@ -390,7 +467,7 @@ export function VapeScene({
                     )}
                     aria-hidden="true"
                   >
-                    {visited && !selected ? (
+                    {visited && !isSelected ? (
                       <Check className="size-3 stroke-[3]" />
                     ) : null}
                   </span>
@@ -403,7 +480,7 @@ export function VapeScene({
           </div>
           {remainingCount > 0 ? (
             <p className="mt-2 text-center text-xs text-textSecondary">
-              เหลืออีก {remainingCount} จุด
+              สำรวจต่อได้อีก {remainingCount} จุด
             </p>
           ) : (
             <p className="mt-2 text-center text-xs font-medium text-success">

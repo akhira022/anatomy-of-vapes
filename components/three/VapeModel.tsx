@@ -16,7 +16,7 @@ export interface VapeModelProps {
   showHotspots?: boolean;
   castShadows?: boolean;
   autoSpin?: boolean;
-  /** Strip PBR maps / use unlit materials for phones. */
+  /** Soften PBR maps on phones (keeps baseColor + emissiveMap). */
   lite?: boolean;
 }
 
@@ -64,7 +64,43 @@ function asMaterials(material: Material | Material[]): Material[] {
   return Array.isArray(material) ? material : [material];
 }
 
-/** Soften GPU cost without replacing materials (avoids invisible / black meshes). */
+type TunableMaterial = Material & {
+  map?: Texture | null;
+  normalMap?: Texture | null;
+  emissiveMap?: Texture | null;
+  metalnessMap?: Texture | null;
+  roughnessMap?: Texture | null;
+  aoMap?: Texture | null;
+  envMapIntensity?: number;
+  metalness?: number;
+  roughness?: number;
+  emissiveIntensity?: number;
+  emissive?: { r: number; g: number; b: number; setRGB: (r: number, g: number, b: number) => void };
+  needsUpdate?: boolean;
+};
+
+function isNearWhiteEmissive(m: TunableMaterial) {
+  const e = m.emissive;
+  if (!e) return false;
+  return e.r > 0.9 && e.g > 0.9 && e.b > 0.9;
+}
+
+/** Clone materials so lite tuning never mutates the shared GLTF cache. */
+function cloneMeshMaterials(root: Object3D) {
+  root.traverse((obj: Object3D) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.material) return;
+    mesh.material = Array.isArray(mesh.material)
+      ? mesh.material.map((m) => m.clone())
+      : mesh.material.clone();
+  });
+}
+
+/**
+ * Meshy GLBs ship emissiveFactor=[1,1,1] + emissiveMap.
+ * Stripping the map (or a failed decode) leaves full-white emissive → glowing white mesh.
+ * Always keep map+emissive paired, and tone down the factor on every device.
+ */
 function tuneMaterials(root: Object3D, castShadows: boolean, lite: boolean) {
   root.traverse((obj: Object3D) => {
     const mesh = obj as Mesh;
@@ -73,29 +109,42 @@ function tuneMaterials(root: Object3D, castShadows: boolean, lite: boolean) {
     mesh.receiveShadow = castShadows;
     mesh.frustumCulled = true;
 
-    if (!lite) return;
-
     for (const mat of asMaterials(mesh.material)) {
-      const m = mat as Material & {
-        normalMap?: Texture | null;
-        emissiveMap?: Texture | null;
-        metalnessMap?: Texture | null;
-        roughnessMap?: Texture | null;
-        aoMap?: Texture | null;
-        envMapIntensity?: number;
-        metalness?: number;
-        roughness?: number;
-        needsUpdate?: boolean;
-      };
-      // Keep baseColor map; drop extras that phones struggle to sample.
-      if (m.normalMap) m.normalMap = null;
-      if (m.emissiveMap) m.emissiveMap = null;
-      if (m.metalnessMap) m.metalnessMap = null;
-      if (m.roughnessMap) m.roughnessMap = null;
-      if (m.aoMap) m.aoMap = null;
-      if (typeof m.metalness === "number") m.metalness = Math.min(m.metalness, 0.25);
-      if (typeof m.roughness === "number") m.roughness = Math.max(m.roughness, 0.55);
-      if (typeof m.envMapIntensity === "number") m.envMapIntensity = 0;
+      const m = mat as TunableMaterial;
+
+      if (lite) {
+        // Drop expensive maps only — keep baseColor + emissiveMap for correct color.
+        if (m.normalMap) m.normalMap = null;
+        if (m.metalnessMap) m.metalnessMap = null;
+        if (m.roughnessMap) m.roughnessMap = null;
+        if (m.aoMap) m.aoMap = null;
+        if (typeof m.metalness === "number") m.metalness = Math.min(m.metalness, 0.35);
+        if (typeof m.roughness === "number") m.roughness = Math.max(m.roughness, 0.5);
+        if (typeof m.envMapIntensity === "number") m.envMapIntensity = 0.1;
+      }
+
+      // Critical: never leave white emissive without a working map.
+      // Meshy ships emissiveFactor=[1,1,1]; a missing/failed map → solid white.
+      const emissiveMapOk =
+        Boolean(m.emissiveMap?.image) &&
+        Boolean(
+          (m.emissiveMap?.image as { width?: number } | undefined)?.width
+        );
+
+      if (m.emissive) {
+        if (!emissiveMapOk) {
+          m.emissiveMap = null;
+          m.emissive.setRGB(0, 0, 0);
+          if (typeof m.emissiveIntensity === "number") m.emissiveIntensity = 0;
+        } else if (isNearWhiteEmissive(m)) {
+          // Soften Meshy's full-white factor — washes out on many mobile GPUs.
+          m.emissive.setRGB(0.35, 0.35, 0.35);
+          if (typeof m.emissiveIntensity === "number") {
+            m.emissiveIntensity = lite ? 0.55 : 0.7;
+          }
+        }
+      }
+
       m.needsUpdate = true;
     }
   });
@@ -107,6 +156,7 @@ function prepareScene(
   lite: boolean
 ): PartMetrics {
   const root = scene.clone(true);
+  cloneMeshMaterials(root);
   tuneMaterials(root, castShadows, lite);
 
   const box = new Box3().setFromObject(root);
