@@ -6,11 +6,13 @@ import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
+import { FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/useRequirePhase";
 import { isLoggedIn, phaseToPath } from "@/lib/phase";
 import { useQuizStore } from "@/store/useQuizStore";
 import { HeroTypingLine } from "@/components/HeroTypingLine";
+import { HeroAnatomyLabels } from "@/components/HeroAnatomyLabels";
 
 const HeroVapeCanvas = dynamic(
   () =>
@@ -211,6 +213,7 @@ export function Hero() {
       />
 
       <HeroMoleculeField />
+      <HeroAnatomyLabels />
 
       <div className="relative z-[2] mx-auto flex w-full max-w-5xl flex-col items-center px-4 pt-[min(42vh,18rem)] pb-16 text-center sm:px-6 sm:pb-20">
         <motion.div
@@ -240,6 +243,15 @@ export function Hero() {
           </p>
 
           <HeroTypingLine />
+
+          <div className="hero-copy-readable mt-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-1.5 backdrop-blur-sm">
+            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+              <FlaskConical className="size-3" aria-hidden="true" />
+            </span>
+            <span className="text-xs font-medium text-textSecondary sm:text-sm">
+              อิงหลักฐานทางวิทยาศาสตร์
+            </span>
+          </div>
 
           <motion.div
             className="mt-10 flex w-full max-w-sm flex-col items-center gap-3"
