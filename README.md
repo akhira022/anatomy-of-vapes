@@ -53,6 +53,7 @@ npm run dev
 | เอกสาร | เนื้อหา |
 |--------|---------|
 | [docs/STUDY-GUIDE-v0.2.0.md](./docs/STUDY-GUIDE-v0.2.0.md) | คู่มือศึกษาโปรเจกต์ทั้งระบบ (v0.2.0) |
+| [docs/GLOSSARY.md](./docs/GLOSSARY.md) | อธิบายศัพท์ที่เจอในโปรเจกต์ |
 | [docs/VERSION-CONTROL.md](./docs/VERSION-CONTROL.md) | สอนใช้ Git / Version Control กับ repo นี้ |
 | [docs/SETUP.md](./docs/SETUP.md) | ตั้งค่า Supabase และ env |
 | [docs/CHANGELOG.md](./docs/CHANGELOG.md) | ประวัติเวอร์ชันและบัคที่แก้แล้ว |

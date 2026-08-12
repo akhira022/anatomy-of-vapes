@@ -3,7 +3,7 @@
 **เวอร์ชัน:** v0.2.0 — Thai Mobile Learner  
 **แท็ก Git:** `v0.2.0`  
 **สาขาหลักของเวอร์ชันนี้:** `cursor/thai-mobile-learner-ux`  
-**เอกสารคู่กัน:** [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md) · [VERSION-CONTROL.md](./VERSION-CONTROL.md)
+**เอกสารคู่กัน:** [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md) · [VERSION-CONTROL.md](./VERSION-CONTROL.md) · [GLOSSARY.md](./GLOSSARY.md)
 
 เอกสารนี้รวบรวมสิ่งที่ควรรู้เมื่อจะศึกษาหรือเขียนต่อเว็บนี้: เป้าหมาย ฟีเจอร์ สถาปัตยกรรม user journey workflow ปัญหาที่เจอและวิธีแก้
 
@@ -76,7 +76,7 @@ data/                   # เนื้อหา: คำถาม, hotspot, myth
 hooks/                  # phase gate, lite 3D, fullscreen, router
 supabase/migrations/    # SQL ตามลำดับ 001 → 005
 public/models/          # mouthpiece.glb, coilTank.glb, battery.glb
-docs/                   # SETUP, CHANGELOG, VERSION-CONTROL, คู่มือนี้
+docs/                   # SETUP, CHANGELOG, VERSION-CONTROL, GLOSSARY, คู่มือนี้
 ```
 
 ---
@@ -447,8 +447,10 @@ npm run mobile:url   # ดู IP/URL อย่างเดียว
 
 ## 12. คำศัพท์ในโปรเจกต์
 
-| คำ | ความหมายในโปรเจกต์นี้ |
-|----|------------------------|
+อภิธานศัพท์ฉบับเต็ม (ผลิตภัณฑ์, flow, 3D, Supabase, Git, โฟลเดอร์): **[GLOSSARY.md](./GLOSSARY.md)**
+
+| คำ | ความหมายสั้น |
+|----|----------------|
 | Phase | ขั้นของ learner flow |
 | Hotspot | จุดสารพิษบนโมเดล 3D |
 | Exploded view | แยกชิ้นปาก / แท็งก์ / แบต |

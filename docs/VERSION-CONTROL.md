@@ -6,7 +6,7 @@
 **สาขาหลักของเวอร์ชันศึกษา:** `cursor/thai-mobile-learner-ux`  
 **แท็กเวอร์ชันอ้างอิง:** `v0.2.0`  
 
-เอกสารคู่กัน: [STUDY-GUIDE-v0.2.0.md](./STUDY-GUIDE-v0.2.0.md) · [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md)
+เอกสารคู่กัน: [STUDY-GUIDE-v0.2.0.md](./STUDY-GUIDE-v0.2.0.md) · [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md) · [GLOSSARY.md](./GLOSSARY.md)
 
 ---
 
@@ -48,6 +48,8 @@
 
 ## 2. คำศัพท์ที่เจอบ่อยใน repo นี้
 
+> คำศัพท์ทั้งโปรเจกต์ (ผลิตภัณฑ์, 3D, Supabase, โฟลเดอร์ ฯลฯ) อยู่ที่ **[GLOSSARY.md](./GLOSSARY.md)** — ด้านล่างเน้นคำ Git ที่ใช้ในคู่มือนี้
+
 | คำ | ความหมายสั้น | ตัวอย่างในโปรเจกต์นี้ |
 |----|--------------|------------------------|
 | Repository (repo) | โฟลเดอร์โปรเจกต์ที่ Git ดูแล | `anatomy-of-vapes` |
@@ -61,6 +63,8 @@
 | Pull | ดึงงานใหม่จาก remote มาเครื่อง | `git pull` |
 | Push | ส่ง commit จากเครื่องขึ้น remote | `git push` |
 | Merge / PR | รวมสาขาเข้าด้วยกัน (มักผ่าน Pull Request) | รีวิวบน GitHub |
+| `.gitignore` | รายการไฟล์ที่ Git ไม่ติดตาม | กัน `.env.local`, `node_modules` |
+| Changelog | บันทึกสิ่งที่เปลี่ยนรายเวอร์ชัน | [CHANGELOG.md](./CHANGELOG.md) |
 
 ---
 
