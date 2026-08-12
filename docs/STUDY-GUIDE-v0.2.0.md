@@ -3,7 +3,7 @@
 **เวอร์ชัน:** v0.2.0 — Thai Mobile Learner  
 **แท็ก Git:** `v0.2.0`  
 **สาขาหลักของเวอร์ชันนี้:** `cursor/thai-mobile-learner-ux`  
-**เอกสารคู่กัน:** [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md)
+**เอกสารคู่กัน:** [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md) · [VERSION-CONTROL.md](./VERSION-CONTROL.md) · [GLOSSARY.md](./GLOSSARY.md)
 
 เอกสารนี้รวบรวมสิ่งที่ควรรู้เมื่อจะศึกษาหรือเขียนต่อเว็บนี้: เป้าหมาย ฟีเจอร์ สถาปัตยกรรม user journey workflow ปัญหาที่เจอและวิธีแก้
 
@@ -76,7 +76,7 @@ data/                   # เนื้อหา: คำถาม, hotspot, myth
 hooks/                  # phase gate, lite 3D, fullscreen, router
 supabase/migrations/    # SQL ตามลำดับ 001 → 005
 public/models/          # mouthpiece.glb, coilTank.glb, battery.glb
-docs/                   # SETUP, CHANGELOG, คู่มือนี้
+docs/                   # SETUP, CHANGELOG, VERSION-CONTROL, GLOSSARY, คู่มือนี้
 ```
 
 ---
@@ -435,19 +435,23 @@ npm run mobile:url   # ดู IP/URL อย่างเดียว
 ## 11. ลำดับแนะนำสำหรับศึกษาโค้ด (1–2 วัน)
 
 1. อ่านคู่มือนี้ทั้งฉบับ + รัน `npm run dev` เดิน happy path เองหนึ่งรอบ  
-2. ไล่ `useQuizStore` + `useRequirePhase` ให้เข้าใจว่าทำไมบางหน้าเด้ง  
-3. อ่าน `lib/db.ts` คู่กับ migrations — จุดสำคัญคือ client UUID และ RPC  
-4. เปิด `/anatomy` บนมือถือจริง (`dev:mobile`) — ลอง fullscreen + hotspot  
-5. เปลี่ยนข้อความใน `data/hotspots.ts` / `quiz-questions.ts` ดูผลทันที  
-6. อ่าน CHANGELOG แล้วจับคู่แต่ละบัคกับไฟล์ที่แก้  
-7. (ขั้นสูง) ลองทำแอดมิน user ใหม่ใน Supabase แล้ว Export CSV
+2. (ถ้ายังใหม่กับศัพท์ในโปรเจกต์) เปิด [GLOSSARY.md](./GLOSSARY.md) คู่กับหน้าจอจริง  
+3. (ถ้ายังใหม่กับ Git) อ่าน [VERSION-CONTROL.md](./VERSION-CONTROL.md) แล้วทำแบบฝึกหัดสั้นท้ายเอกสาร  
+4. ไล่ `useQuizStore` + `useRequirePhase` ให้เข้าใจว่าทำไมบางหน้าเด้ง  
+5. อ่าน `lib/db.ts` คู่กับ migrations — จุดสำคัญคือ client UUID และ RPC  
+6. เปิด `/anatomy` บนมือถือจริง (`dev:mobile`) — ลอง fullscreen + hotspot  
+7. สร้างสาขา `study/…` แล้วลองเปลี่ยนข้อความใน `data/hotspots.ts` / `quiz-questions.ts`  
+8. อ่าน CHANGELOG แล้วจับคู่แต่ละบัคกับไฟล์ที่แก้ (`git log` ตามคู่มือ VC)  
+9. (ขั้นสูง) ลองทำแอดมิน user ใหม่ใน Supabase แล้ว Export CSV
 
 ---
 
 ## 12. คำศัพท์ในโปรเจกต์
 
-| คำ | ความหมายในโปรเจกต์นี้ |
-|----|------------------------|
+อภิธานศัพท์ฉบับเต็ม (ผลิตภัณฑ์, flow, 3D, Supabase, Git, โฟลเดอร์): **[GLOSSARY.md](./GLOSSARY.md)**
+
+| คำ | ความหมายสั้น |
+|----|----------------|
 | Phase | ขั้นของ learner flow |
 | Hotspot | จุดสารพิษบนโมเดล 3D |
 | Exploded view | แยกชิ้นปาก / แท็งก์ / แบต |
