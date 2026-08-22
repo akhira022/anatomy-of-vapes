@@ -270,6 +270,10 @@
       animation: none;
       opacity: 1;
     }
+
+    .animate-hero-glow-breathe {
+      animation: none;
+    }
   }
 
   .animate-hotspot-pulse {
@@ -290,6 +294,10 @@
 
   .animate-typing-caret {
     animation: typing-caret 0.9s step-end infinite;
+  }
+
+  .animate-hero-glow-breathe {
+    animation: hero-glow-breathe 5.5s ease-in-out infinite;
   }
 }
 
@@ -322,6 +330,18 @@
   }
   50% {
     opacity: 0;
+  }
+}
+
+@keyframes hero-glow-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.06);
   }
 }
 

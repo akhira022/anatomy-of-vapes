@@ -4,15 +4,15 @@ import { useEffect, useState } from "react";
 
 /**
  * Prefer a lighter WebGL path on phones and low-end devices.
- * Defaults to lite until we can measure, so first paint stays cheap.
+ * Defaults to full quality so first paint keeps textures (lite mutates a clone).
  */
 export function usePreferLite3D() {
-  const [lite, setLite] = useState(true);
+  const [lite, setLite] = useState(false);
 
   useEffect(() => {
     const narrow = window.matchMedia("(max-width: 768px)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
-    const cores = navigator.hardwareConcurrency ?? 4;
+    const cores = navigator.hardwareConcurrency ?? 8;
     const memory = (
       navigator as Navigator & { deviceMemory?: number }
     ).deviceMemory;
@@ -23,8 +23,10 @@ export function usePreferLite3D() {
     const iOS =
       /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const mobileLike = narrow || coarse || iOS;
 
-    setLite(Boolean(narrow || coarse || lowEnd || saveData || iOS));
+    // Desktop with few cores still gets full materials; phones always lite.
+    setLite(Boolean(mobileLike || saveData || (lowEnd && mobileLike)));
   }, []);
 
   return lite;

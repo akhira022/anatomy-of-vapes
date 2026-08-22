@@ -26,6 +26,7 @@ export function useRequirePhase(required: AppPhase) {
   const currentPhase = useQuizStore((s) => s.currentPhase);
   const visitedHotspots = useQuizStore((s) => s.visitedHotspots);
   const preAnswers = useQuizStore((s) => s.preAnswers);
+  const resultSaved = useQuizStore((s) => s.resultSaved);
 
   useEffect(() => {
     const registered = Boolean(nickname && consentAccepted);
@@ -35,21 +36,21 @@ export function useRequirePhase(required: AppPhase) {
       return;
     }
 
+    // Completed learners may reopen anatomy in review mode (even mid-retake).
+    if (
+      required === "anatomy" &&
+      (currentPhase === "result" || resultSaved)
+    ) {
+      setReady(true);
+      return;
+    }
+
     if (
       required === "anatomy" &&
       phaseIndex(currentPhase) < phaseIndex("anatomy") &&
       preAnswers.length < 5
     ) {
       router.replace("/pretest");
-      return;
-    }
-
-    // Completed learners may reopen anatomy in review mode without leaving result phase.
-    if (
-      required === "anatomy" &&
-      currentPhase === "result"
-    ) {
-      setReady(true);
       return;
     }
 
@@ -78,6 +79,7 @@ export function useRequirePhase(required: AppPhase) {
     currentPhase,
     visitedHotspots.length,
     preAnswers.length,
+    resultSaved,
     router,
   ]);
 

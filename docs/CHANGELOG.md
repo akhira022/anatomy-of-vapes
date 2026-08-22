@@ -5,7 +5,8 @@
 ชื่อเวอร์ชัน: **Thai Mobile Learner**  
 แท็ก Git: `v0.2.0`  
 สาขา: `cursor/thai-mobile-learner-ux`  
-คู่มือศึกษาทั้งระบบ: [STUDY-GUIDE-v0.2.0.md](./STUDY-GUIDE-v0.2.0.md)
+คู่มือศึกษาทั้งระบบ: [STUDY-GUIDE-v0.2.0.md](./STUDY-GUIDE-v0.2.0.md)  
+คู่มือขั้นตอนทำเว็บตั้งแต่ต้นจน deploy: [PROJECT-GUIDE.md](./PROJECT-GUIDE.md)
 
 เวอร์ชันนี้โฟกัสผู้เรียนไทยบนมือถือ: flow ครบ, 3D ใช้งานจริง, Supabase learner, และแก้บัคที่เจอระหว่างทดสอบบนเครื่องจริง
 

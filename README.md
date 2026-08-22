@@ -1,56 +1,44 @@
-#  Anatomy of Vapes (ส่องไส้ในบุหรี่ไฟฟ้า)
+# Anatomy of Vapes / ส่องไส้ในบุหรี่ไฟฟ้า
 
-**Anatomy of Vapes** เป็นเว็บแอปพลิเคชันสื่อการเรียนรู้เชิงโต้ตอบ (Interactive 3D Learning Web Application) ที่ออกแบบมาเพื่อสร้างความตระหนักรู้เกี่ยวกับอันตรายและสารพิษซ่อนแอบภายในบุหรี่ไฟฟ้า โดยนำเสนอผ่านโมเดล 3 มิติ เพื่อให้ผู้เรียนสามารถสำรวจส่วนประกอบ โครงสร้าง และผลกระทบต่อสุขภาพได้อย่างเห็นภาพและน่าสนใจ
+เว็บแอปการศึกษาแบบ interactive (มือถือเป็นหลัก) ให้สำรวจโมเดลบุหรี่ไฟฟ้า 3D ทำแบบทดสอบก่อน–หลังเรียน และดูพัฒนาการคะแนน
 
----
+## เอกสารสำหรับเรียนรู้โปรเจกต์
 
-##  Key Features (ฟีเจอร์หลัก)
+เริ่มจากคู่มือนี้:
 
-* **Interactive 3D Model:** สำรวจโครงสร้างภายในของบุหรี่ไฟฟ้าแบบ 3D หมุน ซูม และกดดูจุด Hotspot สารพิษ (เช่น Nicotine, Formaldehyde, Acrolein, PG/VG)
-* **Gamified Quiz System:** ระบบแบบทดสอบวัดความรู้ก่อนเรียน (Pre-test) และหลังเรียน (Post-test) พร้อม Progress Bar และคำนวณคะแนนพัฒนาการแบบเรียลไทม์
-* **PDPA & Registration:** ระบบลงทะเบียนและยินยอมข้อตกลงการใช้งานข้อมูลส่วนบุคคลตามมาตรฐาน PDPA
-* **Result & Evaluation Summary:** หน้าสรุปผลการเรียนรู้ เปรียบเทียบคะแนน Pre-test และ Post-test พร้อมการประเมินดาวและระดับความเข้าใจ
-* **Modern UI/UX Design:** ดีไซน์โทนมืด (Dark Mode) เน้นความทันสมัย ลื่นไหล และรองรับการแสดงผลทุกอุปกรณ์ (Responsive Design)
+| เอกสาร | เนื้อหา |
+|--------|---------|
+| **[docs/PROJECT-GUIDE.md](./docs/PROJECT-GUIDE.md)** | **ขั้นตอนทั้งหมด:** คิดผลิตภัณฑ์ → UX/UI → หน้าต่าง → Database → Deploy |
+| [docs/STUDY-GUIDE-v0.2.0.md](./docs/STUDY-GUIDE-v0.2.0.md) | ไล่โค้ด, journey, workflow, บัคที่เคยเจอ |
+| [docs/SETUP.md](./docs/SETUP.md) | ตั้งค่า Supabase + checklist ทดสอบ |
+| [docs/CHANGELOG.md](./docs/CHANGELOG.md) | ประวัติเวอร์ชัน |
+| [PRODUCT.md](./PRODUCT.md) | บริบทผลิตภัณฑ์ |
+| [DESIGN.md](./DESIGN.md) | Design system |
 
----
+## Tech stack (สรุป)
 
-##  User Flow (ลำดับการใช้งาน)
+Next.js 16 · React 19 · Tailwind CSS 4 · Zustand · Three.js / R3F · Supabase · Vercel
 
-1. **Landing Page:** หน้าแรกแนะนำระบบและแสดงโมเดล 3D แบบโต้ตอบ
-2. **PDPA Registration:** กรอกข้อมูลเบื้องต้น (ชื่อเล่น/ระดับชั้น) และยินยอมนโยบายความเป็นส่วนตัว
-3. **Pre-test Quiz:** แบบทดสอบวัดความรู้พื้นฐานก่อนเรียนจำนวน 5 ข้อ
-4. **Anatomy 3D Exploration:** สำรวจจุด Hotspot สารพิษ 5 จุดบนโมเดล 3D
-5. **Post-test Quiz:** แบบทดสอบวัดความรู้หลังเรียนจำนวน 5 ข้อ
-6. **Result Page:** แสดงผลลัพธ์การเรียนรู้และการเปรียบเทียบคะแนน
+## Getting started
 
----
-
-##  Tech Stack (เทคโนโลยีที่ใช้)
-
-* **Frontend Framework:** Next.js / React
-* **Styling:** Tailwind CSS, Aceternity UI / Magic UI
-* **3D Integration:** Spline / Three.js
-* **Icons & Animation:** Lucide Icons, Framer Motion
-
----
-
-##  Getting Started (การติดตั้งและเริ่มต้นใช้งาน)
-
-1. Clone Repository นี้ลงเครื่อง:
-   ```bash
-   git clone [https://github.com/akhira022/anatomy-of-vapes.git](https://github.com/akhira022/anatomy-of-vapes.git)
-   cd anatomy-of-vapes
-
-ติดตั้ง Dependencies
-
+```bash
 npm install
-# หรือ
-yarn install
-
-
-รัน Development Server
-
+cp .env.example .env.local
 npm run dev
-# หรือ
-yarn dev
+```
 
+เปิด [http://localhost:3001](http://localhost:3001)
+
+ทดสอบบนมือถือใน Wi‑Fi เดียวกัน:
+
+```bash
+npm run dev:mobile
+```
+
+ตั้งฐานข้อมูลและ deploy ตาม [docs/SETUP.md](./docs/SETUP.md) และ [docs/PROJECT-GUIDE.md](./docs/PROJECT-GUIDE.md) ขั้นที่ 8 และ 11
+
+## Learner flow
+
+`/` → `/register` หรือ `/login` → `/pretest` → `/anatomy` → `/posttest` → `/result`
+
+แอดมิน: `/admin/login` → `/admin`

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
@@ -11,6 +12,9 @@ import { useHydrated } from "@/hooks/useRequirePhase";
 import { isLoggedIn, phaseToPath } from "@/lib/phase";
 import { useQuizStore } from "@/store/useQuizStore";
 import { HeroTypingLine } from "@/components/HeroTypingLine";
+import { HeroBrandCopy } from "@/components/HeroBrandCopy";
+import { HeroToxinCallouts } from "@/components/HeroToxinCallouts";
+import { HeroMoleculeField } from "@/components/HeroMoleculeField";
 
 const HeroVapeCanvas = dynamic(
   () =>
@@ -26,143 +30,23 @@ const HeroVapeCanvas = dynamic(
   }
 );
 
-/** Soft chemical-structure accents around the hero red glow. */
-function HeroMoleculeField() {
+function PrimaryCtaMotion({
+  children,
+  reduceMotion,
+}: {
+  children: ReactNode;
+  reduceMotion: boolean;
+}) {
+  if (reduceMotion) return <>{children}</>;
   return (
-    <div
-      className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
-      aria-hidden="true"
+    <motion.div
+      className="inline-flex"
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Benzene ring — upper left of glow */}
-      <div
-        className="absolute top-[12%] left-[8%] w-[4.5rem] rotate-[-18deg] text-white/15 sm:left-[14%] sm:w-[5.5rem] light:text-gray-600/45"
-      >
-        <div
-          className="animate-molecule-float-slow"
-          style={{ animationDelay: "0.4s" }}
-        >
-          <svg viewBox="0 0 80 80" fill="none" className="size-full">
-            <polygon
-              points="40,8 68,24 68,56 40,72 12,56 12,24"
-              stroke="currentColor"
-              strokeWidth="1.25"
-            />
-            <circle cx="40" cy="40" r="10" stroke="currentColor" strokeWidth="1" />
-            <circle cx="40" cy="8" r="2.25" fill="currentColor" />
-            <circle cx="68" cy="24" r="2.25" fill="currentColor" />
-            <circle cx="68" cy="56" r="2.25" fill="currentColor" />
-            <circle cx="40" cy="72" r="2.25" fill="currentColor" />
-            <circle cx="12" cy="56" r="2.25" fill="currentColor" />
-            <circle cx="12" cy="24" r="2.25" fill="currentColor" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Linked atoms — right of glow */}
-      <div
-        className="absolute top-[22%] right-[6%] w-[5.5rem] rotate-[22deg] text-white/12 sm:right-[12%] sm:w-[6.5rem] light:text-gray-600/40"
-      >
-        <div
-          className="animate-molecule-float"
-          style={{ animationDelay: "1.6s" }}
-        >
-          <svg viewBox="0 0 100 70" fill="none" className="size-full">
-            <line x1="14" y1="36" x2="36" y2="18" stroke="currentColor" strokeWidth="1.25" />
-            <line x1="36" y1="18" x2="58" y2="36" stroke="currentColor" strokeWidth="1.25" />
-            <line x1="58" y1="36" x2="80" y2="16" stroke="currentColor" strokeWidth="1.25" />
-            <line x1="58" y1="36" x2="86" y2="52" stroke="currentColor" strokeWidth="1.25" />
-            <line x1="36" y1="18" x2="28" y2="52" stroke="currentColor" strokeWidth="1.25" />
-            <circle cx="14" cy="36" r="4" fill="currentColor" />
-            <circle cx="36" cy="18" r="5" fill="currentColor" />
-            <circle cx="58" cy="36" r="4.5" fill="currentColor" />
-            <circle cx="80" cy="16" r="3.5" fill="currentColor" />
-            <circle cx="86" cy="52" r="3.5" fill="currentColor" />
-            <circle cx="28" cy="52" r="3.5" fill="currentColor" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Hexagon lattice fragment — mid left */}
-      <div
-        className="absolute top-[40%] left-[2%] w-[3.75rem] rotate-[8deg] text-white/10 sm:left-[6%] sm:w-[4.5rem] light:text-gray-600/38"
-      >
-        <div
-          className="animate-molecule-float-slower"
-          style={{ animationDelay: "2.8s" }}
-        >
-          <svg viewBox="0 0 100 86" fill="none" className="size-full">
-            <polygon
-              points="28,6 50,18 50,42 28,54 6,42 6,18"
-              stroke="currentColor"
-              strokeWidth="1.15"
-            />
-            <polygon
-              points="50,18 72,6 94,18 94,42 72,54 50,42"
-              stroke="currentColor"
-              strokeWidth="1.15"
-            />
-            <polygon
-              points="28,54 50,42 72,54 72,78 50,90 28,78"
-              stroke="currentColor"
-              strokeWidth="1.15"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Small ring + side chain — upper right */}
-      <div
-        className="absolute top-[8%] right-[18%] w-[3.25rem] rotate-[-32deg] text-white/14 sm:right-[24%] sm:w-[4rem] light:text-gray-600/42"
-      >
-        <div
-          className="animate-molecule-float"
-          style={{ animationDelay: "0.9s" }}
-        >
-          <svg viewBox="0 0 64 72" fill="none" className="size-full">
-            <polygon
-              points="24,14 42,24 42,44 24,54 6,44 6,24"
-              stroke="currentColor"
-              strokeWidth="1.2"
-            />
-            <line x1="42" y1="24" x2="56" y2="10" stroke="currentColor" strokeWidth="1.2" />
-            <line x1="42" y1="44" x2="58" y2="58" stroke="currentColor" strokeWidth="1.2" />
-            <circle cx="24" cy="14" r="2" fill="currentColor" />
-            <circle cx="42" cy="24" r="2" fill="currentColor" />
-            <circle cx="42" cy="44" r="2" fill="currentColor" />
-            <circle cx="24" cy="54" r="2" fill="currentColor" />
-            <circle cx="6" cy="44" r="2" fill="currentColor" />
-            <circle cx="6" cy="24" r="2" fill="currentColor" />
-            <circle cx="56" cy="10" r="2.5" fill="currentColor" />
-            <circle cx="58" cy="58" r="2.5" fill="currentColor" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Linear chain — lower right of glow */}
-      <div
-        className="absolute top-[48%] right-[10%] w-[5rem] rotate-[12deg] text-white/11 sm:right-[16%] sm:top-[44%] sm:w-[5.75rem] light:text-gray-600/40"
-      >
-        <div
-          className="animate-molecule-float-slow"
-          style={{ animationDelay: "3.4s" }}
-        >
-          <svg viewBox="0 0 110 40" fill="none" className="size-full">
-            <line x1="8" y1="20" x2="102" y2="20" stroke="currentColor" strokeWidth="1.2" />
-            <line x1="30" y1="20" x2="30" y2="6" stroke="currentColor" strokeWidth="1.2" />
-            <line x1="54" y1="20" x2="54" y2="34" stroke="currentColor" strokeWidth="1.2" />
-            <line x1="78" y1="20" x2="78" y2="8" stroke="currentColor" strokeWidth="1.2" />
-            <circle cx="8" cy="20" r="3.5" fill="currentColor" />
-            <circle cx="30" cy="20" r="3.5" fill="currentColor" />
-            <circle cx="54" cy="20" r="3.5" fill="currentColor" />
-            <circle cx="78" cy="20" r="3.5" fill="currentColor" />
-            <circle cx="102" cy="20" r="3.5" fill="currentColor" />
-            <circle cx="30" cy="6" r="2.5" fill="currentColor" />
-            <circle cx="54" cy="34" r="2.5" fill="currentColor" />
-            <circle cx="78" cy="8" r="2.5" fill="currentColor" />
-          </svg>
-        </div>
-      </div>
-    </div>
+      {children}
+    </motion.div>
   );
 }
 
@@ -174,12 +58,15 @@ export function Hero() {
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const currentPhase = useQuizStore((s) => s.currentPhase);
   const postAnswers = useQuizStore((s) => s.postAnswers);
+  const resultSaved = useQuizStore((s) => s.resultSaved);
   const logout = useQuizStore((s) => s.logout);
   const resetProgress = useQuizStore((s) => s.resetProgress);
 
   const loggedIn =
     hydrated && isLoggedIn({ nickname, consentAccepted });
   const hasLocalResult = postAnswers.length > 0;
+  /** Completed once (even mid-retake) — keep model review on the landing page. */
+  const canReviewModel = currentPhase === "result" || resultSaved;
 
   const handleLogout = () => {
     logout();
@@ -195,142 +82,154 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-brand"
-      className="relative isolate flex min-h-[min(100dvh,52rem)] flex-col justify-end overflow-hidden bg-background"
+      className="relative isolate overflow-hidden bg-background pt-14 sm:pt-16"
     >
-      <div className="absolute inset-0" aria-hidden="true">
-        <HeroVapeCanvas reducedMotion={Boolean(reduceMotion)} />
-      </div>
+      <div className="mx-auto grid min-h-[min(100dvh,54rem)] w-full max-w-6xl grid-cols-1 sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:items-center">
+        {/* Copy column */}
+        <div className="relative z-[2] order-2 flex flex-col justify-center px-4 pb-14 pt-6 sm:order-1 sm:px-6 sm:py-16 sm:pr-3 sm:pl-5 md:py-20 md:pr-4 md:pl-6 lg:pl-8">
+          <div className="relative flex max-w-xl flex-col items-start text-left">
+            <HeroBrandCopy />
 
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-hero-vignette"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/85 to-transparent sm:h-52"
-      />
+            <HeroTypingLine className="mt-5 sm:mt-6" />
 
-      <HeroMoleculeField />
-
-      <div className="relative z-[2] mx-auto flex w-full max-w-5xl flex-col items-center px-4 pt-[min(42vh,18rem)] pb-16 text-center sm:px-6 sm:pb-20">
-        <motion.div
-          className="relative z-0 isolate flex max-w-xl flex-col items-center"
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: reduceMotion ? 0 : 0.5,
-            ease: [0.16, 1, 0.3, 1],
-          }}
-        >
-          {/* Soft light-theme lift under copy — keep the model readable behind text. */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-[-22%] inset-y-[-12%] -z-10 hidden light:block bg-[radial-gradient(ellipse_at_center,rgba(247,247,248,0.82)_0%,rgba(247,247,248,0.45)_42%,transparent_72%)]"
-          />
-
-          <h1
-            id="hero-brand"
-            className="hero-copy-readable font-heading text-[clamp(2.25rem,8vw,4.5rem)] font-bold leading-[0.95] tracking-[-0.03em] text-textPrimary uppercase"
-          >
-            Anatomy of Vapes
-          </h1>
-
-          <p className="hero-copy-readable mt-5 font-heading text-xl font-semibold text-textPrimary sm:mt-6 sm:text-2xl md:text-3xl">
-            ส่องไส้ในบุหรี่ไฟฟ้า
-          </p>
-
-          <HeroTypingLine />
-
-          <motion.div
-            className="mt-10 flex w-full max-w-sm flex-col items-center gap-3"
-            whileHover={reduceMotion ? undefined : { scale: 1.01 }}
-            transition={{ duration: 0.15 }}
-          >
-            {loggedIn ? (
-              <>
-                <p className="hero-copy-readable text-sm font-medium text-textPrimary">
-                  สวัสดี คุณ{nickname}
-                </p>
-                {currentPhase === "result" ? (
-                  <>
-                    <Button
-                      render={<Link href="/anatomy" />}
-                      nativeButton={false}
-                      className="h-12 min-w-[12rem] w-auto rounded-lg px-8 text-base font-semibold shadow-glowRed sm:text-lg"
-                    >
-                      ดูโมเดลอีกครั้ง
-                    </Button>
-                    {hasLocalResult ? (
-                      <Button
-                        render={<Link href="/result" />}
-                        nativeButton={false}
-                        variant="outline"
-                        className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
-                      >
-                        ดูผลลัพธ์
-                      </Button>
-                    ) : (
+            <motion.div
+              className="mt-8 flex w-full max-w-sm flex-col items-start gap-3 sm:mt-10"
+              initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : {
+                      delay: 0.85,
+                      duration: 0.45,
+                      ease: [0.16, 1, 0.3, 1],
+                    }
+              }
+            >
+              {loggedIn ? (
+                <>
+                  <p className="hero-copy-readable text-sm font-medium text-textPrimary">
+                    สวัสดี คุณ{nickname}
+                  </p>
+                  {currentPhase === "result" ? (
+                    <>
+                      <PrimaryCtaMotion reduceMotion={Boolean(reduceMotion)}>
+                        <Button
+                          render={<Link href="/anatomy" />}
+                          nativeButton={false}
+                          className="h-12 min-w-[12rem] w-auto rounded-lg px-8 text-base font-semibold shadow-glowRed sm:text-lg"
+                        >
+                          ดูโมเดลอีกครั้ง
+                        </Button>
+                      </PrimaryCtaMotion>
+                      {hasLocalResult ? (
+                        <Button
+                          render={<Link href="/result" />}
+                          nativeButton={false}
+                          variant="outline"
+                          className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
+                        >
+                          ดูผลลัพธ์
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
+                          onClick={handleRestart}
+                        >
+                          ทำแบบทดสอบใหม่
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <PrimaryCtaMotion reduceMotion={Boolean(reduceMotion)}>
+                        <Button
+                          render={<Link href={phaseToPath(currentPhase)} />}
+                          nativeButton={false}
+                          className="h-12 min-w-[12rem] w-auto rounded-lg px-8 text-base font-semibold shadow-glowRed sm:text-lg"
+                        >
+                          ดำเนินการต่อ
+                        </Button>
+                      </PrimaryCtaMotion>
+                      {canReviewModel ? (
+                        <Button
+                          render={<Link href="/anatomy" />}
+                          nativeButton={false}
+                          variant="outline"
+                          className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
+                        >
+                          ดูโมเดลอีกครั้ง
+                        </Button>
+                      ) : null}
+                    </>
+                  )}
+                  <div className="flex flex-wrap items-center justify-start gap-2">
+                    {hasLocalResult || currentPhase !== "result" ? (
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-11 min-w-[12rem] w-auto rounded-lg bg-background px-8 text-base light:border-border light:bg-surface"
+                        className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface"
                         onClick={handleRestart}
                       >
-                        ทำแบบทดสอบใหม่
+                        เรียนใหม่
                       </Button>
-                    )}
-                  </>
-                ) : (
-                  <Button
-                    render={<Link href={phaseToPath(currentPhase)} />}
-                    nativeButton={false}
-                    className="h-12 min-w-[12rem] w-auto rounded-lg px-8 text-base font-semibold shadow-glowRed sm:text-lg"
-                  >
-                    ดำเนินการต่อ
-                  </Button>
-                )}
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  {hasLocalResult || currentPhase !== "result" ? (
+                    ) : null}
                     <Button
                       type="button"
                       variant="outline"
                       className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface"
-                      onClick={handleRestart}
+                      onClick={handleLogout}
                     >
-                      เรียนใหม่
+                      ออกจากระบบ
                     </Button>
-                  ) : null}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <PrimaryCtaMotion reduceMotion={Boolean(reduceMotion)}>
+                    <Button
+                      render={<Link href="/register" />}
+                      nativeButton={false}
+                      className="h-11 w-auto rounded-lg px-5 text-base font-semibold shadow-glowRed sm:px-6 sm:text-lg"
+                    >
+                      เริ่มเรียนรู้
+                    </Button>
+                  </PrimaryCtaMotion>
                   <Button
-                    type="button"
+                    render={<Link href="/login" />}
+                    nativeButton={false}
                     variant="outline"
-                    className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface"
-                    onClick={handleLogout}
+                    className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface sm:px-6"
                   >
-                    ออกจากระบบ
+                    เข้าสู่ระบบ
                   </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <Button
-                  render={<Link href="/register" />}
-                  nativeButton={false}
-                  className="h-11 w-auto rounded-lg px-5 text-base font-semibold shadow-glowRed sm:px-6 sm:text-lg"
-                >
-                  เริ่มเรียนรู้
-                </Button>
-                <Button
-                  render={<Link href="/login" />}
-                  nativeButton={false}
-                  variant="outline"
-                  className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface sm:px-6"
-                >
-                  เข้าสู่ระบบ
-                </Button>
-              </>
-            )}
-          </motion.div>
-        </motion.div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Model column — explicit `h-` (not `min-h-`) so the canvas's
+            `h-full` chain has a definite height to resolve against;
+            a min-height-only ancestor makes percentage heights collapse.
+            Sized close to the desktop pane's presence even on phones —
+            `clamp()` keeps a sane floor on short landscape screens and a
+            ceiling before the `sm` split takes over. */}
+        <div
+          className="relative order-1 h-[clamp(18rem,58vh,28rem)] w-full sm:order-2 sm:h-[min(100dvh,54rem)]"
+          role="img"
+          aria-label="โมเดลบุหรี่ไฟฟ้าพร้อมจุดพรีวิวสารพิษ: นิโคตินที่ปากดูด ฟอร์มาลดีไฮด์ที่แท้งก์ และลิเธียมที่แบตเตอรี่"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-6 left-1/2 w-[min(68%,16rem)] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(229,57,53,0.17)_0%,transparent_70%)] sm:inset-y-8 sm:w-[min(70%,18rem)] sm:bg-[radial-gradient(ellipse_at_center,rgba(229,57,53,0.18)_0%,transparent_70%)] light:bg-[radial-gradient(ellipse_at_center,rgba(229,57,53,0.09)_0%,transparent_72%)] light:sm:bg-[radial-gradient(ellipse_at_center,rgba(229,57,53,0.1)_0%,transparent_72%)] animate-hero-glow-breathe"
+          />
+          <HeroVapeCanvas reducedMotion={Boolean(reduceMotion)} />
+          <HeroMoleculeField />
+          <HeroToxinCallouts />
+        </div>
       </div>
     </section>
   );
