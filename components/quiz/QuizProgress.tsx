@@ -14,16 +14,16 @@ export function QuizProgress({ current, total, className }: QuizProgressProps) {
 
   return (
     <div
-      className={cn("space-y-2", className)}
+      className={cn("space-y-2 xl:space-y-3", className)}
       role="status"
       aria-live="polite"
       aria-label={`ข้อที่ ${current} จาก ${total}`}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-textPrimary">
+        <span className="text-sm font-medium text-textPrimary xl:text-base">
           ข้อที่ {current}/{total}
         </span>
-        <span className="text-xs text-textSecondary">{percent}%</span>
+        <span className="text-xs text-textSecondary xl:text-sm">{percent}%</span>
       </div>
       <Progress value={percent} aria-hidden="true" />
     </div>

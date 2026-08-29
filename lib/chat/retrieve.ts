@@ -219,6 +219,14 @@ function scoreChunk(chunk: KnowledgeChunk, query: string): number {
   ) {
     typeBoost += 2;
   }
+  if (
+    chunk.type === "chapter" &&
+    ["บทเรียน", "บทที่", "อธิบาย", "ละเอียด", "สรุปบท"].some((word) =>
+      query.includes(word)
+    )
+  ) {
+    typeBoost += 3;
+  }
 
   return keywordScore + titleScore + contentScore + categoryBoost + typeBoost;
 }

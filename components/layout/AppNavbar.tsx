@@ -39,7 +39,7 @@ export function AppNavbar({
               <button
                 type="button"
                 aria-label="ย้อนกลับ"
-                className="flex size-10 shrink-0 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
                 onClick={onBack}
               >
                 <ArrowLeft className="size-5" />
@@ -48,7 +48,7 @@ export function AppNavbar({
               <Link
                 href={backHref}
                 aria-label="ย้อนกลับ"
-                className="flex size-10 shrink-0 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
               >
                 <ArrowLeft className="size-5" />
               </Link>

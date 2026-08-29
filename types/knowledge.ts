@@ -18,7 +18,8 @@ export type KnowledgeChunkType =
   | "component"
   | "health"
   | "refusal"
-  | "app";
+  | "app"
+  | "chapter";
 
 /** ชิ้นส่วนความรู้สำหรับ retrieval */
 export interface KnowledgeChunk {

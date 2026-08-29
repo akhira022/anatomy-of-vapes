@@ -21,6 +21,12 @@ const BLOCKED_PATTERNS = [
 const OFF_TOPIC_HINT =
   "ขออภัย ผู้ช่วยนี้ตอบได้เฉพาะเรื่องบุหรี่ไฟฟ้า ยาสูบ สุขภาพ และกฎหมายที่เกี่ยวข้องเท่านั้น ลองถามเรื่องส่วนประกอบ ผลเสีย หรือกฎหมายดูนะ";
 
+const GREETING_RESPONSE =
+  "สวัสดี! ผมเป็นผู้ช่วยเรียนรู้เรื่องบุหรี่ไฟฟ้า ถามได้เลยเรื่องส่วนประกอบ ผลต่อสุขภาพ กฎหมาย หรือวิธีปฏิเสธเพื่อนชวนสูบ";
+
+const SHORT_HINT =
+  "ลองถามเรื่องบุหรี่ไฟฟ้า สุขภาพ กฎหมาย หรือทักษะปฏิเสธเพื่อนดูนะ";
+
 const QUIZ_REFUSAL =
   "ผู้ช่วยไม่เฉลยคำตอบแบบทดสอบก่อน/หลังเรียนโดยตรง ลองสำรวจโมเดล 3D หรือถามเรื่องความรู้ทั่วไปแทนนะ";
 
@@ -59,6 +65,20 @@ const TOPIC_KEYWORDS = [
 
 function normalize(text: string) {
   return text.toLowerCase().trim();
+}
+
+function isGreeting(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length > 40) return false;
+  return (
+    /^(สวัสดี|หวัดดี)/i.test(trimmed) ||
+    /^(hello|hi|hey)\b/i.test(trimmed) ||
+    /^(ดีครับ|ดีค่ะ|ดีจ้า|ดีคับ)$/.test(trimmed)
+  );
+}
+
+function isGlossaryQuery(text: string): boolean {
+  return /คืออะไร|หมายถึง|แปลว่า|ความหมาย/.test(text);
 }
 
 export function guardChatInput(
@@ -109,12 +129,32 @@ export function guardChatInput(
     normalized.includes(keyword.toLowerCase())
   );
 
-  if (!hasTopic && trimmed.length > 12) {
+  if (!hasTopic) {
+    if (isGreeting(trimmed)) {
+      return {
+        allowed: false,
+        reason: "greeting",
+        response: GREETING_RESPONSE,
+      };
+    }
+
+    if (isGlossaryQuery(trimmed)) {
+      return { allowed: true };
+    }
+
+    if (trimmed.length > 12) {
+      return {
+        allowed: false,
+        refused: true,
+        reason: "off_topic",
+        response: OFF_TOPIC_HINT,
+      };
+    }
+
     return {
       allowed: false,
-      refused: true,
-      reason: "off_topic",
-      response: OFF_TOPIC_HINT,
+      reason: "short_off_topic",
+      response: SHORT_HINT,
     };
   }
 

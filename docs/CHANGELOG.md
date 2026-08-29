@@ -1,5 +1,28 @@
 # Changelog — Anatomy of Vapes / ส่องไส้ใน
 
+## v0.3.2 — Large-screen touch layout (2026-08-29)
+
+### สิ่งที่ได้
+
+- Learner flow ปรับ layout ที่ `xl` (≥1280px) สำหรับ All-in-one / จอทัชใหญ่
+- Anatomy: สองคอลัมน์ — โมเดล 3D สูงเต็มพื้นที่ + แผง hotspot/CTA ขวา
+- Register / login / quiz / result: ฟอร์มกว้างขึ้น ตัวอักษรและ touch target ใหญ่ขึ้น
+- Landing + chat drawer/FAB จัดตำแหน่งบนจอใหญ่
+- ยังไม่มี `/kiosk` แยก — ใช้ URL ผู้เรียนเดิม
+
+---
+
+## v0.3.1 — A11y + Chat Streaming (2026-08-29)
+
+### สิ่งที่ได้
+
+- Sync ขอบเขตใน PROJECT-GUIDE กับ PRODUCT.md (AI chat อยู่ใน MVP)
+- Accessibility pass: contrast รอง, touch target ≥44px, skip link, chat focus trap / Escape
+- Chat streaming แบบ NDJSON (`stream: true`) + typewriter สำหรับ local RAG
+- ทดสอบสตรีมใน `npm run test:chat`
+
+---
+
 ## v0.3.0 — AI RAG Chat (2026-08-29)
 
 ชื่อฟีเจอร์: **AI ผู้ช่วยเรียนรู้ (Knowledge Assistant)**  

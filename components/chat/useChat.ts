@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ChatHistoryMessage,
   ChatRequestBody,
-  ChatResponseBody,
+  ChatStreamEvent,
   ChatUiMessage,
 } from "@/types/chat";
 
@@ -22,10 +22,53 @@ function getSessionId() {
   return id;
 }
 
+async function* readNdjsonStream(
+  body: ReadableStream<Uint8Array>
+): AsyncGenerator<ChatStreamEvent> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        yield JSON.parse(trimmed) as ChatStreamEvent;
+      } catch {
+        // skip malformed lines
+      }
+    }
+  }
+
+  const trailing = buffer.trim();
+  if (trailing) {
+    try {
+      yield JSON.parse(trailing) as ChatStreamEvent;
+    } catch {
+      // ignore
+    }
+  }
+}
+
 export function useChat() {
   const [messages, setMessages] = useState<ChatUiMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const history = useMemo<ChatHistoryMessage[]>(
     () =>
@@ -40,6 +83,10 @@ export function useChat() {
       const trimmed = text.trim();
       if (!trimmed || loading) return;
 
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       const userMessage: ChatUiMessage = {
         id: createId(),
         role: "user",
@@ -53,8 +100,9 @@ export function useChat() {
         {
           id: pendingId,
           role: "assistant",
-          content: "กำลังค้นหาข้อมูล...",
+          content: "",
           pending: true,
+          streaming: true,
         },
       ]);
       setLoading(true);
@@ -64,35 +112,97 @@ export function useChat() {
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
           body: JSON.stringify({
             message: trimmed,
             history: history.slice(-6),
             sessionId: getSessionId(),
+            stream: true,
           } satisfies ChatRequestBody),
         });
 
-        const data = (await response.json()) as ChatResponseBody;
+        if (!response.body) {
+          throw new Error("No response body");
+        }
 
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === pendingId
-              ? {
-                  id: pendingId,
-                  role: "assistant",
-                  content: data.answer,
-                  citations: data.citations,
-                  hotspotId: data.hotspotId,
-                  refused: data.refused,
-                  mode: data.mode,
-                }
-              : message
-          )
-        );
+        let receivedDelta = false;
+
+        for await (const event of readNdjsonStream(response.body)) {
+          if (controller.signal.aborted) break;
+
+          if (event.type === "delta") {
+            receivedDelta = true;
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === pendingId
+                  ? {
+                      ...message,
+                      content: `${message.content}${event.text}`,
+                      pending: false,
+                      streaming: true,
+                      error: false,
+                    }
+                  : message
+              )
+            );
+          } else if (event.type === "meta") {
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === pendingId
+                  ? {
+                      ...message,
+                      citations: event.citations,
+                      hotspotId: event.hotspotId,
+                      refused: event.refused,
+                      mode: event.mode,
+                      pending: false,
+                    }
+                  : message
+              )
+            );
+          } else if (event.type === "error") {
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === pendingId
+                  ? {
+                      id: pendingId,
+                      role: "assistant",
+                      content: event.message,
+                      error: true,
+                      pending: false,
+                      streaming: false,
+                    }
+                  : message
+              )
+            );
+            setError(event.message);
+          } else if (event.type === "done") {
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === pendingId
+                  ? {
+                      ...message,
+                      pending: false,
+                      streaming: false,
+                      content:
+                        message.content ||
+                        (receivedDelta
+                          ? message.content
+                          : "ขออภัย ไม่ได้รับคำตอบ ลองใหม่อีกครั้งนะ"),
+                    }
+                  : message
+              )
+            );
+          }
+        }
 
         if (!response.ok && response.status !== 429) {
           setError("เกิดข้อผิดพลาด ลองใหม่อีกครั้ง");
         }
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
         setMessages((prev) =>
           prev.map((message) =>
             message.id === pendingId
@@ -102,19 +212,32 @@ export function useChat() {
                   content:
                     "เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่นะ",
                   error: true,
+                  pending: false,
+                  streaming: false,
                 }
               : message
           )
         );
         setError("เชื่อมต่อไม่สำเร็จ");
       } finally {
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+        }
         setLoading(false);
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === pendingId
+              ? { ...message, pending: false, streaming: false }
+              : message
+          )
+        );
       }
     },
     [history, loading]
   );
 
   const clearMessages = useCallback(() => {
+    abortRef.current?.abort();
     setMessages([]);
     setError(null);
   }, []);

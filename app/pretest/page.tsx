@@ -73,7 +73,7 @@ export default function PretestPage() {
         confirmLabel="ออกจากแบบทดสอบ"
         onConfirm={() => router.push("/register")}
       />
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <QuizEngine type="pretest" questions={pretestQuestions} />
       </main>
     </div>

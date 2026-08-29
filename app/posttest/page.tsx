@@ -42,7 +42,7 @@ export default function PosttestPage() {
         backHref="/anatomy"
         showSessionMenu
       />
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <QuizEngine type="posttest" questions={posttestQuestions} />
       </main>
     </div>

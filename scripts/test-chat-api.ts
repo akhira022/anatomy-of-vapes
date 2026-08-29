@@ -15,12 +15,20 @@ interface TestCase {
   expectMode?: "ai" | "rag";
 }
 
+interface StreamEvent {
+  type: string;
+  text?: string;
+  citations?: unknown[];
+  mode?: string;
+  refused?: boolean;
+  message?: string;
+}
+
 const cases: TestCase[] = [
   {
     name: "health-topic",
     message: "บุหรี่ไฟฟ้าอันตรายไหม",
     expectCitations: true,
-    expectMode: "rag",
   },
   {
     name: "law-topic",
@@ -88,6 +96,62 @@ async function runCase(test: TestCase) {
   return ok;
 }
 
+async function runStreamCase() {
+  const response = await fetch(`${BASE_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "บุหรี่ไฟฟ้าอันตรายไหม",
+      sessionId: `test-stream-${Date.now()}`,
+      stream: true,
+    }),
+  });
+
+  const issues: string[] = [];
+  if (!response.ok && response.status !== 429) {
+    issues.push(`HTTP ${response.status}`);
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("ndjson") && !contentType.includes("json")) {
+    issues.push(`unexpected content-type ${contentType}`);
+  }
+
+  const text = await response.text();
+  const events: StreamEvent[] = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      try {
+        return JSON.parse(line) as StreamEvent;
+      } catch {
+        return { type: "parse-error" };
+      }
+    });
+
+  const deltas = events.filter((e) => e.type === "delta");
+  const hasDone = events.some((e) => e.type === "done");
+  const hasMeta = events.some((e) => e.type === "meta");
+  const answer = deltas.map((e) => e.text ?? "").join("");
+
+  if (deltas.length < 1) issues.push("expected at least one delta");
+  if (!hasDone) issues.push("expected done event");
+  if (!hasMeta) issues.push("expected meta event");
+  if (!answer.trim()) issues.push("empty streamed answer");
+  if (answer.includes(ERROR_SNIPPET)) issues.push("server error message");
+
+  const ok = issues.length === 0;
+  console.log(
+    `${ok ? "✓" : "✗"} stream-ndjson`,
+    ok ? `(${deltas.length} deltas)` : `— ${issues.join(", ")}`
+  );
+  if (!ok) {
+    console.log(`  preview: ${answer.slice(0, 100) || text.slice(0, 100)}`);
+  }
+  return ok;
+}
+
 async function main() {
   console.log(`Chat API tests → ${BASE_URL}/api/chat\n`);
 
@@ -101,12 +165,14 @@ async function main() {
   }
 
   let passed = 0;
+  const total = cases.length + 1;
   for (const test of cases) {
     if (await runCase(test)) passed += 1;
   }
+  if (await runStreamCase()) passed += 1;
 
-  console.log(`\n${passed}/${cases.length} passed`);
-  if (passed !== cases.length) process.exit(1);
+  console.log(`\n${passed}/${total} passed`);
+  if (passed !== total) process.exit(1);
 }
 
 void main();

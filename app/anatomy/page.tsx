@@ -136,6 +136,209 @@ export default function AnatomyPage() {
     router.push(hasLocalResult ? "/result" : "/");
   };
 
+  const modeToggle = (
+    <div
+      role="group"
+      aria-label="โหมดการดูโมเดล"
+      className="flex gap-2 overflow-x-auto pb-1"
+    >
+      {modeOptions.map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => setMode(id)}
+          aria-pressed={mode === id}
+          className={cn(
+            "min-h-11 shrink-0 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors duration-normal xl:min-h-12 xl:px-5 xl:text-base",
+            mode === id
+              ? "border-primary bg-primary text-white"
+              : "border-border bg-card text-textSecondary hover:text-textPrimary"
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const stickyProgress = !isReview ? (
+    <div className="sticky top-14 z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2.5 backdrop-blur-sm sm:top-16 sm:-mx-6 sm:px-6 xl:static xl:mx-0 xl:rounded-lg xl:border xl:px-4 xl:py-3 xl:backdrop-blur-none">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-textSecondary xl:text-base" aria-live="polite">
+          สำรวจแล้ว{" "}
+          <span className="font-semibold text-textPrimary">
+            {visitedHotspots.length}/{hotspots.length}
+          </span>
+          {!allVisited ? (
+            <>
+              {" "}
+              · เหลือ{" "}
+              <span className="font-semibold text-primary">
+                {remainingCount}
+              </span>{" "}
+              จุด
+            </>
+          ) : (
+            <span className="ml-1 font-medium text-success">· ครบแล้ว</span>
+          )}
+        </p>
+        {allVisited ? (
+          <Button
+            type="button"
+            size="touch"
+            className="font-semibold shadow-glowRed xl:min-h-12"
+            onClick={goPosttest}
+          >
+            ไปแบบทดสอบหลังเรียน
+            <ArrowRight className="size-4" />
+          </Button>
+        ) : nextHotspot ? (
+          <Button
+            type="button"
+            size="touch"
+            variant="secondary"
+            className="font-semibold xl:min-h-12"
+            onClick={goNextHotspot}
+          >
+            จุดถัดไป: {nextHotspot.label}
+            <ArrowRight className="size-4" />
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  ) : null;
+
+  const statusSection = (
+    <section
+      aria-labelledby="exploration-status"
+      className="rounded-lg border border-border bg-card p-4 shadow-card sm:p-5 xl:p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p
+            id="exploration-status"
+            className="text-sm font-medium text-textSecondary"
+          >
+            จุดที่สำรวจแล้ว
+          </p>
+          <p
+            className="font-heading text-2xl font-semibold text-textPrimary xl:text-3xl"
+            aria-live="polite"
+          >
+            {visitedHotspots.length}/{hotspots.length}
+          </p>
+        </div>
+        {selected ? (
+          <Badge variant="outline">{selected.label}</Badge>
+        ) : (
+          <Badge variant="outline">แตะจุดสีแดงหรือเลือกจากรายการ</Badge>
+        )}
+      </div>
+
+      {isReview ? (
+        <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary xl:text-base">
+          ทบทวนจุดสารพิษได้ตามต้องการ — กดกลับเมื่อพร้อม
+        </p>
+      ) : !allVisited ? (
+        <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary xl:text-base">
+          สำรวจต่อได้อีก{" "}
+          <span className="font-semibold text-primary">
+            {remainingCount} จุด
+          </span>
+          {nextHotspot ? (
+            <>
+              {" "}
+              — ลองดู{" "}
+              <span className="font-semibold">{nextHotspot.label}</span>
+            </>
+          ) : null}
+        </p>
+      ) : (
+        <p className="mt-3 rounded-lg bg-success/10 px-3 py-2.5 text-sm font-medium text-success xl:text-base">
+          สำรวจครบแล้ว พร้อมไปทำแบบทดสอบหลังเรียน
+        </p>
+      )}
+
+      <p className="mt-3 text-sm leading-relaxed text-textSecondary xl:text-base">
+        {selected
+          ? selected.description
+          : "หมุนโมเดล เปิดโหมดแยกชิ้นส่วน แล้วสำรวจจุดสารพิษให้ครบทุกจุด"}
+      </p>
+
+      <div className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        {!allVisited && nextHotspot ? (
+          <Button
+            type="button"
+            size="touch"
+            className="font-semibold shadow-glowRed xl:min-h-12"
+            onClick={goNextHotspot}
+          >
+            สำรวจต่อ: {nextHotspot.label}
+            <ArrowRight className="size-4" />
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          size="touch"
+          className="xl:min-h-12"
+          disabled={!selected}
+          onClick={() => setPopupOpen(true)}
+        >
+          ดูรายละเอียด
+        </Button>
+        {isReview ? (
+          <Button
+            type="button"
+            size="touch"
+            className="font-semibold shadow-glowRed xl:min-h-12"
+            onClick={goResult}
+          >
+            {hasLocalResult ? "กลับไปดูผลลัพธ์" : "กลับหน้าหลัก"}
+            <ArrowRight className="size-4" />
+          </Button>
+        ) : allVisited ? (
+          <Button
+            type="button"
+            size="touch"
+            className="font-semibold shadow-glowRed xl:min-h-12"
+            onClick={goPosttest}
+          >
+            ถัดไป: แบบทดสอบหลังเรียน
+            <ArrowRight className="size-4" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            className="opacity-60 xl:min-h-12"
+            disabled
+            aria-disabled="true"
+          >
+            สำรวจต่ออีก {remainingCount} จุด
+          </Button>
+        )}
+      </div>
+    </section>
+  );
+
+  const scene = (
+    <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,440px)] xl:h-[calc(100dvh-8rem)] xl:min-h-[28rem]">
+      <VapeScene
+        exploded={mode === "exploded"}
+        onExplodedChange={(next) => setMode(next ? "exploded" : "whole")}
+        visitedHotspots={visitedHotspots}
+        selectedHotspotId={selectedHotspotId}
+        onHotspotClick={handleHotspotClick}
+        hotspotItems={hotspots}
+        nextHotspotId={nextHotspot?.id ?? null}
+        onNextHotspot={goNextHotspot}
+        popupOpen={popupOpen && Boolean(selected)}
+      />
+    </div>
+  );
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <AppNavbar
@@ -144,236 +347,67 @@ export default function AnatomyPage() {
         backHref={isReview ? (hasLocalResult ? "/result" : "/") : "/pretest"}
         showSessionMenu
       />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-3 px-4 py-4 text-left sm:gap-4 sm:px-6 sm:py-6">
+      <main
+        id="main-content"
+        className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-3 px-4 py-4 text-left sm:gap-4 sm:px-6 sm:py-6 xl:max-w-[1600px] xl:gap-5"
+      >
         {isReview ? (
-          <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm leading-relaxed text-textSecondary">
+          <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm leading-relaxed text-textSecondary xl:text-base">
             โหมดทบทวน — สำรวจโมเดลและจุดสารพิษได้อิสระ ไม่กระทบคะแนนที่ทำไว้แล้ว
           </p>
         ) : (
           <Stepper current="anatomy" />
         )}
 
-        <div
-          role="group"
-          aria-label="โหมดการดูโมเดล"
-          className="flex gap-2 overflow-x-auto pb-1"
-        >
-          {modeOptions.map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setMode(id)}
-              aria-pressed={mode === id}
-              className={cn(
-                "min-h-11 shrink-0 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors duration-normal",
-                mode === id
-                  ? "border-primary bg-primary text-white"
-                  : "border-border bg-card text-textSecondary hover:text-textPrimary"
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* Mobile / tablet: stacked */}
+        <div className="flex flex-col gap-3 sm:gap-4 xl:hidden">
+          {modeToggle}
+          {stickyProgress}
+          {scene}
+          {statusSection}
 
-        {!isReview ? (
-          <div className="sticky top-14 z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2.5 backdrop-blur-sm sm:top-16 sm:-mx-6 sm:px-6">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm text-textSecondary" aria-live="polite">
-                สำรวจแล้ว{" "}
-                <span className="font-semibold text-textPrimary">
-                  {visitedHotspots.length}/{hotspots.length}
-                </span>
-                {!allVisited ? (
-                  <>
-                    {" "}
-                    · เหลือ{" "}
-                    <span className="font-semibold text-primary">
-                      {remainingCount}
-                    </span>{" "}
-                    จุด
-                  </>
-                ) : (
-                  <span className="ml-1 font-medium text-success">
-                    · ครบแล้ว
-                  </span>
-                )}
-              </p>
-              {allVisited ? (
-                <Button
-                  type="button"
-                  size="touch"
-                  className="font-semibold shadow-glowRed"
-                  onClick={goPosttest}
-                >
-                  ไปแบบทดสอบหลังเรียน
-                  <ArrowRight className="size-4" />
-                </Button>
-              ) : nextHotspot ? (
-                <Button
-                  type="button"
-                  size="touch"
-                  variant="secondary"
-                  className="font-semibold"
-                  onClick={goNextHotspot}
-                >
-                  จุดถัดไป: {nextHotspot.label}
-                  <ArrowRight className="size-4" />
-                </Button>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
+          <details className="group rounded-lg border border-border bg-card sm:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-heading text-base font-semibold text-textPrimary marker:content-none [&::-webkit-details-marker]:hidden">
+              รายการจุดสารพิษ
+              <ChevronDown className="size-5 shrink-0 text-textSecondary transition-transform group-open:rotate-180" />
+            </summary>
+            <HotspotList
+              items={hotspots}
+              visitedIds={visitedHotspots}
+              selectedId={selectedHotspotId}
+              onSelect={handleHotspotClick}
+              className="px-4 pb-4"
+              headingId="hotspot-list-heading-mobile"
+            />
+          </details>
 
-        <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,440px)]">
-          <VapeScene
-            exploded={mode === "exploded"}
-            onExplodedChange={(next) =>
-              setMode(next ? "exploded" : "whole")
-            }
-            visitedHotspots={visitedHotspots}
-            selectedHotspotId={selectedHotspotId}
-            onHotspotClick={handleHotspotClick}
-            hotspotItems={hotspots}
-            nextHotspotId={nextHotspot?.id ?? null}
-            onNextHotspot={goNextHotspot}
-            popupOpen={popupOpen && Boolean(selected)}
-          />
-        </div>
-
-        <section
-          aria-labelledby="exploration-status"
-          className="rounded-lg border border-border bg-card p-4 shadow-card sm:p-5"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p
-                id="exploration-status"
-                className="text-sm font-medium text-textSecondary"
-              >
-                จุดที่สำรวจแล้ว
-              </p>
-              <p
-                className="font-heading text-2xl font-semibold text-textPrimary"
-                aria-live="polite"
-              >
-                {visitedHotspots.length}/{hotspots.length}
-              </p>
-            </div>
-            {selected ? (
-              <Badge variant="outline">{selected.label}</Badge>
-            ) : (
-              <Badge variant="outline">แตะจุดสีแดงหรือเลือกจากรายการ</Badge>
-            )}
-          </div>
-
-          {isReview ? (
-            <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary">
-              ทบทวนจุดสารพิษได้ตามต้องการ — กดกลับเมื่อพร้อม
-            </p>
-          ) : !allVisited ? (
-            <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary">
-              สำรวจต่อได้อีก{" "}
-              <span className="font-semibold text-primary">
-                {remainingCount} จุด
-              </span>
-              {nextHotspot ? (
-                <>
-                  {" "}
-                  — ลองดู{" "}
-                  <span className="font-semibold">{nextHotspot.label}</span>
-                </>
-              ) : null}
-            </p>
-          ) : (
-            <p className="mt-3 rounded-lg bg-success/10 px-3 py-2.5 text-sm font-medium text-success">
-              สำรวจครบแล้ว พร้อมไปทำแบบทดสอบหลังเรียน
-            </p>
-          )}
-
-          <p className="mt-3 text-sm leading-relaxed text-textSecondary">
-            {selected
-              ? selected.description
-              : "หมุนโมเดล เปิดโหมดแยกชิ้นส่วน แล้วสำรวจจุดสารพิษให้ครบทุกจุด"}
-          </p>
-
-          <div className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            {!allVisited && nextHotspot ? (
-              <Button
-                type="button"
-                size="touch"
-                className="font-semibold shadow-glowRed"
-                onClick={goNextHotspot}
-              >
-                สำรวจต่อ: {nextHotspot.label}
-                <ArrowRight className="size-4" />
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="outline"
-              size="touch"
-              disabled={!selected}
-              onClick={() => setPopupOpen(true)}
-            >
-              ดูรายละเอียด
-            </Button>
-            {isReview ? (
-              <Button
-                type="button"
-                size="touch"
-                className="font-semibold shadow-glowRed"
-                onClick={goResult}
-              >
-                {hasLocalResult ? "กลับไปดูผลลัพธ์" : "กลับหน้าหลัก"}
-                <ArrowRight className="size-4" />
-              </Button>
-            ) : allVisited ? (
-              <Button
-                type="button"
-                size="touch"
-                className="font-semibold shadow-glowRed"
-                onClick={goPosttest}
-              >
-                ถัดไป: แบบทดสอบหลังเรียน
-                <ArrowRight className="size-4" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
-                className="opacity-60"
-                disabled
-                aria-disabled="true"
-              >
-                สำรวจต่ออีก {remainingCount} จุด
-              </Button>
-            )}
-          </div>
-        </section>
-
-        <details className="group rounded-lg border border-border bg-card sm:hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-heading text-base font-semibold text-textPrimary marker:content-none [&::-webkit-details-marker]:hidden">
-            รายการจุดสารพิษ
-            <ChevronDown className="size-5 shrink-0 text-textSecondary transition-transform group-open:rotate-180" />
-          </summary>
           <HotspotList
             items={hotspots}
             visitedIds={visitedHotspots}
             selectedId={selectedHotspotId}
             onSelect={handleHotspotClick}
-            className="px-4 pb-4"
+            className="hidden pb-4 sm:block"
+            headingId="hotspot-list-heading-tablet"
           />
-        </details>
+        </div>
 
-        <HotspotList
-          items={hotspots}
-          visitedIds={visitedHotspots}
-          selectedId={selectedHotspotId}
-          onSelect={handleHotspotClick}
-          className="hidden pb-4 sm:block"
-        />
+        {/* xl+: two-column — tall canvas left, controls right */}
+        <div className="hidden xl:grid xl:grid-cols-[minmax(0,1.6fr)_minmax(20rem,1fr)] xl:items-start xl:gap-6">
+          <div className="min-w-0">{scene}</div>
+          <aside className="flex max-h-[calc(100dvh-8rem)] flex-col gap-4 overflow-y-auto pr-1">
+            {modeToggle}
+            {stickyProgress}
+            {statusSection}
+            <HotspotList
+              items={hotspots}
+              visitedIds={visitedHotspots}
+              selectedId={selectedHotspotId}
+              onSelect={handleHotspotClick}
+              className="pb-2 [&_ul]:xl:grid-cols-1"
+              headingId="hotspot-list-heading-xl"
+            />
+          </aside>
+        </div>
       </main>
 
       <HotspotPopup

@@ -58,7 +58,7 @@ export default function Home() {
       <header className="absolute inset-x-0 top-0 z-50 light:bg-gradient-to-b light:from-background light:via-background/80 light:to-transparent">
         <nav
           aria-label="หลัก"
-          className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6"
+          className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 xl:max-w-6xl"
         >
           <Link
             href="/"
@@ -79,18 +79,18 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Hero />
 
         <section
           id="how-it-works"
           aria-labelledby="features-heading"
-          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20"
+          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20 xl:py-24"
         >
-          <div className="mx-auto max-w-5xl">
+          <div className="mx-auto max-w-5xl xl:max-w-6xl">
             <motion.h2
               id="features-heading"
-              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl"
+              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl xl:text-4xl"
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={VIEWPORT}
@@ -141,12 +141,12 @@ export default function Home() {
 
         <section
           aria-labelledby="path-heading"
-          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20"
+          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20 xl:py-24"
         >
-          <div className="mx-auto max-w-5xl">
+          <div className="mx-auto max-w-5xl xl:max-w-6xl">
             <motion.h2
               id="path-heading"
-              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl"
+              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl xl:text-4xl"
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={VIEWPORT}
@@ -222,10 +222,10 @@ export default function Home() {
 
         <section
           aria-labelledby="partners-heading"
-          className="border-t border-border px-4 py-14 sm:px-6 sm:py-16"
+          className="border-t border-border px-4 py-14 sm:px-6 sm:py-16 xl:py-20"
         >
           <motion.div
-            className="mx-auto flex max-w-5xl flex-col items-center text-center"
+            className="mx-auto flex max-w-5xl flex-col items-center text-center xl:max-w-6xl"
             initial={reduceMotion ? false : { opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={VIEWPORT}

@@ -59,13 +59,13 @@
 - Guardrails (นอกเรื่อง / ข้อสอบ / ซื้อ-ขาย)
 - Rate limit
 - Fallback 3 ชั้น: Google Gemini → OpenRouter → Local RAG
+- Streaming response (NDJSON) — ส่ง `stream: true` ใน request body
 
 **ยังไม่ทำ (ขอบเขตนอก MVP)**
 
 - เก็บประวัติแชทใน Supabase
 - Voice input
 - Vector DB แยก (Pinecone / pgvector)
-- Streaming response
 - Embedding retrieval
 
 ---
@@ -330,11 +330,16 @@ OPENROUTER_MODEL=google/gemini-3.6-flash   # optional
     { "role": "user", "content": "..." },
     { "role": "assistant", "content": "..." }
   ],
-  "sessionId": "uuid-in-sessionStorage"
+  "sessionId": "uuid-in-sessionStorage",
+  "stream": true
 }
 ```
 
-**Response:**
+- `stream` (optional): เมื่อเป็น `true` ตอบเป็น NDJSON (`application/x-ndjson`) แทน JSON ก้อนเดียว  
+  Events: `{ type: "delta", text }`, `{ type: "meta", ... }`, `{ type: "done" }`, `{ type: "error", message }`  
+  UI ใช้โหมดนี้เสมอ; `npm run test:chat` ยังทดสอบ JSON (ไม่ส่ง stream) + เคสสตรีมหนึ่งเคส
+
+**Response (JSON, เมื่อไม่มี `stream`):**
 
 ```json
 {

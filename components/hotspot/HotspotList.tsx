@@ -10,6 +10,7 @@ interface HotspotListProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   className?: string;
+  headingId?: string;
 }
 
 export function HotspotList({
@@ -18,15 +19,16 @@ export function HotspotList({
   selectedId,
   onSelect,
   className,
+  headingId = "hotspot-list-heading",
 }: HotspotListProps) {
   return (
     <section
-      aria-labelledby="hotspot-list-heading"
+      aria-labelledby={headingId}
       className={cn("space-y-3", className)}
     >
       <div>
         <h2
-          id="hotspot-list-heading"
+          id={headingId}
           className="font-heading text-base font-semibold text-textPrimary"
         >
           หรือเลือกจากรายการ

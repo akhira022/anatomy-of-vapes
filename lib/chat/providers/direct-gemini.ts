@@ -66,7 +66,7 @@ export async function generateDirectGeminiAnswer(
         config: {
           systemInstruction: SYSTEM_PROMPT,
           temperature: 0.4,
-          maxOutputTokens: 512,
+          maxOutputTokens: 768,
         },
         contents: [
           ...history.map((message) => ({
@@ -85,6 +85,61 @@ export async function generateDirectGeminiAnswer(
   }
 
   throw new Error("Direct Gemini API unavailable for all configured models");
+}
+
+/**
+ * Streams text deltas from Google Gemini generateContentStream.
+ * Falls back across the same model list as the non-streaming path.
+ */
+export async function* streamDirectGeminiAnswer(
+  apiKey: string,
+  userPrompt: string,
+  history: ChatHistoryMessage[] = []
+): AsyncGenerator<string> {
+  const ai = getClient(apiKey);
+  const contents = [
+    ...history.map((message) => ({
+      role: message.role === "assistant" ? "model" : "user",
+      parts: [{ text: message.content }],
+    })),
+    { role: "user", parts: [{ text: userPrompt }] },
+  ];
+
+  const tried = new Set<string>();
+  let lastError = "Direct Gemini stream unavailable";
+
+  for (const model of DIRECT_MODELS) {
+    if (tried.has(model)) continue;
+    tried.add(model);
+
+    try {
+      const stream = await ai.models.generateContentStream({
+        model,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+          temperature: 0.4,
+          maxOutputTokens: 768,
+        },
+        contents,
+      });
+
+      let yielded = false;
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) {
+          yielded = true;
+          yield text;
+        }
+      }
+      if (yielded) return;
+      lastError = `Direct Gemini stream empty (${model})`;
+    } catch (error) {
+      lastError =
+        error instanceof Error ? error.message : String(error);
+    }
+  }
+
+  throw new Error(lastError);
 }
 
 export async function probeDirectGemini(apiKey: string) {

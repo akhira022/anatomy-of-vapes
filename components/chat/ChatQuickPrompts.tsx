@@ -33,9 +33,9 @@ export function ChatQuickPrompts({
           key={prompt}
           type="button"
           variant="outline"
-          size="xs"
+          size="sm"
           disabled={disabled}
-          className="h-auto max-w-full whitespace-normal px-2 py-1 text-left text-[0.7rem] leading-snug"
+          className="h-auto min-h-11 max-w-full whitespace-normal px-3 py-2 text-left text-xs leading-snug"
           onClick={() => onSelect(prompt)}
         >
           {prompt}

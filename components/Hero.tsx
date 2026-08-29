@@ -86,10 +86,10 @@ export function Hero() {
       aria-labelledby="hero-brand"
       className="relative isolate overflow-hidden bg-background pt-14 sm:pt-16"
     >
-      <div className="mx-auto grid min-h-[min(100dvh,54rem)] w-full max-w-6xl grid-cols-1 sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:items-center">
+      <div className="mx-auto grid min-h-[min(100dvh,54rem)] w-full max-w-6xl grid-cols-1 sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:items-center xl:min-h-[min(100dvh,58rem)] xl:max-w-7xl">
         {/* Copy column */}
-        <div className="relative z-[2] order-1 flex flex-col justify-center px-4 pb-14 pt-6 sm:order-1 sm:px-6 sm:py-16 sm:pr-3 sm:pl-5 md:py-20 md:pr-4 md:pl-6 lg:pl-8">
-          <div className="relative flex max-w-xl flex-col items-start text-left">
+        <div className="relative z-[2] order-1 flex flex-col justify-center px-4 pb-14 pt-6 sm:order-1 sm:px-6 sm:py-16 sm:pr-3 sm:pl-5 md:py-20 md:pr-4 md:pl-6 lg:pl-8 xl:py-24 xl:pl-10">
+          <div className="relative flex max-w-xl flex-col items-start text-left xl:max-w-2xl">
             <HeroBrandCopy />
 
             <HeroTypingLine className="mt-5 sm:mt-6" />

@@ -1,4 +1,5 @@
 import { appGuides } from "@/data/app-guide";
+import { chapters } from "@/data/chapters";
 import { components } from "@/data/components";
 import { faqs } from "@/data/faq";
 import { glossary } from "@/data/glossary";
@@ -81,6 +82,55 @@ export function buildKnowledgeChunks(): KnowledgeChunk[] {
         hotspot.label.split(/\s+/)
       ),
     });
+  }
+
+  for (const chapter of chapters) {
+    const chapterKeywords = uniqueKeywords(
+      [
+        `บทที่ ${chapter.id}`,
+        `บท${chapter.id}`,
+        chapter.title,
+        chapter.subtitle,
+        "บทเรียน",
+      ],
+      chapter.keyTakeaways.flatMap((item) => item.split(/\s+/).slice(0, 4))
+    );
+
+    chunks.push({
+      id: `chunk-chapter-${chapter.id}-summary`,
+      type: "chapter",
+      title: `บทที่ ${chapter.id}: ${chapter.title}`,
+      content: joinParts([
+        chapter.summary,
+        `สรุปสำคัญ: ${chapter.keyTakeaways.join(" ")}`,
+      ]),
+      category: chapter.id === 3 ? "ส่วนประกอบ" : "ผลเสีย",
+      hotspotId: chapter.hotspotIds[0],
+      sourceIds: chapter.sourceIds,
+      keywords: chapterKeywords,
+    });
+
+    for (const [index, section] of chapter.sections.entries()) {
+      chunks.push({
+        id: `chunk-chapter-${chapter.id}-section-${index + 1}`,
+        type: "chapter",
+        title: `บทที่ ${chapter.id}: ${section.heading}`,
+        content: joinParts([
+          section.body,
+          section.bulletPoints?.length
+            ? `จุดสำคัญ: ${section.bulletPoints.join(" ")}`
+            : undefined,
+        ]),
+        category: chapter.id === 3 ? "ส่วนประกอบ" : "ผลเสีย",
+        hotspotId: chapter.hotspotIds[0],
+        sourceIds: chapter.sourceIds,
+        keywords: uniqueKeywords(
+          chapterKeywords,
+          [section.heading],
+          section.heading.split(/\s+/)
+        ),
+      });
+    }
   }
 
   for (const component of components) {
@@ -267,7 +317,7 @@ export function buildKnowledgeChunks(): KnowledgeChunk[] {
 export function buildKnowledgeIndex(): KnowledgeIndex {
   const chunks = buildKnowledgeChunks();
   return {
-    version: 2,
+    version: 3,
     generatedAt: new Date().toISOString(),
     chunkCount: chunks.length,
     chunks,

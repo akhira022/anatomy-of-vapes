@@ -16,6 +16,8 @@ export interface ChatRequestBody {
   message: string;
   history?: ChatHistoryMessage[];
   sessionId?: string;
+  /** When true, API returns NDJSON stream events instead of a single JSON body. */
+  stream?: boolean;
 }
 
 export interface ChatResponseBody {
@@ -29,6 +31,20 @@ export interface ChatResponseBody {
   mode?: "ai" | "rag";
 }
 
+export type ChatStreamEvent =
+  | { type: "delta"; text: string }
+  | {
+      type: "meta";
+      citations: ChatCitation[];
+      hotspotId?: string;
+      category: string;
+      mode: "ai" | "rag";
+      refused?: boolean;
+      chunkIds?: string[];
+    }
+  | { type: "done" }
+  | { type: "error"; message: string };
+
 export interface ChatUiMessage {
   id: string;
   role: ChatRole;
@@ -37,6 +53,7 @@ export interface ChatUiMessage {
   hotspotId?: string;
   refused?: boolean;
   pending?: boolean;
+  streaming?: boolean;
   error?: boolean;
   mode?: "ai" | "rag";
 }

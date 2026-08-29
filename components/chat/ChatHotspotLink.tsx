@@ -16,7 +16,7 @@ export function ChatHotspotLink({ hotspotId }: ChatHotspotLinkProps) {
       type="button"
       variant="outline"
       size="sm"
-      className="mt-2 h-8 w-full justify-start gap-2 text-xs"
+      className="mt-2 min-h-11 w-full justify-start gap-2 text-xs"
       onClick={() => router.push(`/anatomy?hotspot=${hotspotId}`)}
     >
       <Box className="size-3.5" />

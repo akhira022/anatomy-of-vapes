@@ -1,7 +1,8 @@
 # คู่มือขั้นตอนทำเว็บทั้งระบบ — Anatomy of Vapes
 
 **ชื่อผลิตภัณฑ์:** Anatomy of Vapes / ส่องไส้ในบุหรี่ไฟฟ้า  
-**เวอร์ชันอ้างอิง:** v0.2.0 Thai Mobile Learner  
+**เวอร์ชันอ้างอิง:** v0.3.0 AI RAG Chat  
+
 **เอกสารนี้คืออะไร:** ขั้นตอนตั้งแต่คิดผลิตภัณฑ์ → ออกแบบ UX/UI → สร้างหน้า → ฐานข้อมูล → deploy สำหรับใช้เรียนโปรเจกต์นี้
 
 ### อ่านคู่กับ
@@ -68,7 +69,7 @@ flowchart LR
 
 1. Learn by interaction — เรียนรู้จากการสำรวจ ไม่ใช่แค่อ่าน
 2. Visualize the danger — ทำให้ชิ้นส่วนและสารพิษมองเห็นได้
-3. Mobile first — ใช้มือถือในห้องเรียน/กิจกรรมเป็นหลัก
+3. Mobile first — ใช้มือถือในห้องเรียน/กิจกรรมเป็นหลัก (จอ All-in-one ≥1280px ได้ layout ใหญ่ผ่าน `xl` โดยอัตโนมัติ)
 4. Measure learning — มี pretest / posttest จริง
 5. Consent before data — ยินยอม PDPA ก่อนเก็บข้อมูล
 
@@ -114,20 +115,25 @@ npm run dev
 
 ### 3.2 ในขอบเขต MVP (สิ่งที่โปรเจกต์นี้ทำ)
 
-- Landing, ลงทะเบียน + PDPA, login ชื่อเล่น
+- Landing, ลงทะเบียน + PDPA, login อีเมล
+- Login ด้วยอีเมล + รหัสผ่าน (Supabase Auth)
 - Pretest / Posttest คนละ 5 ข้อ
 - Anatomy 3D (ทั้งชิ้น / แยกชิ้นส่วน) + hotspot + popup
 - ผลลัพธ์เปรียบเทียบคะแนน
 - ผู้เรียนที่เคยจบแล้วเลือก “ดูโมเดล” หรือ “ทำใหม่”
+- AI ผู้ช่วยเรียนรู้ (RAG chat) — citations, guardrails, deep link hotspot 3D
 - Admin dashboard + CSV
 - Deploy เป้า: Vercel
 
 ### 3.3 นอกขอบเขต (อย่าสมมติว่ามี)
 
 - Leaderboard / แชร์โซเชียล
-- AI chatbot
+- Heat / X-ray mode
 - Badge / achievement
 - หลายภาษาเต็มรูปแบบ
+- Voice input ใน chat
+- เก็บประวัติแชทใน Supabase
+- Vector DB / embedding retrieval
 
 ### 3.4 หลักฐานออกแบบใน repo
 

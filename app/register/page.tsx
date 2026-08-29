@@ -194,7 +194,7 @@ export default function RegisterPage() {
         onConfirm={() => router.push("/")}
         destructive
       />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 text-left sm:px-6">
+      <main id="main-content" className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 text-left sm:px-6 xl:max-w-4xl xl:justify-center xl:py-12">
         {awaitingChoice && nickname ? (
           <CompletedLearnerChoice
             nickname={nickname}
@@ -204,10 +204,10 @@ export default function RegisterPage() {
           />
         ) : (
           <>
-            <h1 className="font-heading text-2xl font-bold text-textPrimary">
+            <h1 className="font-heading text-2xl font-bold text-textPrimary xl:text-3xl">
               ยินยอมและเริ่มต้น
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-textSecondary">
+            <p className="mt-2 text-sm leading-relaxed text-textSecondary xl:text-base">
               สร้างบัญชีด้วยอีเมล กรอกชื่อเล่น เลือกระดับชั้น และยอมรับเงื่อนไข PDPA
             </p>
 
@@ -235,7 +235,7 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="example@email.com"
                   autoComplete="email"
-                  className="h-11 rounded-lg"
+                  className="h-11 rounded-lg xl:min-h-12 xl:text-lg"
                   disabled={!supabaseReady}
                   {...register("email")}
                 />
@@ -251,7 +251,7 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="อย่างน้อย 6 ตัวอักษร"
                   autoComplete="new-password"
-                  className="h-11 rounded-lg"
+                  className="h-11 rounded-lg xl:min-h-12 xl:text-lg"
                   disabled={!supabaseReady}
                   {...register("password")}
                 />
@@ -267,7 +267,7 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="กรอกรหัสผ่านอีกครั้ง"
                   autoComplete="new-password"
-                  className="h-11 rounded-lg"
+                  className="h-11 rounded-lg xl:min-h-12 xl:text-lg"
                   disabled={!supabaseReady}
                   {...register("confirmPassword")}
                 />
@@ -282,7 +282,7 @@ export default function RegisterPage() {
                 <Input
                   placeholder="กรอกชื่อเล่น"
                   autoComplete="nickname"
-                  className="h-11 rounded-lg"
+                  className="h-11 rounded-lg xl:min-h-12 xl:text-lg"
                   {...register("nickname")}
                 />
               </FormField>
@@ -311,7 +311,7 @@ export default function RegisterPage() {
                         aria-describedby={
                           errors.grade ? "grade-error" : undefined
                         }
-                        className="h-11 w-full rounded-lg"
+                        className="h-11 w-full rounded-lg xl:min-h-12 xl:text-lg"
                       >
                         <SelectValue placeholder="เลือกระดับการศึกษา" />
                       </SelectTrigger>
@@ -376,7 +376,7 @@ export default function RegisterPage() {
                   size="touch"
                   loading={submitting}
                   disabled={!supabaseReady}
-                  className="font-semibold"
+                  className="font-semibold xl:min-h-12"
                 >
                   ยอมรับและเริ่มทำแบบทดสอบ
                 </Button>
@@ -384,6 +384,7 @@ export default function RegisterPage() {
                   type="button"
                   variant="outline"
                   size="touch"
+                  className="xl:min-h-12"
                   onClick={() => setDeclineConfirmOpen(true)}
                 >
                   ไม่ยอมรับ

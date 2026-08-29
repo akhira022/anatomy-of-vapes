@@ -11,6 +11,32 @@ function stripLabel(line: string, label: string) {
   return line.replace(pattern, "").trim();
 }
 
+const METADATA_LINE_PREFIXES = [
+  "ประเภท",
+  "พบใน",
+  "ผลกระทบต่อสุขภาพ",
+  "คำแนะนำ",
+  "ระดับความเสี่ยง",
+];
+
+function isMetadataLine(line: string) {
+  return METADATA_LINE_PREFIXES.some((prefix) => line.startsWith(prefix));
+}
+
+function sanitizeStructuredChunk(lines: string[]): string {
+  const summary = lines.find((line) => !isMetadataLine(line));
+  const effect = lines.find((line) => line.startsWith("ผลกระทบต่อสุขภาพ"));
+  const advice = lines.find((line) => line.startsWith("คำแนะนำ"));
+
+  const parts = [
+    summary ?? "",
+    effect ? stripLabel(effect, "ผลกระทบต่อสุขภาพ") : "",
+    advice ? stripLabel(advice, "คำแนะนำ") : "",
+  ].filter(Boolean);
+
+  return parts.join(" ");
+}
+
 function sanitizeChunkContent(chunk: RetrievedChunk): string {
   const lines = chunk.content
     .split(/\n+/)
@@ -40,6 +66,16 @@ function sanitizeChunkContent(chunk: RetrievedChunk): string {
       ...tips,
     ].filter(Boolean);
     if (parts.length > 0) return parts.join(" ");
+  }
+
+  if (
+    chunk.type === "hotspot" ||
+    chunk.type === "health" ||
+    chunk.type === "component" ||
+    chunk.type === "chapter"
+  ) {
+    const structured = sanitizeStructuredChunk(lines);
+    if (structured) return structured;
   }
 
   const cleaned = lines

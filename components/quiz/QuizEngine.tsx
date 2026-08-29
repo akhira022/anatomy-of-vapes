@@ -36,7 +36,7 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
 
   if (!question) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-8 text-left sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 py-8 text-left sm:px-6 xl:max-w-3xl">
         <p className="text-textSecondary">ไม่พบคำถาม</p>
         <Button
           type="button"
@@ -74,12 +74,12 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6 text-left sm:gap-8 sm:px-6 sm:py-8">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6 text-left sm:gap-8 sm:px-6 sm:py-8 xl:max-w-3xl xl:gap-8 xl:py-10">
       <Stepper current={type === "pretest" ? "pretest" : "posttest"} />
       <QuizProgress current={currentQuestionIndex + 1} total={total} />
 
       {type === "posttest" ? (
-        <p className="rounded-lg border border-border bg-surface-2 px-4 py-3 text-sm text-textPrimary">
+        <p className="rounded-lg border border-border bg-surface-2 px-4 py-3 text-sm text-textPrimary xl:text-base">
           แบบทดสอบหลังเรียน — อีก {total - currentQuestionIndex} ข้อแล้วเสร็จ
         </p>
       ) : null}
@@ -95,18 +95,18 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
               duration: reduceMotion ? 0 : 0.22,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="rounded-lg border border-border bg-card p-5 shadow-card sm:p-7"
+            className="rounded-lg border border-border bg-card p-5 shadow-card sm:p-7 xl:p-8"
           >
-            <p className="text-xs font-medium uppercase tracking-wide text-primary">
+            <p className="text-xs font-medium uppercase tracking-wide text-primary xl:text-sm">
               {type === "pretest" ? "แบบทดสอบก่อนเรียน" : "แบบทดสอบหลังเรียน"}
             </p>
             <h2
               id={questionHeadingId}
-              className="mt-3 font-body text-xl font-medium leading-snug text-textPrimary sm:text-2xl"
+              className="mt-3 font-body text-xl font-medium leading-snug text-textPrimary sm:text-2xl xl:text-2xl"
             >
               {question.question}
             </h2>
-            <div className="mt-6">
+            <div className="mt-6 xl:mt-8">
               <OptionList
                 options={question.options}
                 selectedId={selectedId}
@@ -123,7 +123,7 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
           size="touch"
           disabled={!selectedId}
           onClick={handleNext}
-          className="font-semibold"
+          className="font-semibold xl:min-h-12"
         >
           {isLast ? (type === "pretest" ? "ไปสำรวจ 3 มิติ" : "ดูผลลัพธ์") : "ถัดไป"}
           <ArrowRight className="size-4" />

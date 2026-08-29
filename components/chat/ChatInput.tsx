@@ -29,7 +29,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         placeholder="ถามเรื่องบุหรี่ไฟฟ้า..."
         disabled={disabled}
         maxLength={500}
-        className="h-10 flex-1 text-base"
+        className="h-11 flex-1 text-base"
         aria-label="พิมพ์คำถาม"
       />
       <Button
@@ -37,7 +37,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         size="icon"
         disabled={disabled || !value.trim()}
         aria-label="ส่งคำถาม"
-        className="size-10 shrink-0"
+        className="size-11 shrink-0"
       >
         <Send className="size-4" />
       </Button>

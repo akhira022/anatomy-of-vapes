@@ -143,7 +143,7 @@ export default function LoginPage() {
         backHref="/"
         rightSlot={<UserSessionMenu />}
       />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 text-left sm:px-6">
+      <main id="main-content" className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 text-left sm:px-6 xl:max-w-3xl xl:justify-center xl:py-12">
         {awaitingChoice && nickname ? (
           <CompletedLearnerChoice
             nickname={nickname}
@@ -153,10 +153,10 @@ export default function LoginPage() {
           />
         ) : (
           <>
-            <h1 className="font-heading text-2xl font-bold text-textPrimary">
+            <h1 className="font-heading text-2xl font-bold text-textPrimary xl:text-3xl">
               เข้าสู่ระบบ
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-textSecondary">
+            <p className="mt-2 text-sm leading-relaxed text-textSecondary xl:text-base">
               ใช้อีเมลและรหัสผ่านที่ลงทะเบียนไว้
             </p>
 
@@ -184,7 +184,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="example@email.com"
                   autoComplete="email"
-                  className="h-11 rounded-lg"
+                  className="h-11 rounded-lg xl:min-h-12 xl:text-lg"
                   {...register("email")}
                 />
               </FormField>
@@ -199,7 +199,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="กรอกรหัสผ่าน"
                   autoComplete="current-password"
-                  className="h-11 rounded-lg"
+                  className="h-11 rounded-lg xl:min-h-12 xl:text-lg"
                   {...register("password")}
                 />
               </FormField>
@@ -210,7 +210,7 @@ export default function LoginPage() {
                   size="touch"
                   loading={submitting}
                   disabled={!supabaseReady}
-                  className="font-semibold"
+                  className="font-semibold xl:min-h-12"
                 >
                   เข้าสู่ระบบ
                 </Button>
