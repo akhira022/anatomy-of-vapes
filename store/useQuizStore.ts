@@ -12,6 +12,7 @@ import type {
 interface QuizState {
   userId: string | null;
   nickname: string;
+  email: string;
   grade: Grade | null;
   consentAccepted: boolean;
   preScore: number;
@@ -27,7 +28,12 @@ interface QuizState {
   resultSaved: boolean;
   selectedHotspotId: string | null;
 
-  setUser: (nickname: string, grade: Grade, userId?: string) => void;
+  setUser: (
+    nickname: string,
+    grade: Grade,
+    userId?: string,
+    email?: string
+  ) => void;
   setConsentAccepted: (accepted: boolean) => void;
   setUserId: (userId: string) => void;
   setPhase: (phase: AppPhase) => void;
@@ -56,6 +62,7 @@ interface QuizState {
 const initialState = {
   userId: null as string | null,
   nickname: "",
+  email: "",
   grade: null as Grade | null,
   consentAccepted: false,
   preScore: 0,
@@ -77,10 +84,11 @@ export const useQuizStore = create<QuizState>()(
     (set, get) => ({
       ...initialState,
 
-      setUser: (nickname, grade, userId) =>
+      setUser: (nickname, grade, userId, email) =>
         set({
           nickname,
           grade,
+          ...(email !== undefined ? { email } : {}),
           ...(userId ? { userId } : {}),
         }),
 
@@ -149,12 +157,13 @@ export const useQuizStore = create<QuizState>()(
       setResultSaved: (saved) => set({ resultSaved: saved }),
 
       resetProgress: () => {
-        const { userId, nickname, grade, consentAccepted, resultSaved } =
+        const { userId, nickname, email, grade, consentAccepted, resultSaved } =
           get();
         set({
           ...initialState,
           userId,
           nickname,
+          email,
           grade,
           consentAccepted,
           resultSaved,
@@ -171,6 +180,7 @@ export const useQuizStore = create<QuizState>()(
       partialize: (state) => ({
         userId: state.userId,
         nickname: state.nickname,
+        email: state.email,
         grade: state.grade,
         consentAccepted: state.consentAccepted,
         preScore: state.preScore,

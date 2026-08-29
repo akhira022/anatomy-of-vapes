@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useAppRouter } from "@/hooks/useAppRouter";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { QuizProgress } from "@/components/quiz/QuizProgress";
 import { OptionList } from "@/components/quiz/OptionList";
+import { QuizProgress } from "@/components/quiz/QuizProgress";
 import { Stepper } from "@/components/layout/Stepper";
+import { Button } from "@/components/ui/button";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { useQuizStore } from "@/store/useQuizStore";
 import type { QuizQuestion, QuizType } from "@/types";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { useCallback, useId, useState } from "react";
 
 interface QuizEngineProps {
   type: QuizType;
@@ -19,6 +19,7 @@ interface QuizEngineProps {
 export function QuizEngine({ type, questions }: QuizEngineProps) {
   const router = useAppRouter();
   const reduceMotion = useReducedMotion();
+  const questionHeadingId = useId();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const currentQuestionIndex = useQuizStore((s) => s.currentQuestionIndex);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
@@ -29,9 +30,24 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
   const total = questions.length;
   const isLast = currentQuestionIndex >= total - 1;
 
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+  }, []);
+
   if (!question) {
     return (
-      <p className="text-left text-textSecondary">ไม่พบคำถาม</p>
+      <div className="mx-auto max-w-2xl px-4 py-8 text-left sm:px-6">
+        <p className="text-textSecondary">ไม่พบคำถาม</p>
+        <Button
+          type="button"
+          variant="outline"
+          size="touch"
+          className="mt-4"
+          onClick={() => router.push("/register")}
+        >
+          กลับไปลงทะเบียน
+        </Button>
+      </div>
     );
   }
 
@@ -58,21 +74,23 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-8 text-left sm:px-10">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6 text-left sm:gap-8 sm:px-6 sm:py-8">
       <Stepper current={type === "pretest" ? "pretest" : "posttest"} />
       <QuizProgress current={currentQuestionIndex + 1} total={total} />
+
+      {type === "posttest" ? (
+        <p className="rounded-lg border border-border bg-surface-2 px-4 py-3 text-sm text-textPrimary">
+          แบบทดสอบหลังเรียน — อีก {total - currentQuestionIndex} ข้อแล้วเสร็จ
+        </p>
+      ) : null}
 
       <div className="relative overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
           <motion.article
             key={question.id}
-            initial={
-              reduceMotion ? false : { opacity: 0, x: 12 }
-            }
+            initial={reduceMotion ? false : { opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={
-              reduceMotion ? undefined : { opacity: 0, x: -12 }
-            }
+            exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
             transition={{
               duration: reduceMotion ? 0 : 0.22,
               ease: [0.16, 1, 0.3, 1],
@@ -82,14 +100,18 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
             <p className="text-xs font-medium uppercase tracking-wide text-primary">
               {type === "pretest" ? "แบบทดสอบก่อนเรียน" : "แบบทดสอบหลังเรียน"}
             </p>
-            <h2 className="mt-3 font-body text-xl font-medium leading-snug text-textPrimary sm:text-2xl">
+            <h2
+              id={questionHeadingId}
+              className="mt-3 font-body text-xl font-medium leading-snug text-textPrimary sm:text-2xl"
+            >
               {question.question}
             </h2>
             <div className="mt-6">
               <OptionList
                 options={question.options}
                 selectedId={selectedId}
-                onSelect={setSelectedId}
+                onSelect={handleSelect}
+                ariaLabelledBy={questionHeadingId}
               />
             </div>
           </motion.article>
@@ -98,10 +120,10 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
 
       <div className="flex justify-start sm:justify-end">
         <Button
-          size="lg"
+          size="touch"
           disabled={!selectedId}
           onClick={handleNext}
-          className="h-11 w-auto rounded-lg px-6 text-base font-semibold"
+          className="font-semibold"
         >
           {isLast ? (type === "pretest" ? "ไปสำรวจ 3 มิติ" : "ดูผลลัพธ์") : "ถัดไป"}
           <ArrowRight className="size-4" />

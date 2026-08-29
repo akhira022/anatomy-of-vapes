@@ -9,6 +9,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/useRequirePhase";
+import { signOutLearner } from "@/lib/learner-auth";
 import { isLoggedIn, phaseToPath } from "@/lib/phase";
 import { useQuizStore } from "@/store/useQuizStore";
 import { HeroTypingLine } from "@/components/HeroTypingLine";
@@ -69,6 +70,7 @@ export function Hero() {
   const canReviewModel = currentPhase === "result" || resultSaved;
 
   const handleLogout = () => {
+    void signOutLearner();
     logout();
     toast.success("ออกจากระบบแล้ว");
   };
@@ -86,7 +88,7 @@ export function Hero() {
     >
       <div className="mx-auto grid min-h-[min(100dvh,54rem)] w-full max-w-6xl grid-cols-1 sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:items-center">
         {/* Copy column */}
-        <div className="relative z-[2] order-2 flex flex-col justify-center px-4 pb-14 pt-6 sm:order-1 sm:px-6 sm:py-16 sm:pr-3 sm:pl-5 md:py-20 md:pr-4 md:pl-6 lg:pl-8">
+        <div className="relative z-[2] order-1 flex flex-col justify-center px-4 pb-14 pt-6 sm:order-1 sm:px-6 sm:py-16 sm:pr-3 sm:pl-5 md:py-20 md:pr-4 md:pl-6 lg:pl-8">
           <div className="relative flex max-w-xl flex-col items-start text-left">
             <HeroBrandCopy />
 
@@ -218,7 +220,7 @@ export function Hero() {
             `clamp()` keeps a sane floor on short landscape screens and a
             ceiling before the `sm` split takes over. */}
         <div
-          className="relative order-1 h-[clamp(18rem,58vh,28rem)] w-full sm:order-2 sm:h-[min(100dvh,54rem)]"
+          className="relative order-2 h-[clamp(16rem,42vh,24rem)] w-full sm:order-2 sm:h-[min(100dvh,54rem)]"
           role="img"
           aria-label="โมเดลบุหรี่ไฟฟ้าพร้อมจุดพรีวิวสารพิษ: นิโคตินที่ปากดูด ฟอร์มาลดีไฮด์ที่แท้งก์ และลิเธียมที่แบตเตอรี่"
         >

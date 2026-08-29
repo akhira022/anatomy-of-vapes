@@ -12,6 +12,7 @@
 | [SETUP.md](./SETUP.md) | ตั้ง Supabase + ทดสอบ checklist |
 | [MOBILE-TUNNEL.md](./MOBILE-TUNNEL.md) | เปิดเวบบนมือถือ (LAN / Cloudflare Tunnel) |
 | [CHANGELOG.md](./CHANGELOG.md) | ดูสิ่งที่เปลี่ยนในแต่ละเวอร์ชัน |
+| [CHATBOT-RAG-GUIDE.md](./CHATBOT-RAG-GUIDE.md) | **AI Chatbot แบบ RAG** — สถาปัตยกรรม / นำไปใช้โปรเจกต์ถัดไป |
 | [`PRODUCT.md`](../PRODUCT.md) | บริบทผลิตภัณฑ์ / ผู้ใช้ / ขอบเขต |
 | [`DESIGN.md`](../DESIGN.md) | Design system (สี ฟอนต์ กติกา UI) |
 

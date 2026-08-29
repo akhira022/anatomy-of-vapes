@@ -2,11 +2,36 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const PARTNER_LOGOS = [
-  { src: "/images/logo_1.png", alt: "โลโก้พันธมิตร 1", width: 1183, height: 1182 },
-  { src: "/images/logo_2.png", alt: "โลโก้พันธมิตร 2", width: 900, height: 900 },
-  { src: "/images/logo_3.png", alt: "โลโก้พันธมิตร 3", width: 284, height: 285 },
-  { src: "/images/logo_4.png", alt: "โลโก้พันธมิตร 4", width: 2481, height: 830 },
-  { src: "/images/logo_5.png", alt: "โลโก้พันธมิตร 5", width: 842, height: 596 },
+  {
+    src: "/images/logo_1.png",
+    alt: "สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ (สสส.)",
+    width: 1183,
+    height: 1182,
+  },
+  {
+    src: "/images/logo_2.png",
+    alt: "คิดดี iDOL",
+    width: 900,
+    height: 900,
+  },
+  {
+    src: "/images/logo_3.png",
+    alt: "ศูนย์สร้างสรรค์สื่อเพื่อเด็กเยาวชนและครอบครัว",
+    width: 284,
+    height: 285,
+  },
+  {
+    src: "/images/logo_4.png",
+    alt: "ยกกำลังสุข · Sook Enterprise",
+    width: 2481,
+    height: 830,
+  },
+  {
+    src: "/images/logo_6.png",
+    alt: "สำนักงานคณะกรรมการการอาชีวศึกษา (สอศ.)",
+    width: 300,
+    height: 300,
+  },
 ] as const;
 
 interface PartnerLogosProps {

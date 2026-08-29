@@ -3,6 +3,7 @@ import { Geist_Mono, IBM_Plex_Sans_Thai } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { NavigationProgressBar } from "@/components/layout/NavigationProgressBar";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ThemedToaster } from "@/components/theme/ThemedToaster";
 import "./globals.css";
@@ -41,6 +42,7 @@ export default function RootLayout({
         <ThemeProvider>
           <NavigationProgressBar />
           {children}
+          <ChatWidget />
           <ThemedToaster />
         </ThemeProvider>
         <Analytics />

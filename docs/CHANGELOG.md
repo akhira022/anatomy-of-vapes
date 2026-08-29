@@ -1,5 +1,21 @@
 # Changelog — Anatomy of Vapes / ส่องไส้ใน
 
+## v0.3.0 — AI RAG Chat (2026-08-29)
+
+ชื่อฟีเจอร์: **AI ผู้ช่วยเรียนรู้ (Knowledge Assistant)**  
+คู่มือสถาปัตยกรรมเต็ม: [CHATBOT-RAG-GUIDE.md](./CHATBOT-RAG-GUIDE.md)
+
+### สิ่งที่ได้
+
+- RAG chatbot ภาษาไทย (101 knowledge chunks)
+- Chat widget (FAB + drawer) + quick prompts + citations
+- Deep link ไป hotspot 3D
+- Guardrails (นอกเรื่อง / ข้อสอบ / rate limit)
+- Gemini + OpenRouter + local RAG fallback
+- คำสั่ง: `build:knowledge`, `test:retrieve`, `test:chat`, `doctor:gemini`
+
+---
+
 ## v0.2.0 — Thai Mobile Learner (2026-08-06)
 
 ชื่อเวอร์ชัน: **Thai Mobile Learner**  

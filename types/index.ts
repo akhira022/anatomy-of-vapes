@@ -12,6 +12,7 @@ export interface User {
   id?: string;
   nickname: string;
   grade: Grade;
+  email?: string;
   createdAt?: string;
 }
 

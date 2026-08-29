@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Box, ClipboardList, FlaskConical } from "lucide-react";
+import { Box, Bot, ClipboardList, FlaskConical } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { PartnerLogos } from "@/components/layout/PartnerLogos";
@@ -27,6 +27,11 @@ const features = [
     icon: ClipboardList,
     title: "ทำแบบทดสอบ",
     description: "วัดความรู้ก่อนและหลังเรียน",
+  },
+  {
+    icon: Bot,
+    title: "ถาม AI ผู้ช่วย",
+    description: "ถามเรื่องส่วนประกอบ ผลเสีย กฎหมาย พร้อมอ้างอิงแหล่ง",
   },
 ] as const;
 
@@ -63,10 +68,10 @@ export default function Home() {
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              href="/#contact"
-              className="hidden text-sm font-medium text-textPrimary/70 transition-colors hover:text-textPrimary sm:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              href="/#partners"
+              className="text-xs font-medium text-textPrimary/70 transition-colors hover:text-textPrimary sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              ติดต่อเรา
+              สนับสนุนโดย
             </Link>
             <ThemeToggle />
             <UserSessionMenu />
@@ -98,7 +103,7 @@ export default function Home() {
               เรียนรู้ยังไง
             </motion.h2>
 
-            <ul className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
+            <ul className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 sm:gap-8">
               {features.map(({ icon: Icon, title, description }, index) => (
                 <motion.li
                   key={title}

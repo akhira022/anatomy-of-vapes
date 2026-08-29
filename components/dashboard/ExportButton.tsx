@@ -12,6 +12,7 @@ interface ExportButtonProps {
 export function ExportButton({ rows }: ExportButtonProps) {
   const handleExport = () => {
     const headers = [
+      "email",
       "nickname",
       "grade",
       "pre_score",
@@ -20,6 +21,7 @@ export function ExportButton({ rows }: ExportButtonProps) {
       "created_at",
     ];
     const data = rows.map((r) => ({
+      email: r.email ?? "",
       nickname: r.nickname,
       grade: r.grade,
       pre_score: r.pre_score,

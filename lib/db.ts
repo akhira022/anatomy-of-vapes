@@ -4,29 +4,159 @@ import {
   type DbGrade,
   type DbQuizType,
 } from "@/lib/supabase";
+import {
+  isNetworkFailure,
+  normalizeDbError,
+  offlineSessionMessage,
+} from "@/lib/db-errors";
 import type { QuizAnswer } from "@/types";
+
+async function runDb<T>(fn: () => Promise<T>): Promise<T | { error: string }> {
+  try {
+    return await fn();
+  } catch (err) {
+    return { error: normalizeDbError(err) };
+  }
+}
 
 export async function createUser(input: {
   nickname: string;
   grade: DbGrade;
+  email?: string;
+  id?: string;
 }): Promise<{ id: string } | { error: string }> {
   const supabase = getSupabase();
   if (!supabase) {
     return { id: `local-${crypto.randomUUID()}` };
   }
 
-  // Client-generated id avoids INSERT…RETURNING which needs SELECT grant on anon.
-  const id = crypto.randomUUID();
-  const { error } = await supabase.from("users").insert({
-    id,
-    nickname: input.nickname,
-    grade: input.grade,
+  const result = await runDb(async () => {
+    const id = input.id ?? crypto.randomUUID();
+    const { error } = await supabase.from("users").insert({
+      id,
+      nickname: input.nickname,
+      grade: input.grade,
+      ...(input.email ? { email: input.email.trim().toLowerCase() } : {}),
+    });
+
+    if (error) throw new Error(error.message);
+    return { id };
   });
 
-  if (error) {
-    return { error: error.message };
+  if (result && typeof result === "object" && "error" in result) {
+    if (isNetworkFailure(result.error)) {
+      return { id: `local-${crypto.randomUUID()}` };
+    }
+    return result;
   }
-  return { id };
+
+  return result as { id: string };
+}
+
+export type LearnerProfile = {
+  id: string;
+  nickname: string;
+  grade: DbGrade;
+  email?: string | null;
+};
+
+async function mapLearnerRpcRow(
+  row: Record<string, unknown> | null | undefined
+): Promise<LearnerProfile | null> {
+  if (!row?.id) return null;
+  return {
+    id: row.id as string,
+    nickname: row.nickname as string,
+    grade: row.grade as DbGrade,
+    email: (row.email as string | null | undefined) ?? null,
+  };
+}
+
+export async function findUserByEmail(
+  email: string
+): Promise<LearnerProfile | { error: string } | null> {
+  const trimmed = email.trim();
+  if (!trimmed) return null;
+
+  if (!isSupabaseConfigured()) {
+    return { error: offlineSessionMessage() };
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { error: "เชื่อมต่อฐานข้อมูลไม่สำเร็จ" };
+  }
+
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("find_learner_by_email", {
+      p_email: trimmed,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) {
+        return { error: offlineSessionMessage() };
+      }
+      if (
+        error.message.includes("find_learner_by_email") ||
+        error.code === "PGRST202"
+      ) {
+        return {
+          error:
+            "ยังไม่ได้รัน migration อีเมล — รัน supabase/migrations/006_learner_email.sql",
+        };
+      }
+      return { error: error.message };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    return mapLearnerRpcRow(row as Record<string, unknown>);
+  });
+
+  if (result && "error" in result) return result;
+  return result as LearnerProfile | null;
+}
+
+export async function findUserById(
+  userId: string
+): Promise<LearnerProfile | { error: string } | null> {
+  if (!userId) return null;
+
+  if (!isSupabaseConfigured()) {
+    return { error: offlineSessionMessage() };
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { error: "เชื่อมต่อฐานข้อมูลไม่สำเร็จ" };
+  }
+
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("find_learner_by_id", {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) {
+        return { error: offlineSessionMessage() };
+      }
+      if (
+        error.message.includes("find_learner_by_id") ||
+        error.code === "PGRST202"
+      ) {
+        return {
+          error:
+            "ยังไม่ได้รัน migration อีเมล — รัน supabase/migrations/006_learner_email.sql",
+        };
+      }
+      return { error: error.message };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    return mapLearnerRpcRow(row as Record<string, unknown>);
+  });
+
+  if (result && "error" in result) return result;
+  return result as LearnerProfile | null;
 }
 
 export async function findUserByNickname(
@@ -40,10 +170,7 @@ export async function findUserByNickname(
   if (!trimmed) return null;
 
   if (!isSupabaseConfigured()) {
-    return {
-      error:
-        "โหมดออฟไลน์ — session ถูกเก็บในเครื่องนี้แล้ว หากออกจากระบบแล้วให้ลงทะเบียนใหม่",
-    };
+    return { error: offlineSessionMessage() };
   }
 
   const supabase = getSupabase();
@@ -51,31 +178,42 @@ export async function findUserByNickname(
     return { error: "เชื่อมต่อฐานข้อมูลไม่สำเร็จ" };
   }
 
-  const { data, error } = await supabase.rpc("find_learner_by_nickname", {
-    p_nickname: trimmed,
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("find_learner_by_nickname", {
+      p_nickname: trimmed,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) {
+        return { error: offlineSessionMessage() };
+      }
+      if (
+        error.message.includes("find_learner_by_nickname") ||
+        error.code === "PGRST202"
+      ) {
+        return {
+          error:
+            "ยังไม่ได้รัน migration login — รัน supabase/migrations/005_learner_rpcs.sql",
+        };
+      }
+      return { error: error.message };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row?.id) return null;
+
+    return {
+      id: row.id as string,
+      nickname: row.nickname as string,
+      grade: row.grade as DbGrade,
+    };
   });
 
-  if (error) {
-    if (
-      error.message.includes("find_learner_by_nickname") ||
-      error.code === "PGRST202"
-    ) {
-      return {
-        error:
-          "ยังไม่ได้รัน migration login — รัน supabase/migrations/005_learner_rpcs.sql",
-      };
-    }
-    return { error: error.message };
-  }
-
-  const row = Array.isArray(data) ? data[0] : data;
-  if (!row?.id) return null;
-
-  return {
-    id: row.id as string,
-    nickname: row.nickname as string,
-    grade: row.grade as DbGrade,
-  };
+  if (result && "error" in result) return result;
+  return result as
+    | { id: string; nickname: string; grade: DbGrade }
+    | null
+    | { error: string };
 }
 
 export async function saveConsent(
@@ -89,12 +227,20 @@ export async function saveConsent(
   const supabase = getSupabase();
   if (!supabase) return { ok: true };
 
-  const { error } = await supabase.from("consent").insert({
-    user_id: userId,
-    accepted,
+  const result = await runDb(async () => {
+    const { error } = await supabase.from("consent").insert({
+      user_id: userId,
+      accepted,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) return { ok: true as const };
+      return { error: error.message };
+    }
+    return { ok: true as const };
   });
 
-  if (error) return { error: error.message };
+  if (result && "error" in result) return result;
   return { ok: true };
 }
 
@@ -122,22 +268,31 @@ export async function hasQuizResult(
   const supabase = getSupabase();
   if (!supabase) return false;
 
-  const { data, error } = await supabase.rpc("learner_has_quiz_result", {
-    p_user_id: userId,
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("learner_has_quiz_result", {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) return false;
+      if (
+        error.message.includes("learner_has_quiz_result") ||
+        error.code === "PGRST202"
+      ) {
+        return false;
+      }
+      throw new Error(error.message);
+    }
+
+    return Boolean(data);
   });
 
-  if (error) {
-    if (
-      error.message.includes("learner_has_quiz_result") ||
-      error.code === "PGRST202"
-    ) {
-      // RPC not installed yet — allow save rather than blocking the learner flow.
-      return false;
-    }
-    return { error: error.message };
+  if (result && typeof result === "object" && "error" in result) {
+    if (isNetworkFailure(result.error)) return false;
+    return result;
   }
 
-  return Boolean(data);
+  return result as boolean;
 }
 
 export async function saveQuizResult(input: {
@@ -202,6 +357,7 @@ export interface AdminResultRow {
   id: string;
   user_id: string;
   nickname: string;
+  email: string | null;
   grade: string;
   pre_score: number;
   post_score: number;
@@ -255,6 +411,7 @@ export async function getAdminStats(): Promise<
     id: r.id as string,
     user_id: r.user_id as string,
     nickname: (r.nickname as string) ?? "-",
+    email: (r.email as string | null) ?? null,
     grade: (r.grade as string) ?? "-",
     pre_score: r.pre_score as number,
     post_score: r.post_score as number,

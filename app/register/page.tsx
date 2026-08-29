@@ -8,12 +8,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { CompletedLearnerChoice } from "@/components/auth/CompletedLearnerChoice";
 import { AppNavbar } from "@/components/layout/AppNavbar";
+import { ConfirmDialog } from "@/components/layout/ConfirmDialog";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
 import { PdpaModal } from "@/components/popup/PdpaModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormField } from "@/components/ui/form-field";
 import {
   Select,
   SelectContent,
@@ -21,8 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createUser, findUserByNickname, hasQuizResult, saveConsent } from "@/lib/db";
+import {
+  createUser,
+  findUserByEmail,
+  saveConsent,
+} from "@/lib/db";
+import { signUpLearner } from "@/lib/learner-auth";
 import { isLoggedIn, phaseToPath } from "@/lib/phase";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import {
   gradeOptions,
   registerSchema,
@@ -32,11 +39,15 @@ import { useHydrated } from "@/hooks/useRequirePhase";
 import { useQuizStore } from "@/store/useQuizStore";
 import type { Grade } from "@/types";
 
+type RegisterFormState = RegisterFormValues;
+
 export default function RegisterPage() {
   const router = useAppRouter();
   const hydrated = useHydrated();
+  const supabaseReady = isSupabaseConfigured();
   const [submitting, setSubmitting] = useState(false);
   const [awaitingChoice, setAwaitingChoice] = useState(false);
+  const [declineConfirmOpen, setDeclineConfirmOpen] = useState(false);
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const currentPhase = useQuizStore((s) => s.currentPhase);
@@ -52,9 +63,12 @@ export default function RegisterPage() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormValues>({
+  } = useForm<RegisterFormState>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
       nickname: "",
       grade: undefined,
       consent: false,
@@ -86,42 +100,46 @@ export default function RegisterPage() {
     router.push("/anatomy");
   };
 
-  const onSubmit = async (values: RegisterFormValues) => {
+  const onSubmit = async (values: RegisterFormState) => {
+    if (!supabaseReady) {
+      toast.error("ยังไม่ได้ตั้งค่า Supabase — ตรวจ .env.local");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const existing = await findUserByNickname(values.nickname);
-      if (existing && "error" in existing) {
-        const canContinueOffline =
-          existing.error.includes("ออฟไลน์") ||
-          existing.error.includes("migration");
-        if (!canContinueOffline) {
-          toast.error(existing.error);
-          return;
-        }
-      } else if (existing) {
-        resetQuiz();
-        setUser(existing.nickname, existing.grade as Grade, existing.id);
-        setConsentAccepted(true);
-        const alreadySaved = await hasQuizResult(existing.id);
-        const completed = alreadySaved === true;
-        setResultSaved(completed);
-        toast.success("พบบัญชีเดิม — เข้าสู่ระบบให้แล้ว");
-
-        if (completed) {
-          setPhase("result");
-          setAwaitingChoice(true);
-          return;
-        }
-
-        setPhase("pretest");
-        router.push("/pretest");
+      const emailExisting = await findUserByEmail(values.email);
+      if (emailExisting && "error" in emailExisting) {
+        toast.error(emailExisting.error);
+        return;
+      }
+      if (emailExisting) {
+        toast.error("อีเมลนี้ถูกใช้แล้ว — เข้าสู่ระบบที่หน้า Login");
+        router.push("/login");
         return;
       }
 
       resetQuiz();
+
+      const auth = await signUpLearner(values.email, values.password);
+      if ("error" in auth) {
+        toast.error(auth.error);
+        return;
+      }
+
+      const needsEmailConfirmation = auth.needsEmailConfirmation;
+      if (needsEmailConfirmation) {
+        toast.message("ลงทะเบียนสำเร็จ — กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ");
+      }
+
+      const userId = auth.userId;
+      const email = values.email.trim().toLowerCase();
+
       const created = await createUser({
+        id: userId,
         nickname: values.nickname,
         grade: values.grade,
+        email,
       });
 
       if ("error" in created) {
@@ -135,19 +153,28 @@ export default function RegisterPage() {
         return;
       }
 
-      setUser(values.nickname, values.grade as Grade, created.id);
+      setUser(values.nickname, values.grade as Grade, created.id, email);
       setConsentAccepted(true);
       setPhase("pretest");
+
+      if (needsEmailConfirmation) {
+        router.push("/login");
+        return;
+      }
+
       toast.success("ลงทะเบียนสำเร็จ");
       router.push("/pretest");
+    } catch (err) {
+      toast.error(
+        err instanceof Error && err.message.includes("Load failed")
+          ? "เชื่อมต่อฐานข้อมูลไม่ได้ — ตรวจ Wi‑Fi หรือ URL Supabase ใน .env.local"
+          : err instanceof Error
+            ? err.message
+            : "ลงทะเบียนไม่สำเร็จ"
+      );
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const onDecline = () => {
-    toast.message("ต้องยอมรับเงื่อนไขเพื่อเริ่มเรียนรู้");
-    router.push("/");
   };
 
   return (
@@ -158,10 +185,20 @@ export default function RegisterPage() {
         backHref="/"
         rightSlot={<UserSessionMenu />}
       />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8 text-left sm:px-10">
+      <ConfirmDialog
+        open={declineConfirmOpen}
+        onOpenChange={setDeclineConfirmOpen}
+        title="ไม่ยอมรับเงื่อนไข?"
+        description="หากไม่ยอมรับ PDPA จะไม่สามารถเริ่มเรียนได้ ต้องการกลับหน้าแรกหรือไม่?"
+        confirmLabel="กลับหน้าแรก"
+        onConfirm={() => router.push("/")}
+        destructive
+      />
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 text-left sm:px-6">
         {awaitingChoice && nickname ? (
           <CompletedLearnerChoice
             nickname={nickname}
+            context="register"
             onViewModel={goViewModel}
             onRetake={goRetake}
           />
@@ -171,30 +208,95 @@ export default function RegisterPage() {
               ยินยอมและเริ่มต้น
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-textSecondary">
-              กรอกชื่อเล่น เลือกระดับชั้น และยอมรับเงื่อนไข PDPA
-              เพื่อเริ่มแบบทดสอบก่อนเรียน
+              สร้างบัญชีด้วยอีเมล กรอกชื่อเล่น เลือกระดับชั้น และยอมรับเงื่อนไข PDPA
             </p>
+
+            {!supabaseReady ? (
+              <div
+                role="status"
+                className="mt-4 rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-textPrimary"
+              >
+                ยังไม่ได้ตั้งค่า Supabase — สมัครด้วยอีเมลต้องใส่ URL และ anon key ใน{" "}
+                <code className="text-xs">.env.local</code>
+              </div>
+            ) : null}
 
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="mt-8 flex flex-1 flex-col gap-6"
             >
-              <div className="space-y-2">
-                <Label htmlFor="nickname">ชื่อเล่น</Label>
+              <FormField
+                id="email"
+                label="อีเมล"
+                required
+                error={errors.email?.message}
+              >
                 <Input
-                  id="nickname"
+                  type="email"
+                  placeholder="example@email.com"
+                  autoComplete="email"
+                  className="h-11 rounded-lg"
+                  disabled={!supabaseReady}
+                  {...register("email")}
+                />
+              </FormField>
+
+              <FormField
+                id="password"
+                label="รหัสผ่าน"
+                required
+                error={errors.password?.message}
+              >
+                <Input
+                  type="password"
+                  placeholder="อย่างน้อย 6 ตัวอักษร"
+                  autoComplete="new-password"
+                  className="h-11 rounded-lg"
+                  disabled={!supabaseReady}
+                  {...register("password")}
+                />
+              </FormField>
+
+              <FormField
+                id="confirmPassword"
+                label="ยืนยันรหัสผ่าน"
+                required
+                error={errors.confirmPassword?.message}
+              >
+                <Input
+                  type="password"
+                  placeholder="กรอกรหัสผ่านอีกครั้ง"
+                  autoComplete="new-password"
+                  className="h-11 rounded-lg"
+                  disabled={!supabaseReady}
+                  {...register("confirmPassword")}
+                />
+              </FormField>
+
+              <FormField
+                id="nickname"
+                label="ชื่อเล่น"
+                required
+                error={errors.nickname?.message}
+              >
+                <Input
                   placeholder="กรอกชื่อเล่น"
                   autoComplete="nickname"
                   className="h-11 rounded-lg"
                   {...register("nickname")}
                 />
-                {errors.nickname ? (
-                  <p className="text-sm text-error">{errors.nickname.message}</p>
-                ) : null}
-              </div>
+              </FormField>
 
               <div className="space-y-2">
-                <Label>ระดับชั้น</Label>
+                <label
+                  htmlFor="grade"
+                  className="text-sm font-medium leading-none text-textPrimary"
+                >
+                  ระดับชั้น
+                  <span className="ml-1 text-error" aria-hidden="true">
+                    *
+                  </span>
+                </label>
                 <Controller
                   name="grade"
                   control={control}
@@ -203,7 +305,14 @@ export default function RegisterPage() {
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     >
-                      <SelectTrigger className="h-11 w-full rounded-lg">
+                      <SelectTrigger
+                        id="grade"
+                        aria-invalid={Boolean(errors.grade)}
+                        aria-describedby={
+                          errors.grade ? "grade-error" : undefined
+                        }
+                        className="h-11 w-full rounded-lg"
+                      >
                         <SelectValue placeholder="เลือกระดับการศึกษา" />
                       </SelectTrigger>
                       <SelectContent>
@@ -217,7 +326,9 @@ export default function RegisterPage() {
                   )}
                 />
                 {errors.grade ? (
-                  <p className="text-sm text-error">{errors.grade.message}</p>
+                  <p id="grade-error" className="text-sm text-error">
+                    {errors.grade.message}
+                  </p>
                 ) : null}
               </div>
 
@@ -232,6 +343,10 @@ export default function RegisterPage() {
                         checked={field.value}
                         onCheckedChange={(checked) =>
                           field.onChange(checked === true)
+                        }
+                        aria-invalid={Boolean(errors.consent)}
+                        aria-describedby={
+                          errors.consent ? "pdpa-consent-error" : undefined
                         }
                         className="mt-0.5 size-5 shrink-0 rounded-[5px] border-[2.5px] border-primary bg-background shadow-sm data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground light:bg-white light:data-checked:bg-primary light:data-checked:text-white"
                       />
@@ -249,23 +364,27 @@ export default function RegisterPage() {
                   )}
                 />
                 {errors.consent ? (
-                  <p className="text-sm text-error">{errors.consent.message}</p>
+                  <p id="pdpa-consent-error" className="text-sm text-error">
+                    {errors.consent.message}
+                  </p>
                 ) : null}
               </div>
 
               <div className="mt-auto flex flex-col items-start gap-3 pt-4">
                 <Button
                   type="submit"
-                  disabled={submitting}
-                  className="h-11 w-auto rounded-lg px-6 text-base font-semibold"
+                  size="touch"
+                  loading={submitting}
+                  disabled={!supabaseReady}
+                  className="font-semibold"
                 >
-                  {submitting ? "กำลังบันทึก..." : "ยอมรับและเริ่มทำแบบทดสอบ"}
+                  ยอมรับและเริ่มทำแบบทดสอบ
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-11 w-auto rounded-lg px-6 text-base"
-                  onClick={onDecline}
+                  size="touch"
+                  onClick={() => setDeclineConfirmOpen(true)}
                 >
                   ไม่ยอมรับ
                 </Button>

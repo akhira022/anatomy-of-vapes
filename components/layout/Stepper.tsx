@@ -21,6 +21,7 @@ export function Stepper({ current, className }: StepperProps) {
 
   return (
     <ol
+      aria-label="ขั้นตอนการเรียน"
       className={cn(
         "flex w-full items-start justify-start gap-6 text-xs sm:gap-8 sm:text-sm",
         className
@@ -30,7 +31,11 @@ export function Stepper({ current, className }: StepperProps) {
         const done = index < activeIndex;
         const active = index === activeIndex;
         return (
-          <li key={step.id} className="flex flex-col items-start gap-1.5">
+          <li
+            key={step.id}
+            className="flex flex-col items-start gap-1.5"
+            aria-current={active ? "step" : undefined}
+          >
             <span
               className={cn(
                 "size-2.5 rounded-full transition-all duration-normal sm:size-3",

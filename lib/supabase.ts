@@ -12,6 +12,7 @@ export interface DbUser {
   id: string;
   nickname: string;
   grade: DbGrade;
+  email?: string | null;
   created_at: string;
 }
 

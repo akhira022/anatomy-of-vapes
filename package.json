@@ -1,6 +1,6 @@
 {
   "name": "anatomy-of-vapes",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
@@ -8,11 +8,17 @@
     "mobile:url": "node scripts/print-mobile-url.mjs",
     "tunnel": "npx --yes cloudflared tunnel --url http://127.0.0.1:3001",
     "build": "next build",
+    "prebuild": "npm run build:knowledge",
+    "build:knowledge": "npx --yes tsx scripts/build-knowledge-index.ts",
+    "test:retrieve": "npx --yes tsx scripts/test-retrieve.ts",
+    "test:chat": "npx --yes tsx scripts/test-chat-api.ts",
+    "doctor:gemini": "npx --yes tsx scripts/doctor-gemini.ts",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@google/genai": "^2.19.0",
     "@hookform/resolvers": "^5.7.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.7.0",

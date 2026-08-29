@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
+import { PageLoading } from "@/components/feedback/PageLoading";
 import { useAppRouter } from "@/hooks/useAppRouter";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { Stepper } from "@/components/layout/Stepper";
 import { HotspotList } from "@/components/hotspot/HotspotList";
@@ -12,7 +13,11 @@ import { HotspotPopup } from "@/components/popup/HotspotPopup";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { hotspots } from "@/data/hotspots";
-import { useRequirePhase, useHydrated } from "@/hooks/useRequirePhase";
+import {
+  getPhaseBlockMessage,
+  useRequirePhase,
+  useHydrated,
+} from "@/hooks/useRequirePhase";
 import { useQuizStore } from "@/store/useQuizStore";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +42,7 @@ const modeOptions = [
 export default function AnatomyPage() {
   const router = useAppRouter();
   const hydrated = useHydrated();
-  const ready = useRequirePhase("anatomy");
+  const { ready, blockedReason } = useRequirePhase("anatomy");
   const [mode, setMode] = useState<ViewMode>("whole");
   const [popupOpen, setPopupOpen] = useState(false);
 
@@ -57,16 +62,33 @@ export default function AnatomyPage() {
   const setPhase = useQuizStore((s) => s.setPhase);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
 
-  /**
-   * Review = finished once and not currently on the active anatomy/posttest path.
-   * Keeps mid-retake "ดูโมเดล" from counting as progress toward posttest.
-   */
   const isReview =
     currentPhase === "result" ||
     (resultSaved &&
       currentPhase !== "anatomy" &&
       currentPhase !== "posttest");
-  /** Returning learners who skip retake have no local scores — don't send them to empty result. */
+
+  useEffect(() => {
+    if (!hydrated || !ready) return;
+    const hotspotParam = new URLSearchParams(window.location.search).get(
+      "hotspot"
+    );
+    if (!hotspotParam) return;
+    const exists = hotspots.some((h) => h.id === hotspotParam);
+    if (!exists) return;
+
+    setSelectedHotspotId(hotspotParam);
+    if (!isReview) markHotspotVisited(hotspotParam);
+    setPopupOpen(true);
+    setMode("exploded");
+  }, [
+    hydrated,
+    ready,
+    isReview,
+    markHotspotVisited,
+    setSelectedHotspotId,
+  ]);
+
   const hasLocalResult = postAnswers.length > 0;
 
   const selected = useMemo(
@@ -85,9 +107,9 @@ export default function AnatomyPage() {
 
   if (!hydrated || !ready) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-background text-textSecondary">
-        กำลังโหลด...
-      </div>
+      <PageLoading
+        detail={getPhaseBlockMessage(blockedReason) ?? undefined}
+      />
     );
   }
 
@@ -120,8 +142,9 @@ export default function AnatomyPage() {
         title={isReview ? "ทบทวนโมเดล 3D" : "สำรวจ 3 มิติ"}
         showBack
         backHref={isReview ? (hasLocalResult ? "/result" : "/") : "/pretest"}
+        showSessionMenu
       />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-6 py-6 text-left sm:gap-5 sm:px-10">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-3 px-4 py-4 text-left sm:gap-4 sm:px-6 sm:py-6">
         {isReview ? (
           <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm leading-relaxed text-textSecondary">
             โหมดทบทวน — สำรวจโมเดลและจุดสารพิษได้อิสระ ไม่กระทบคะแนนที่ทำไว้แล้ว
@@ -153,7 +176,56 @@ export default function AnatomyPage() {
           ))}
         </div>
 
-        <div className="relative h-[min(56dvh,440px)] w-full shrink-0 sm:h-[min(64dvh,560px)]">
+        {!isReview ? (
+          <div className="sticky top-14 z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2.5 backdrop-blur-sm sm:top-16 sm:-mx-6 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-textSecondary" aria-live="polite">
+                สำรวจแล้ว{" "}
+                <span className="font-semibold text-textPrimary">
+                  {visitedHotspots.length}/{hotspots.length}
+                </span>
+                {!allVisited ? (
+                  <>
+                    {" "}
+                    · เหลือ{" "}
+                    <span className="font-semibold text-primary">
+                      {remainingCount}
+                    </span>{" "}
+                    จุด
+                  </>
+                ) : (
+                  <span className="ml-1 font-medium text-success">
+                    · ครบแล้ว
+                  </span>
+                )}
+              </p>
+              {allVisited ? (
+                <Button
+                  type="button"
+                  size="touch"
+                  className="font-semibold shadow-glowRed"
+                  onClick={goPosttest}
+                >
+                  ไปแบบทดสอบหลังเรียน
+                  <ArrowRight className="size-4" />
+                </Button>
+              ) : nextHotspot ? (
+                <Button
+                  type="button"
+                  size="touch"
+                  variant="secondary"
+                  className="font-semibold"
+                  onClick={goNextHotspot}
+                >
+                  จุดถัดไป: {nextHotspot.label}
+                  <ArrowRight className="size-4" />
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,440px)]">
           <VapeScene
             exploded={mode === "exploded"}
             onExplodedChange={(next) =>
@@ -171,7 +243,7 @@ export default function AnatomyPage() {
 
         <section
           aria-labelledby="exploration-status"
-          className="rounded-lg border border-border bg-card p-5 shadow-card sm:p-6"
+          className="rounded-lg border border-border bg-card p-4 shadow-card sm:p-5"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -189,7 +261,7 @@ export default function AnatomyPage() {
               </p>
             </div>
             {selected ? (
-              <Badge variant="destructive">{selected.label}</Badge>
+              <Badge variant="outline">{selected.label}</Badge>
             ) : (
               <Badge variant="outline">แตะจุดสีแดงหรือเลือกจากรายการ</Badge>
             )}
@@ -229,7 +301,8 @@ export default function AnatomyPage() {
             {!allVisited && nextHotspot ? (
               <Button
                 type="button"
-                className="h-11 w-auto rounded-lg px-5 font-semibold shadow-glowRed"
+                size="touch"
+                className="font-semibold shadow-glowRed"
                 onClick={goNextHotspot}
               >
                 สำรวจต่อ: {nextHotspot.label}
@@ -239,7 +312,7 @@ export default function AnatomyPage() {
             <Button
               type="button"
               variant="outline"
-              className="h-11 w-auto rounded-lg px-5"
+              size="touch"
               disabled={!selected}
               onClick={() => setPopupOpen(true)}
             >
@@ -248,7 +321,8 @@ export default function AnatomyPage() {
             {isReview ? (
               <Button
                 type="button"
-                className="h-11 w-auto rounded-lg px-5 font-semibold shadow-glowRed"
+                size="touch"
+                className="font-semibold shadow-glowRed"
                 onClick={goResult}
               >
                 {hasLocalResult ? "กลับไปดูผลลัพธ์" : "กลับหน้าหลัก"}
@@ -257,7 +331,8 @@ export default function AnatomyPage() {
             ) : allVisited ? (
               <Button
                 type="button"
-                className="h-11 w-auto rounded-lg px-5 font-semibold shadow-glowRed"
+                size="touch"
+                className="font-semibold shadow-glowRed"
                 onClick={goPosttest}
               >
                 ถัดไป: แบบทดสอบหลังเรียน
@@ -267,7 +342,8 @@ export default function AnatomyPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 w-auto rounded-lg px-5 text-textSecondary"
+                size="touch"
+                className="opacity-60"
                 disabled
                 aria-disabled="true"
               >
@@ -277,12 +353,26 @@ export default function AnatomyPage() {
           </div>
         </section>
 
+        <details className="group rounded-lg border border-border bg-card sm:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-heading text-base font-semibold text-textPrimary marker:content-none [&::-webkit-details-marker]:hidden">
+            รายการจุดสารพิษ
+            <ChevronDown className="size-5 shrink-0 text-textSecondary transition-transform group-open:rotate-180" />
+          </summary>
+          <HotspotList
+            items={hotspots}
+            visitedIds={visitedHotspots}
+            selectedId={selectedHotspotId}
+            onSelect={handleHotspotClick}
+            className="px-4 pb-4"
+          />
+        </details>
+
         <HotspotList
           items={hotspots}
           visitedIds={visitedHotspots}
           selectedId={selectedHotspotId}
           onSelect={handleHotspotClick}
-          className="pb-4"
+          className="hidden pb-4 sm:block"
         />
       </main>
 

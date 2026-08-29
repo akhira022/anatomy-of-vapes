@@ -1,15 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
+import { ConfirmDialog } from "@/components/layout/ConfirmDialog";
 import { QuizEngine } from "@/components/quiz/QuizEngine";
+import { PageLoading } from "@/components/feedback/PageLoading";
 import { pretestQuestions } from "@/data/quiz-questions";
-import { useRequirePhase, useHydrated } from "@/hooks/useRequirePhase";
+import {
+  getPhaseBlockMessage,
+  useRequirePhase,
+  useHydrated,
+} from "@/hooks/useRequirePhase";
+import { useAppRouter } from "@/hooks/useAppRouter";
 import { useQuizStore } from "@/store/useQuizStore";
 
 export default function PretestPage() {
+  const router = useAppRouter();
   const hydrated = useHydrated();
-  const ready = useRequirePhase("pretest");
+  const { ready, blockedReason } = useRequirePhase("pretest");
+  const [backConfirmOpen, setBackConfirmOpen] = useState(false);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
   const setPretestQuestions = useQuizStore((s) => s.setPretestQuestions);
   const setPhase = useQuizStore((s) => s.setPhase);
@@ -21,7 +30,6 @@ export default function PretestPage() {
     setPhase("pretest");
   }, [ready, setPretestQuestions, setQuestionIndex, setPhase]);
 
-  // Warm GLB cache during pretest so anatomy opens faster.
   useEffect(() => {
     if (!ready) return;
     const idle =
@@ -43,15 +51,28 @@ export default function PretestPage() {
 
   if (!hydrated || !ready) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-background text-textSecondary">
-        กำลังโหลด...
-      </div>
+      <PageLoading
+        detail={getPhaseBlockMessage(blockedReason) ?? undefined}
+      />
     );
   }
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <AppNavbar title="แบบทดสอบก่อนเรียน" showBack backHref="/" />
+      <AppNavbar
+        title="แบบทดสอบก่อนเรียน"
+        showBack
+        onBack={() => setBackConfirmOpen(true)}
+        showSessionMenu
+      />
+      <ConfirmDialog
+        open={backConfirmOpen}
+        onOpenChange={setBackConfirmOpen}
+        title="ออกจากแบบทดสอบ?"
+        description="ความคืบหน้าข้อปัจจุบันอาจไม่ถูกบันทึก ต้องการกลับไปหน้าก่อนหรือไม่?"
+        confirmLabel="ออกจากแบบทดสอบ"
+        onConfirm={() => router.push("/register")}
+      />
       <main className="flex-1">
         <QuizEngine type="pretest" questions={pretestQuestions} />
       </main>

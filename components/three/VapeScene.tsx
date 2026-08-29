@@ -147,7 +147,7 @@ export function VapeScene({
     !userInteracting;
 
   useEffect(() => {
-    setDpr(lite ? [1, 1] : [1, 1.5]);
+    setDpr(lite ? [1, 1.25] : [1, 1.75]);
   }, [lite]);
 
   useEffect(() => {
@@ -219,7 +219,7 @@ export function VapeScene({
           frameloop="demand"
           performance={{ min: 0.5, max: 1, debounce: 200 }}
           gl={{
-            antialias: !lite,
+            antialias: true,
             powerPreference: lite ? "low-power" : "high-performance",
             stencil: false,
             depth: true,
@@ -238,7 +238,7 @@ export function VapeScene({
           <PerformanceMonitor
             onIncline={() =>
               setDpr((prev) => {
-                const next: [number, number] = lite ? [1, 1.15] : [1, 1.5];
+                const next: [number, number] = lite ? [1, 1.35] : [1, 1.75];
                 return prev[1] === next[1] ? prev : next;
               })
             }
@@ -277,9 +277,18 @@ export function VapeScene({
               lite={lite}
             />
             <ModelReadySignal onReady={onModelReady} />
-            {!lite ? (
-              <Environment preset="city" environmentIntensity={isLight ? 0.48 : 0.4} />
-            ) : null}
+            <Environment
+              preset="city"
+              environmentIntensity={
+                lite
+                  ? isLight
+                    ? 0.32
+                    : 0.26
+                  : isLight
+                    ? 0.48
+                    : 0.4
+              }
+            />
             {!lite ? (
               <ContactShadows
                 position={[0, -1.6, 0]}

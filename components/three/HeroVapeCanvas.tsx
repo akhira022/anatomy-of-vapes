@@ -75,7 +75,7 @@ export function HeroVapeCanvas({ reducedMotion = false }: HeroVapeCanvasProps) {
     [isLight]
   );
   const spinning = !reducedMotion && inView;
-  const dpr = lite || dprFloor ? 1 : 1.25;
+  const dpr = lite || dprFloor ? 1.15 : 1.5;
 
   useEffect(() => {
     const el = rootRef.current;
@@ -103,7 +103,7 @@ export function HeroVapeCanvas({ reducedMotion = false }: HeroVapeCanvasProps) {
         frameloop={spinning ? "always" : "demand"}
         performance={{ min: 0.5, max: 1, debounce: 200 }}
         gl={{
-          antialias: !lite,
+          antialias: true,
           alpha: false,
           powerPreference: lite ? "low-power" : "high-performance",
           stencil: false,
@@ -145,14 +145,20 @@ export function HeroVapeCanvas({ reducedMotion = false }: HeroVapeCanvasProps) {
           intensity={lite ? (isLight ? 0.4 : 0.35) : isLight ? 0.45 : 0.4}
           color="#E53935"
         />
-        {!lite ? (
-          <Suspense fallback={null}>
-            <Environment
-              preset="city"
-              environmentIntensity={isLight ? 0.56 : 0.48}
-            />
-          </Suspense>
-        ) : null}
+        <Suspense fallback={null}>
+          <Environment
+            preset="city"
+            environmentIntensity={
+              lite
+                ? isLight
+                  ? 0.36
+                  : 0.3
+                : isLight
+                  ? 0.56
+                  : 0.48
+            }
+          />
+        </Suspense>
         <Suspense fallback={null}>
           <group position={HERO_MODEL_POSITION} scale={HERO_MODEL_SCALE}>
             <VapeModel

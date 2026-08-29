@@ -78,11 +78,12 @@ node scripts/apply-supabase-migration.mjs
 7. [ ] Login `/admin/login` แล้วเห็นสถิติ + ตารางผล
 8. [ ] กด Export CSV ได้
 
-## 5. Placeholders to replace later
+## 5. Content & assets
 
-- Quiz copy: `data/quiz-questions.ts`
-- Hotspot copy: `data/hotspots.ts`
-- Myth vs Fact: `data/myths.ts`
+เนื้อหาเรียนใน `data/` (quiz / hotspot / myth) และรายการอ้างอิงใน `data/sources.ts` ถูกแทนด้วยข้อความที่รีเสิร์ชจาก WHO / CDC / ACS / ALA / กรมควบคุมโรค / สสส. แล้ว — ให้ทีมเนื้อหาหรือหน่วยงานพันธมิตรตรวจยืนยันก่อนแคมเปญอย่างเป็นทางการ
+
+ยังอาจต้องอัปเดตสินทรัพย์ 3D ถ้ามีเวอร์ชันสุดท้าย:
+
 - 3D model parts: `public/models/mouthpiece.glb`, `coilTank.glb`, `battery.glb` (loaded in `components/three/VapeModel.tsx`)
 
 ## 5.1 ทดสอบบนมือถือจริง
