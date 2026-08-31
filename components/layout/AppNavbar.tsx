@@ -14,6 +14,8 @@ interface AppNavbarProps {
   rightSlot?: React.ReactNode;
   showSessionMenu?: boolean;
   className?: string;
+  /** Extra classes for the inner nav row (e.g. wider max-width on xl). */
+  contentClassName?: string;
 }
 
 export function AppNavbar({
@@ -24,6 +26,7 @@ export function AppNavbar({
   rightSlot,
   showSessionMenu = true,
   className,
+  contentClassName,
 }: AppNavbarProps) {
   return (
     <header
@@ -32,7 +35,12 @@ export function AppNavbar({
         className
       )}
     >
-      <nav className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
+      <nav
+        className={cn(
+          "mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6",
+          contentClassName
+        )}
+      >
         <div className="flex min-w-0 items-center gap-2">
           {showBack ? (
             onBack ? (

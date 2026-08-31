@@ -6,7 +6,7 @@ interface RateLimitEntry {
 const store = new Map<string, RateLimitEntry>();
 
 const WINDOW_MS = 10 * 60 * 1000;
-const MAX_REQUESTS = Number(process.env.CHAT_RATE_LIMIT_PER_10MIN ?? 10);
+const MAX_REQUESTS = Number(process.env.CHAT_RATE_LIMIT_PER_10MIN ?? 40);
 
 function getKey(sessionId: string | undefined, ip: string) {
   return `${sessionId ?? "anon"}:${ip}`;

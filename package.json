@@ -14,7 +14,8 @@
     "test:chat": "npx --yes tsx scripts/test-chat-api.ts",
     "doctor:gemini": "npx --yes tsx scripts/doctor-gemini.ts",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "record:preview": "node scripts/record-preview.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -50,6 +51,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "pg": "^8.22.0",
+    "playwright": "^1.62.1",
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
     "typescript": "^5"

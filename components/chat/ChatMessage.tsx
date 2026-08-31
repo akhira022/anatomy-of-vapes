@@ -37,7 +37,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {message.pending && !message.content ? (
           <span className="inline-flex items-center gap-2 text-muted-foreground">
             <Loader2 className="size-3.5 animate-spin" />
-            กำลังค้นหาข้อมูล...
+            กำลังคิดคำตอบ...
           </span>
         ) : (
           <p className="whitespace-pre-wrap">

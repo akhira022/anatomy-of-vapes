@@ -1,12 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatQuickPrompts } from "@/components/chat/ChatQuickPrompts";
 import { useChat } from "@/components/chat/useChat";
 import { Button } from "@/components/ui/button";
+import {
+  SCENE_FULLSCREEN_EVENT,
+  getSceneFullscreenRoot,
+} from "@/lib/scene-fullscreen";
 import { cn } from "@/lib/utils";
 import { Bot, MessageCircle, RotateCcw, X } from "lucide-react";
 
@@ -41,12 +46,34 @@ function getFocusable(container: HTMLElement) {
 export function ChatWidget() {
   const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<Element | null>(null);
   const { messages, loading, sendMessage, clearMessages } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   const enabled = isChatEnabled(pathname);
+  const onAnatomy = pathname.startsWith("/anatomy");
+  const inSceneFullscreen =
+    Boolean(portalTarget) &&
+    portalTarget !== document.body &&
+    portalTarget != null;
+
+  // Native fullscreen only shows descendants of the fullscreen root.
+  useEffect(() => {
+    const sync = () => {
+      setPortalTarget(getSceneFullscreenRoot() ?? document.body);
+    };
+    sync();
+    document.addEventListener("fullscreenchange", sync);
+    document.addEventListener("webkitfullscreenchange", sync);
+    document.addEventListener(SCENE_FULLSCREEN_EVENT, sync);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      document.removeEventListener("webkitfullscreenchange", sync);
+      document.removeEventListener(SCENE_FULLSCREEN_EVENT, sync);
+    };
+  }, []);
 
   const askedQuickPrompts = messages
     .filter((message) => message.role === "user")
@@ -123,38 +150,46 @@ export function ChatWidget() {
     };
   }, [open, closeChat]);
 
-  if (!enabled) return null;
+  if (!enabled || !portalTarget) return null;
 
-  return (
+  const ui = (
     <>
       {open ? (
         <div
           ref={panelRef}
           className={cn(
-            "fixed inset-x-0 bottom-0 z-[60] flex max-h-[min(78vh,640px)] flex-col",
-            "rounded-t-2xl border border-border bg-card shadow-2xl",
-            "sm:inset-x-auto sm:right-4 sm:bottom-20 sm:w-[min(100vw-2rem,24rem)] sm:rounded-2xl",
-            "xl:right-6 xl:bottom-24 xl:max-h-[min(82vh,720px)] xl:w-[28rem]"
+            "fixed z-[120] flex flex-col border border-border bg-card shadow-2xl",
+            // Mobile: bottom sheet
+            "inset-x-0 bottom-0 max-h-[min(78vh,640px)] rounded-t-2xl",
+            // Tablet+: floating card above the FAB
+            "sm:inset-x-auto sm:max-h-[min(72vh,640px)] sm:w-[min(100vw-2rem,24rem)] sm:rounded-2xl",
+            "xl:max-h-[min(78vh,680px)] xl:w-[26rem]",
+            inSceneFullscreen
+              ? // Fullscreen: sit above the hotspot dock, left side
+                "sm:bottom-[7.5rem] sm:left-4 sm:right-auto xl:left-6"
+              : onAnatomy
+                ? "sm:bottom-24 sm:left-4 sm:right-auto xl:bottom-28 xl:left-6"
+                : "sm:bottom-24 sm:right-4 xl:bottom-28 xl:right-6"
           )}
           role="dialog"
           aria-modal="true"
           aria-label="ผู้ช่วยเรียนรู้ AI"
         >
-          <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                 <Bot className="size-4" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="font-heading text-sm font-semibold">
                   ผู้ช่วยเรียนรู้ AI
                 </p>
-                <p className="text-[0.7rem] text-muted-foreground">
+                <p className="truncate text-[0.7rem] text-muted-foreground">
                   ถามเรื่องบุหรี่ไฟฟ้าได้เลย
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               {messages.length > 0 ? (
                 <Button
                   type="button"
@@ -182,7 +217,7 @@ export function ChatWidget() {
 
           <div
             ref={scrollRef}
-            className="flex-1 space-y-3 overflow-y-auto px-4 py-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3"
           >
             {messages.length === 0 ? (
               <div className="space-y-3">
@@ -213,7 +248,7 @@ export function ChatWidget() {
             )}
           </div>
 
-          <div className="border-t border-border p-3">
+          <div className="shrink-0 border-t border-border p-3">
             <ChatInput onSend={sendMessage} disabled={loading} />
           </div>
         </div>
@@ -224,7 +259,16 @@ export function ChatWidget() {
         type="button"
         size="icon-lg"
         className={cn(
-          "fixed right-4 bottom-4 z-[60] size-14 rounded-full shadow-lg xl:right-6 xl:bottom-6",
+          "fixed z-[120] size-14 rounded-full shadow-lg",
+          inSceneFullscreen
+            ? // Above hotspot strip, bottom-left — clear of right-side controls
+              "bottom-[max(6.5rem,calc(env(safe-area-inset-bottom)+5.5rem))] left-[max(1rem,env(safe-area-inset-left))] right-auto"
+            : cn(
+                "bottom-[max(1rem,env(safe-area-inset-bottom))]",
+                onAnatomy
+                  ? "left-4 right-auto xl:left-6 xl:bottom-6"
+                  : "right-4 left-auto xl:right-6 xl:bottom-6"
+              ),
           open && "pointer-events-none opacity-0"
         )}
         onClick={() => setOpen((value) => !value)}
@@ -235,4 +279,6 @@ export function ChatWidget() {
       </Button>
     </>
   );
+
+  return createPortal(ui, portalTarget);
 }

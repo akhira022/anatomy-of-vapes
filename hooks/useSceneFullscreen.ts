@@ -23,6 +23,7 @@ export function useSceneFullscreen(rootRef: RefObject<HTMLElement | null>) {
   const syncNative = useCallback(() => {
     const el = rootRef.current;
     setNativeFullscreen(Boolean(el && getNativeFullscreenElement() === el));
+    dispatchSceneFullscreenChange();
   }, [rootRef]);
 
   useEffect(() => {

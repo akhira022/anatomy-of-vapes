@@ -73,7 +73,7 @@ export function HotspotList({
                   <span className="block font-heading text-sm font-semibold text-textPrimary">
                     {item.label}
                   </span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-textSecondary">
+                  <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-textSecondary">
                     {item.description}
                   </span>
                 </span>

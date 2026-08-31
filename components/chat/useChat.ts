@@ -125,6 +125,42 @@ export function useChat() {
           throw new Error("No response body");
         }
 
+        // If server returned a non-stream JSON error body somehow, surface it.
+        const contentType = response.headers.get("content-type") ?? "";
+        if (!contentType.includes("ndjson") && !contentType.includes("stream")) {
+          const data = (await response.json()) as {
+            answer?: string;
+            refused?: boolean;
+            mode?: "ai" | "rag";
+            citations?: ChatUiMessage["citations"];
+            hotspotId?: string;
+          };
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === pendingId
+                ? {
+                    id: pendingId,
+                    role: "assistant",
+                    content:
+                      data.answer?.trim() ||
+                      "ขออภัย ไม่ได้รับคำตอบ ลองใหม่อีกครั้งนะ",
+                    citations: data.citations,
+                    hotspotId: data.hotspotId,
+                    refused: data.refused,
+                    mode: data.mode,
+                    pending: false,
+                    streaming: false,
+                    error: !response.ok && response.status !== 429,
+                  }
+                : message
+            )
+          );
+          if (!response.ok && response.status !== 429) {
+            setError("เกิดข้อผิดพลาด ลองใหม่อีกครั้ง");
+          }
+          return;
+        }
+
         let receivedDelta = false;
 
         for await (const event of readNdjsonStream(response.body)) {

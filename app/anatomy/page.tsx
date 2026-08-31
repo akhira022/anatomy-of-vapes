@@ -43,7 +43,7 @@ export default function AnatomyPage() {
   const router = useAppRouter();
   const hydrated = useHydrated();
   const { ready, blockedReason } = useRequirePhase("anatomy");
-  const [mode, setMode] = useState<ViewMode>("whole");
+  const [mode, setMode] = useState<ViewMode>("exploded");
   const [popupOpen, setPopupOpen] = useState(false);
 
   useEffect(() => {
@@ -161,10 +161,11 @@ export default function AnatomyPage() {
     </div>
   );
 
+  /** Mobile/tablet sticky strip — primary next action lives here only. */
   const stickyProgress = !isReview ? (
-    <div className="sticky top-14 z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2.5 backdrop-blur-sm sm:top-16 sm:-mx-6 sm:px-6 xl:static xl:mx-0 xl:rounded-lg xl:border xl:px-4 xl:py-3 xl:backdrop-blur-none">
+    <div className="sticky top-14 z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2.5 backdrop-blur-sm sm:top-16 sm:-mx-6 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-textSecondary xl:text-base" aria-live="polite">
+        <p className="text-sm text-textSecondary" aria-live="polite">
           สำรวจแล้ว{" "}
           <span className="font-semibold text-textPrimary">
             {visitedHotspots.length}/{hotspots.length}
@@ -186,7 +187,7 @@ export default function AnatomyPage() {
           <Button
             type="button"
             size="touch"
-            className="font-semibold shadow-glowRed xl:min-h-12"
+            className="font-semibold shadow-glowRed"
             onClick={goPosttest}
           >
             ไปแบบทดสอบหลังเรียน
@@ -197,7 +198,7 @@ export default function AnatomyPage() {
             type="button"
             size="touch"
             variant="secondary"
-            className="font-semibold xl:min-h-12"
+            className="font-semibold"
             onClick={goNextHotspot}
           >
             จุดถัดไป: {nextHotspot.label}
@@ -208,10 +209,14 @@ export default function AnatomyPage() {
     </div>
   ) : null;
 
-  const statusSection = (
+  /**
+   * Status card. `showPrimaryCta` avoids duplicating the sticky next button on
+   * phone/tablet; on xl the sticky is hidden so the card owns the CTA.
+   */
+  const statusSection = (showPrimaryCta: boolean) => (
     <section
       aria-labelledby="exploration-status"
-      className="rounded-lg border border-border bg-card p-4 shadow-card sm:p-5 xl:p-5"
+      className="rounded-lg border border-border bg-card p-4 shadow-card sm:p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -266,7 +271,7 @@ export default function AnatomyPage() {
       </p>
 
       <div className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-        {!allVisited && nextHotspot ? (
+        {showPrimaryCta && !allVisited && nextHotspot ? (
           <Button
             type="button"
             size="touch"
@@ -297,7 +302,8 @@ export default function AnatomyPage() {
             {hasLocalResult ? "กลับไปดูผลลัพธ์" : "กลับหน้าหลัก"}
             <ArrowRight className="size-4" />
           </Button>
-        ) : allVisited ? (
+        ) : null}
+        {showPrimaryCta && !isReview && allVisited ? (
           <Button
             type="button"
             size="touch"
@@ -307,24 +313,13 @@ export default function AnatomyPage() {
             ถัดไป: แบบทดสอบหลังเรียน
             <ArrowRight className="size-4" />
           </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            className="opacity-60 xl:min-h-12"
-            disabled
-            aria-disabled="true"
-          >
-            สำรวจต่ออีก {remainingCount} จุด
-          </Button>
-        )}
+        ) : null}
       </div>
     </section>
   );
 
   const scene = (
-    <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,440px)] xl:h-[calc(100dvh-8rem)] xl:min-h-[28rem]">
+    <div className="relative h-[min(48dvh,380px)] w-full shrink-0 sm:h-[min(56dvh,440px)] xl:h-[calc(100dvh-7.5rem)] xl:min-h-[28rem] xl:max-h-[calc(100dvh-7.5rem)]">
       <VapeScene
         exploded={mode === "exploded"}
         onExplodedChange={(next) => setMode(next ? "exploded" : "whole")}
@@ -346,10 +341,11 @@ export default function AnatomyPage() {
         showBack
         backHref={isReview ? (hasLocalResult ? "/result" : "/") : "/pretest"}
         showSessionMenu
+        contentClassName="xl:max-w-[1600px]"
       />
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-3 px-4 py-4 text-left sm:gap-4 sm:px-6 sm:py-6 xl:max-w-[1600px] xl:gap-5"
+        className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-3 px-4 pb-24 pt-4 text-left sm:gap-4 sm:px-6 sm:pb-28 sm:pt-6 xl:max-w-[1600px] xl:gap-4 xl:pb-8 xl:pt-5"
       >
         {isReview ? (
           <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm leading-relaxed text-textSecondary xl:text-base">
@@ -359,15 +355,15 @@ export default function AnatomyPage() {
           <Stepper current="anatomy" />
         )}
 
-        {/* Mobile / tablet: stacked */}
+        {/* Mobile / tablet: stacked — sticky owns next CTA */}
         <div className="flex flex-col gap-3 sm:gap-4 xl:hidden">
           {modeToggle}
           {stickyProgress}
           {scene}
-          {statusSection}
+          {statusSection(false)}
 
           <details className="group rounded-lg border border-border bg-card sm:hidden">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-heading text-base font-semibold text-textPrimary marker:content-none [&::-webkit-details-marker]:hidden">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-heading text-base font-semibold text-textPrimary marker:content-none [&::-webkit-details-marker]:hidden">
               รายการจุดสารพิษ
               <ChevronDown className="size-5 shrink-0 text-textSecondary transition-transform group-open:rotate-180" />
             </summary>
@@ -391,19 +387,18 @@ export default function AnatomyPage() {
           />
         </div>
 
-        {/* xl+: two-column — tall canvas left, controls right */}
-        <div className="hidden xl:grid xl:grid-cols-[minmax(0,1.6fr)_minmax(20rem,1fr)] xl:items-start xl:gap-6">
-          <div className="min-w-0">{scene}</div>
-          <aside className="flex max-h-[calc(100dvh-8rem)] flex-col gap-4 overflow-y-auto pr-1">
+        {/* xl+: canvas left, single control column right (no duplicate sticky) */}
+        <div className="hidden xl:grid xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.65fr)_minmax(18rem,24rem)] xl:items-stretch xl:gap-5">
+          <div className="min-h-0 min-w-0">{scene}</div>
+          <aside className="flex min-h-0 max-h-[calc(100dvh-7.5rem)] flex-col gap-3 overflow-y-auto overscroll-contain pb-6 pr-1">
             {modeToggle}
-            {stickyProgress}
-            {statusSection}
+            {statusSection(true)}
             <HotspotList
               items={hotspots}
               visitedIds={visitedHotspots}
               selectedId={selectedHotspotId}
               onSelect={handleHotspotClick}
-              className="pb-2 [&_ul]:xl:grid-cols-1"
+              className="min-h-0 flex-1 [&_ul]:xl:grid-cols-1"
               headingId="hotspot-list-heading-xl"
             />
           </aside>

@@ -18,7 +18,7 @@ const STEPS: Record<
 > = {
   0: {
     title: "ซูมเข้า–ออกได้",
-    body: "ใช้สองนิ้วบีบ–ขยายบนจอ หรือกดปุ่ม + / − ด้านขวา",
+    body: "ใช้สองนิ้วบีบ–ขยายบนจอ หรือกดปุ่ม + / − มุมบน",
   },
   1: {
     title: "หมุนดูรอบโมเดลได้",
@@ -26,7 +26,7 @@ const STEPS: Record<
   },
   2: {
     title: "แนะนำ: เปิดเต็มจอ",
-    body: "กดปุ่มเต็มจอด้านขวา เพื่อดูจุดสารพิษและข้อมูลได้ครบถ้วนขึ้น",
+    body: "กดปุ่มเต็มจอ เพื่อดูจุดสารพิษและข้อมูลได้ครบถ้วนขึ้น",
   },
 };
 
@@ -280,7 +280,7 @@ function FullscreenDemo({ reduceMotion }: { reduceMotion: boolean }) {
       </motion.div>
       {!reduceMotion ? (
         <motion.span
-          className="absolute -right-1 top-2 size-10 rounded-xl border border-border bg-card/90"
+          className="absolute -left-1 top-2 size-10 rounded-xl border border-border bg-card/90"
           animate={{ scale: [1, 0.92, 1], y: [0, 4, 0] }}
           transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
         />

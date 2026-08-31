@@ -36,9 +36,9 @@ const HEIGHT_FACTOR = {
 
 /** Extra gap only when exploded. */
 const EXPLODE_GAP = {
-  mouthpiece: 0.42,
+  mouthpiece: 0.58,
   coilTank: 0,
-  battery: -0.42,
+  battery: -0.58,
 } as const;
 
 type PartKey = keyof typeof HEIGHT_FACTOR;

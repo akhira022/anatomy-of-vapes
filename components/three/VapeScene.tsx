@@ -195,7 +195,7 @@ export function VapeScene({
   };
 
   const controlBtn =
-    "pointer-events-auto flex min-h-11 w-[3.35rem] flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-card/90 px-1 py-1.5 text-[0.625rem] font-medium leading-tight text-textPrimary shadow-card";
+    "pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card/95 text-textPrimary shadow-card backdrop-blur-sm transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
     <div
@@ -354,18 +354,28 @@ export function VapeScene({
       />
 
       {!showHint && isFullscreen ? (
-        <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg border border-border bg-card/90 px-3 py-2 text-sm text-textPrimary shadow-card">
-          สำรวจแล้ว {visitedCount}/{hotspotTotal}
-          <span className="mt-0.5 block text-xs text-textSecondary">
+        <div className="pointer-events-none absolute top-[max(0.75rem,env(safe-area-inset-top))] left-[max(0.75rem,env(safe-area-inset-left))] z-10 max-w-[min(16rem,calc(100%-5.5rem))] rounded-xl border border-border bg-card/95 px-3.5 py-2.5 text-sm text-textPrimary shadow-card backdrop-blur-sm">
+          <p className="font-medium">
+            สำรวจแล้ว {visitedCount}/{hotspotTotal}
+          </p>
+          <p className="mt-0.5 text-xs text-textSecondary">
             {exploded ? "โหมดแยกชิ้นส่วน" : "โหมดทั้งชิ้น"}
-          </span>
+          </p>
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute inset-y-3 right-2 z-10 flex flex-col gap-1.5 sm:right-3 sm:gap-2">
+      <div
+        className={cn(
+          "pointer-events-none absolute z-10 flex flex-col gap-2",
+          isFullscreen
+            ? "top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))]"
+            : "top-3 left-2 sm:left-3"
+        )}
+      >
         {onExplodedChange ? (
           <button
             type="button"
+            title={exploded ? "รวมชิ้นส่วน" : "แยกชิ้นส่วน"}
             aria-label={exploded ? "รวมชิ้นส่วน" : "แยกชิ้นส่วน"}
             aria-pressed={exploded}
             className={cn(
@@ -379,38 +389,38 @@ export function VapeScene({
             }}
           >
             <Split className="size-4" aria-hidden="true" />
-            <span>{exploded ? "รวมชิ้น" : "แยกชิ้น"}</span>
           </button>
         ) : null}
         <button
           type="button"
+          title="ซูมเข้า"
           aria-label="ซูมเข้า"
           className={controlBtn}
           onClick={() => zoomBy(-0.12)}
         >
           <ZoomIn className="size-4" aria-hidden="true" />
-          <span>ซูม+</span>
         </button>
         <button
           type="button"
+          title="ซูมออก"
           aria-label="ซูมออก"
           className={controlBtn}
           onClick={() => zoomBy(0.12)}
         >
           <ZoomOut className="size-4" aria-hidden="true" />
-          <span>ซูม−</span>
         </button>
         <button
           type="button"
+          title="รีเซ็ตมุมมอง"
           aria-label="รีเซ็ตมุมมอง"
           className={controlBtn}
           onClick={resetCamera}
         >
           <RotateCcw className="size-4" aria-hidden="true" />
-          <span>รีเซ็ต</span>
         </button>
         <button
           type="button"
+          title={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
           aria-label={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
           className={controlBtn}
           onClick={() => {
@@ -423,79 +433,81 @@ export function VapeScene({
           ) : (
             <Maximize2 className="size-4" aria-hidden="true" />
           )}
-          <span>{isFullscreen ? "ย่อ" : "เต็มจอ"}</span>
         </button>
       </div>
 
-      {isFullscreen && onNextHotspot && nextHotspotId ? (
-        <div className="pointer-events-none absolute inset-x-3 bottom-[5.75rem] z-10 sm:bottom-[6.25rem]">
-          <Button
-            type="button"
-            className="pointer-events-auto mx-auto h-11 w-auto rounded-lg px-6 font-semibold shadow-glowRed"
-            onClick={onNextHotspot}
-          >
-            สำรวจต่อ{nextLabel ? `: ${nextLabel}` : ""}
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      ) : null}
-
       {isFullscreen ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-background/95 via-background/80 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8">
-          <div
-            role="list"
-            aria-label="จุดสารพิษ"
-            className="pointer-events-auto flex gap-2 overflow-x-auto pb-1"
-          >
-            {hotspotItems.map((item) => {
-              const visited = visitedHotspots.includes(item.id);
-              const isSelected = selectedHotspotId === item.id;
-              return (
-                <button
-                  key={item.id}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-background via-background/90 to-transparent pt-16 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="pointer-events-none mx-auto flex w-full max-w-3xl flex-col items-stretch gap-2.5 px-3 sm:px-4">
+            {onNextHotspot && nextHotspotId ? (
+              <div className="flex justify-center">
+                <Button
                   type="button"
-                  role="listitem"
-                  onClick={() => onHotspotClick(item.id)}
-                  className={cn(
-                    "flex min-h-11 min-w-[7.5rem] shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors duration-normal",
-                    isSelected
-                      ? "border-primary bg-primary text-white"
-                      : visited
-                        ? "border-success/50 bg-card/95 text-textPrimary"
-                        : "border-border bg-card/95 text-textPrimary"
-                  )}
+                  className="pointer-events-auto h-11 rounded-xl px-6 font-semibold shadow-glowRed"
+                  onClick={onNextHotspot}
                 >
-                  <span
+                  สำรวจต่อ{nextLabel ? `: ${nextLabel}` : ""}
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            ) : null}
+
+            <div
+              role="list"
+              aria-label="จุดสารพิษ"
+              className="pointer-events-auto flex justify-start gap-2 overflow-x-auto pb-1 sm:justify-center sm:flex-wrap sm:overflow-visible"
+            >
+              {hotspotItems.map((item) => {
+                const visited = visitedHotspots.includes(item.id);
+                const isSelected = selectedHotspotId === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="listitem"
+                    onClick={() => onHotspotClick(item.id)}
                     className={cn(
-                      "flex size-5 shrink-0 items-center justify-center rounded-full border",
+                      "flex min-h-11 min-w-[7.25rem] shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors duration-normal",
                       isSelected
-                        ? "border-white/40 bg-white/20"
+                        ? "border-primary bg-primary text-white"
                         : visited
-                          ? "border-success bg-success text-white"
-                          : "border-primary bg-primary/20 text-primary"
+                          ? "border-success/50 bg-card/95 text-textPrimary"
+                          : "border-border bg-card/95 text-textPrimary"
                     )}
-                    aria-hidden="true"
                   >
-                    {visited && !isSelected ? (
-                      <Check className="size-3 stroke-[3]" />
-                    ) : null}
-                  </span>
-                  <span className="truncate text-sm font-medium">
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
+                    <span
+                      className={cn(
+                        "flex size-5 shrink-0 items-center justify-center rounded-full border",
+                        isSelected
+                          ? "border-white/40 bg-white/20"
+                          : visited
+                            ? "border-success bg-success text-white"
+                            : "border-primary bg-primary/20 text-primary"
+                      )}
+                      aria-hidden="true"
+                    >
+                      {visited && !isSelected ? (
+                        <Check className="size-3 stroke-[3]" />
+                      ) : null}
+                    </span>
+                    <span className="truncate text-sm font-medium">
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {remainingCount > 0 ? (
+              <p className="text-center text-xs text-textSecondary">
+                สำรวจต่อได้อีก {remainingCount} จุด
+              </p>
+            ) : (
+              <p className="text-center text-xs font-medium text-success">
+                สำรวจครบแล้ว
+              </p>
+            )}
           </div>
-          {remainingCount > 0 ? (
-            <p className="mt-2 text-center text-xs text-textSecondary">
-              สำรวจต่อได้อีก {remainingCount} จุด
-            </p>
-          ) : (
-            <p className="mt-2 text-center text-xs font-medium text-success">
-              สำรวจครบแล้ว
-            </p>
-          )}
         </div>
       ) : null}
     </div>

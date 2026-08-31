@@ -101,16 +101,33 @@ async function* buildAnswerStream(params: {
   if (isGeminiConfigured()) {
     try {
       let full = "";
+      let released = false;
+      const previewChars = 48;
+
       for await (const { text } of streamGeminiAnswer(userPrompt, history)) {
+        if (!text) continue;
         full += text;
+
+        if (!released) {
+          if (full.length < previewChars) continue;
+          if (isLowQualityAnswer(full)) {
+            full = "";
+            break;
+          }
+          released = true;
+          streamed = true;
+          mode = "ai";
+          yield { type: "delta", text: full };
+          continue;
+        }
+
+        yield { type: "delta", text };
       }
-      full = postprocessAnswer(full);
-      if (full && !isLowQualityAnswer(full)) {
+
+      if (!released && full.trim() && !isLowQualityAnswer(full)) {
         streamed = true;
         mode = "ai";
-        for await (const text of chunkTextForStream(full)) {
-          yield { type: "delta", text };
-        }
+        yield { type: "delta", text: full };
       }
     } catch (error) {
       console.warn("[chat] Gemini stream unavailable, using local RAG:", error);
