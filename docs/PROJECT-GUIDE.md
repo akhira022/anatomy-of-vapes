@@ -11,9 +11,11 @@
 |--------|---------|
 | [STUDY-GUIDE-v0.2.0.md](./STUDY-GUIDE-v0.2.0.md) | อยากไล่โค้ด / journey / บัคที่เคยเจอ |
 | [SETUP.md](./SETUP.md) | ตั้ง Supabase + ทดสอบ checklist |
+| [GIT.md](./GIT.md) | **ฝึกใช้ Git** — status / add / commit / push |
 | [MOBILE-TUNNEL.md](./MOBILE-TUNNEL.md) | เปิดเวบบนมือถือ (LAN / Cloudflare Tunnel) |
 | [CHANGELOG.md](./CHANGELOG.md) | ดูสิ่งที่เปลี่ยนในแต่ละเวอร์ชัน |
 | [CHATBOT-RAG-GUIDE.md](./CHATBOT-RAG-GUIDE.md) | **AI Chatbot แบบ RAG** — สถาปัตยกรรม / นำไปใช้โปรเจกต์ถัดไป |
+| [research/README.md](./research/README.md) | **เอกสารวิจัย / รายงานโครงงาน** (บทที่ 1–3) |
 | [`PRODUCT.md`](../PRODUCT.md) | บริบทผลิตภัณฑ์ / ผู้ใช้ / ขอบเขต |
 | [`DESIGN.md`](../DESIGN.md) | Design system (สี ฟอนต์ กติกา UI) |
 
