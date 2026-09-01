@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   BookOpen,
@@ -34,6 +34,11 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
   const [portalTarget, setPortalTarget] = useState<Element | null>(null);
   const [lessonOpen, setLessonOpen] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setLessonOpen(false);
+    onClose();
+  }, [onClose]);
+
   // Native + CSS fullscreen only show descendants of the fullscreen root.
   useEffect(() => {
     const sync = () => {
@@ -51,16 +56,13 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
   }, []);
 
   useEffect(() => {
-    if (!open) {
-      setLessonOpen(false);
-      return;
-    }
+    if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") handleClose();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open, handleClose]);
 
   if (!portalTarget) return null;
 
@@ -73,7 +75,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          onClick={onClose}
+          onClick={handleClose}
         >
           <motion.div
             role="dialog"
@@ -113,7 +115,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
                 variant="ghost"
                 aria-label="ปิด"
                 className="size-11 shrink-0"
-                onClick={onClose}
+                onClick={handleClose}
               >
                 <X className="size-5" />
               </Button>
@@ -235,7 +237,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
             <Button
               type="button"
               className="mt-6 h-11 w-auto rounded-lg px-6 font-semibold"
-              onClick={onClose}
+              onClick={handleClose}
             >
               ปิด
             </Button>

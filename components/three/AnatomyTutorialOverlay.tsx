@@ -46,19 +46,101 @@ export function AnatomyTutorialOverlay({
   onDismiss,
   onEnterFullscreen,
 }: AnatomyTutorialOverlayProps) {
+  return (
+    <AnimatePresence>
+      {open ? (
+        <TutorialSession
+          key="tutorial-session"
+          onDismiss={onDismiss}
+          onEnterFullscreen={onEnterFullscreen}
+        />
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+function TutorialSession({
+  onDismiss,
+  onEnterFullscreen,
+}: {
+  onDismiss: () => void;
+  onEnterFullscreen?: () => void;
+}) {
   const reduceMotion = useReducedMotion();
   const [step, setStep] = useState<TutorialStep>(0);
+
+  return (
+    <motion.div
+      className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/55 px-4 backdrop-blur-[2px]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.25 }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="anatomy-tutorial-title"
+    >
+      <div className="relative mb-6 flex h-36 w-36 items-center justify-center">
+        {reduceMotion || step === 2 ? (
+          <FullscreenDemo reduceMotion={Boolean(reduceMotion)} />
+        ) : step === 0 ? (
+          <PinchZoomDemo reduceMotion={false} />
+        ) : (
+          <RotateDemo />
+        )}
+      </div>
+
+      <motion.div
+        key={reduceMotion ? "static" : step}
+        className="flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-4 text-center shadow-popup"
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: reduceMotion ? 0 : 0.3 }}
+      >
+        {!reduceMotion ? (
+          <div className="flex gap-1.5" aria-hidden="true">
+            {([0, 1, 2] as const).map((i) => (
+              <span
+                key={i}
+                className={`size-1.5 rounded-full ${
+                  i === step ? "bg-primary" : "bg-border"
+                }`}
+              />
+            ))}
+          </div>
+        ) : null}
+
+        <TutorialStepActions
+          key={`${step}-${reduceMotion ? "reduced" : "motion"}`}
+          step={step}
+          reduceMotion={reduceMotion}
+          onAdvance={() =>
+            setStep((s) => (s < 2 ? ((s + 1) as TutorialStep) : s))
+          }
+          onDismiss={onDismiss}
+          onEnterFullscreen={onEnterFullscreen}
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function TutorialStepActions({
+  step,
+  reduceMotion,
+  onAdvance,
+  onDismiss,
+  onEnterFullscreen,
+}: {
+  step: TutorialStep;
+  reduceMotion: boolean | null;
+  onAdvance: () => void;
+  onDismiss: () => void;
+  onEnterFullscreen?: () => void;
+}) {
   const [cooldownLeft, setCooldownLeft] = useState(STEP_COOLDOWN_SEC);
 
   useEffect(() => {
-    if (!open) return;
-    setStep(0);
-  }, [open]);
-
-  // Per-step cooldown — no auto-advance; user taps Next / Skip.
-  useEffect(() => {
-    if (!open) return;
-    setCooldownLeft(STEP_COOLDOWN_SEC);
     const id = window.setInterval(() => {
       setCooldownLeft((prev) => {
         if (prev <= 1) {
@@ -69,118 +151,70 @@ export function AnatomyTutorialOverlay({
       });
     }, 1000);
     return () => window.clearInterval(id);
-  }, [open, step, reduceMotion]);
+  }, []);
 
   const copy = STEPS[reduceMotion ? 2 : step];
   const isLast = reduceMotion || step === 2;
   const canProceed = cooldownLeft <= 0;
 
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/55 px-4 backdrop-blur-[2px]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.25 }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="anatomy-tutorial-title"
-        >
-          <div className="relative mb-6 flex h-36 w-36 items-center justify-center">
-            {reduceMotion || step === 2 ? (
-              <FullscreenDemo reduceMotion={Boolean(reduceMotion)} />
-            ) : step === 0 ? (
-              <PinchZoomDemo reduceMotion={false} />
-            ) : (
-              <RotateDemo />
-            )}
-          </div>
-
-          <motion.div
-            key={reduceMotion ? "static" : step}
-            className="flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-4 text-center shadow-popup"
-            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.3 }}
+    <>
+      <p
+        id="anatomy-tutorial-title"
+        className="font-heading text-base font-semibold text-textPrimary"
+      >
+        {reduceMotion ? "ซูม หมุน และเปิดเต็มจอ" : copy.title}
+      </p>
+      <p className="text-sm leading-relaxed text-textSecondary">
+        {reduceMotion
+          ? "ใช้สองนิ้วซูม ปัดเพื่อหมุน และกดเต็มจอเพื่อดูจุดสารพิษครบถ้วน"
+          : copy.body}
+      </p>
+      <div className="flex w-full flex-col gap-2 sm:flex-row">
+        {!isLast ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 flex-1 rounded-2xl"
+            disabled={!canProceed}
+            aria-disabled={!canProceed}
+            onClick={onAdvance}
           >
-            {!reduceMotion ? (
-              <div className="flex gap-1.5" aria-hidden="true">
-                {([0, 1, 2] as const).map((i) => (
-                  <span
-                    key={i}
-                    className={`size-1.5 rounded-full ${
-                      i === step ? "bg-primary" : "bg-border"
-                    }`}
-                  />
-                ))}
-              </div>
-            ) : null}
-
-            <p
-              id="anatomy-tutorial-title"
-              className="font-heading text-base font-semibold text-textPrimary"
-            >
-              {reduceMotion
-                ? "ซูม หมุน และเปิดเต็มจอ"
-                : copy.title}
-            </p>
-            <p className="text-sm leading-relaxed text-textSecondary">
-              {reduceMotion
-                ? "ใช้สองนิ้วซูม ปัดเพื่อหมุน และกดเต็มจอเพื่อดูจุดสารพิษครบถ้วน"
-                : copy.body}
-            </p>
-            <div className="flex w-full flex-col gap-2 sm:flex-row">
-              {!isLast ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 flex-1 rounded-2xl"
-                  disabled={!canProceed}
-                  aria-disabled={!canProceed}
-                  onClick={() =>
-                    setStep((s) => (s < 2 ? ((s + 1) as TutorialStep) : s))
-                  }
-                >
-                  {canProceed ? "ถัดไป" : `ถัดไป (${cooldownLeft})`}
-                </Button>
-              ) : onEnterFullscreen ? (
-                <Button
-                  type="button"
-                  className="h-11 flex-1 rounded-2xl font-semibold shadow-glowRed"
-                  disabled={!canProceed}
-                  aria-disabled={!canProceed}
-                  onClick={() => {
-                    onEnterFullscreen();
-                    onDismiss();
-                  }}
-                >
-                  {canProceed
-                    ? "เปิดเต็มจอเลย"
-                    : `เปิดเต็มจอเลย (${cooldownLeft})`}
-                  {canProceed ? <Maximize2 className="size-4" /> : null}
-                </Button>
-              ) : null}
-              <Button
-                type="button"
-                variant={isLast && onEnterFullscreen ? "outline" : "default"}
-                className="h-11 flex-1 rounded-2xl font-semibold"
-                disabled={!canProceed}
-                aria-disabled={!canProceed}
-                onClick={onDismiss}
-              >
-                {canProceed
-                  ? isLast
-                    ? "ไว้ทีหลัง"
-                    : "ข้าม"
-                  : `${isLast ? "ไว้ทีหลัง" : "ข้าม"} (${cooldownLeft})`}
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+            {canProceed ? "ถัดไป" : `ถัดไป (${cooldownLeft})`}
+          </Button>
+        ) : onEnterFullscreen ? (
+          <Button
+            type="button"
+            className="h-11 flex-1 rounded-2xl font-semibold shadow-glowRed"
+            disabled={!canProceed}
+            aria-disabled={!canProceed}
+            onClick={() => {
+              onEnterFullscreen();
+              onDismiss();
+            }}
+          >
+            {canProceed
+              ? "เปิดเต็มจอเลย"
+              : `เปิดเต็มจอเลย (${cooldownLeft})`}
+            {canProceed ? <Maximize2 className="size-4" /> : null}
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          variant={isLast && onEnterFullscreen ? "outline" : "default"}
+          className="h-11 flex-1 rounded-2xl font-semibold"
+          disabled={!canProceed}
+          aria-disabled={!canProceed}
+          onClick={onDismiss}
+        >
+          {canProceed
+            ? isLast
+              ? "ไว้ทีหลัง"
+              : "ข้าม"
+            : `${isLast ? "ไว้ทีหลัง" : "ข้าม"} (${cooldownLeft})`}
+        </Button>
+      </div>
+    </>
   );
 }
 

@@ -33,9 +33,12 @@ export default function ResultPage() {
   const resultSaved = useQuizStore((s) => s.resultSaved);
   const setResultSaved = useQuizStore((s) => s.setResultSaved);
   const resetProgress = useQuizStore((s) => s.resetProgress);
-  const [saving, setSaving] = useState(false);
+  const [persisted, setPersisted] = useState(false);
 
   const hasLocalResult = postAnswers.length > 0;
+  const shouldPersist =
+    ready && hydrated && !resultSaved && Boolean(userId) && hasLocalResult;
+  const saving = shouldPersist && !persisted;
   const improvement = postScore - preScore;
   const improved = improvement > 0;
 
@@ -46,13 +49,12 @@ export default function ResultPage() {
   }, [postScore]);
 
   useEffect(() => {
-    if (!ready || !hydrated || resultSaved || !userId || !hasLocalResult) return;
+    if (!shouldPersist || persisted) return;
 
     let cancelled = false;
-    setSaving(true);
     (async () => {
       const result = await saveQuizResult({
-        userId,
+        userId: userId!,
         preScore,
         postScore,
         preTotal: 5,
@@ -61,12 +63,12 @@ export default function ResultPage() {
         postAnswers,
       });
       if (cancelled) return;
-      setSaving(false);
       if ("error" in result) {
         toast.error(result.error);
         return;
       }
       setResultSaved(true);
+      setPersisted(true);
       if (result.skipped) {
         toast.message("รอบนี้เป็นแบบฝึกซ้ำ — ไม่บันทึกลงฐานข้อมูล");
       }
@@ -76,11 +78,9 @@ export default function ResultPage() {
       cancelled = true;
     };
   }, [
-    ready,
-    hydrated,
-    resultSaved,
+    shouldPersist,
+    persisted,
     userId,
-    hasLocalResult,
     preScore,
     postScore,
     preAnswers,

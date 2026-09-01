@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
 import { PageLoading } from "@/components/feedback/PageLoading";
@@ -45,6 +45,7 @@ export default function AnatomyPage() {
   const { ready, blockedReason } = useRequirePhase("anatomy");
   const [mode, setMode] = useState<ViewMode>("exploded");
   const [popupOpen, setPopupOpen] = useState(false);
+  const appliedHotspotRef = useRef<string | null>(null);
 
   useEffect(() => {
     void import("@/components/three/VapeModel").then((m) => {
@@ -74,13 +75,17 @@ export default function AnatomyPage() {
       "hotspot"
     );
     if (!hotspotParam) return;
+    if (appliedHotspotRef.current === hotspotParam) return;
     const exists = hotspots.some((h) => h.id === hotspotParam);
     if (!exists) return;
 
-    setSelectedHotspotId(hotspotParam);
-    if (!isReview) markHotspotVisited(hotspotParam);
-    setPopupOpen(true);
-    setMode("exploded");
+    appliedHotspotRef.current = hotspotParam;
+    queueMicrotask(() => {
+      setSelectedHotspotId(hotspotParam);
+      if (!isReview) markHotspotVisited(hotspotParam);
+      setPopupOpen(true);
+      setMode("exploded");
+    });
   }, [
     hydrated,
     ready,

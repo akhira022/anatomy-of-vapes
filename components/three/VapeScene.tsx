@@ -42,6 +42,15 @@ import { ModelReadySignal } from "@/components/three/ModelReadySignal";
 
 const IDLE_RESUME_MS = 2500;
 
+function readShowHint(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(HINT_STORAGE_KEY) !== "1";
+  } catch {
+    return true;
+  }
+}
+
 interface OrbitControlsHandle {
   reset: () => void;
   update: () => void;
@@ -102,13 +111,14 @@ export function VapeScene({
   const idleTimerRef = useRef<number | null>(null);
   const { isFullscreen, cssFullscreen, toggle: toggleFullscreen, enter } =
     useSceneFullscreen(rootRef);
-  const [showHint, setShowHint] = useState(false);
+  const [showHint, setShowHint] = useState(readShowHint);
   const [modelLoading, setModelLoading] = useState(true);
   const [userInteracting, setUserInteracting] = useState(false);
-  const [dpr, setDpr] = useState<[number, number]>([1, 1.25]);
   const onModelReady = useCallback(() => setModelLoading(false), []);
   const reduceMotion = useReducedMotion();
   const lite = usePreferLite3D();
+  const defaultDpr: [number, number] = lite ? [1, 1.25] : [1, 1.75];
+  const [dpr, setDpr] = useState<[number, number]>(defaultDpr);
   const { theme } = useTheme();
   const isLight = theme === "light";
   const sceneBg = useMemo(
@@ -147,24 +157,10 @@ export function VapeScene({
     !userInteracting;
 
   useEffect(() => {
-    setDpr(lite ? [1, 1.25] : [1, 1.75]);
-  }, [lite]);
-
-  useEffect(() => {
     // CSS/native fullscreen changes layout — force canvas resize + paint.
     window.dispatchEvent(new Event("resize"));
     invalidateRef.current();
   }, [isFullscreen, cssFullscreen]);
-
-  useEffect(() => {
-    try {
-      if (window.localStorage.getItem(HINT_STORAGE_KEY) !== "1") {
-        setShowHint(true);
-      }
-    } catch {
-      setShowHint(true);
-    }
-  }, []);
 
   useEffect(() => {
     return () => clearIdleTimer();

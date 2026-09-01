@@ -31,29 +31,20 @@ export function AdminDashboard() {
   const router = useAppRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const initialTab: Tab =
+  const tab: Tab =
     tabParam === "results" || tabParam === "export" ? tabParam : "overview";
 
-  const [tab, setTab] = useState<Tab>(initialTab);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const setTabWithUrl = useCallback(
     (next: Tab) => {
-      setTab(next);
       const query = next === "overview" ? "" : `?tab=${next}`;
       router.replace(`/admin${query}`);
     },
     [router]
   );
-
-  useEffect(() => {
-    const param = searchParams.get("tab");
-    if (param === "results" || param === "export" || param === "overview") {
-      setTab(param === "overview" ? "overview" : param);
-    }
-  }, [searchParams]);
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured()) {
@@ -75,8 +66,30 @@ export function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+
+    (async () => {
+      if (!isSupabaseConfigured()) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      const result = await getAdminStats();
+      if (cancelled) return;
+
+      if ("error" in result) {
+        setFetchError(result.error);
+        setStats(null);
+      } else {
+        setStats(result);
+      }
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (loading) {
     return (
