@@ -199,7 +199,7 @@ export function VapeScene({
       className={cn(
         "relative h-full w-full overflow-hidden rounded-lg border border-border bg-surface",
         cssFullscreen &&
-          "fixed inset-0 z-[100] h-[100dvh] max-h-[100dvh] w-[100vw] rounded-none border-0"
+          "fixed inset-0 z-[130] h-[100dvh] max-h-[100dvh] w-[100vw] rounded-none border-0"
       )}
     >
       {modelLoading ? (
@@ -362,7 +362,8 @@ export function VapeScene({
 
       <div
         className={cn(
-          "pointer-events-none absolute z-10 flex flex-col gap-2",
+          "pointer-events-none absolute flex flex-col gap-2",
+          showHint ? "z-30" : "z-10",
           isFullscreen
             ? "top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))]"
             : "top-3 left-2 sm:left-3"

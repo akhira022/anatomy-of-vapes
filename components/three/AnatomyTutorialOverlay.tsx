@@ -71,7 +71,7 @@ function TutorialSession({
 
   return (
     <motion.div
-      className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/55 px-4 backdrop-blur-[2px]"
+      className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/55 px-4 backdrop-blur-[2px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -80,7 +80,7 @@ function TutorialSession({
       aria-modal="true"
       aria-labelledby="anatomy-tutorial-title"
     >
-      <div className="relative mb-6 flex h-36 w-36 items-center justify-center">
+      <div className="pointer-events-none relative mb-6 flex h-36 w-36 items-center justify-center">
         {reduceMotion || step === 2 ? (
           <FullscreenDemo reduceMotion={Boolean(reduceMotion)} />
         ) : step === 0 ? (
@@ -92,7 +92,7 @@ function TutorialSession({
 
       <motion.div
         key={reduceMotion ? "static" : step}
-        className="flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-4 text-center shadow-popup"
+        className="pointer-events-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-4 text-center shadow-popup"
         initial={reduceMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: reduceMotion ? 0 : 0.3 }}

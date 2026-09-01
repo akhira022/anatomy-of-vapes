@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
 import { PageLoading } from "@/components/feedback/PageLoading";
+import { AnatomyHotspotDeepLink } from "@/components/anatomy/AnatomyHotspotDeepLink";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
@@ -45,7 +46,6 @@ export default function AnatomyPage() {
   const { ready, blockedReason } = useRequirePhase("anatomy");
   const [mode, setMode] = useState<ViewMode>("exploded");
   const [popupOpen, setPopupOpen] = useState(false);
-  const appliedHotspotRef = useRef<string | null>(null);
 
   useEffect(() => {
     void import("@/components/three/VapeModel").then((m) => {
@@ -69,30 +69,23 @@ export default function AnatomyPage() {
       currentPhase !== "anatomy" &&
       currentPhase !== "posttest");
 
-  useEffect(() => {
-    if (!hydrated || !ready) return;
-    const hotspotParam = new URLSearchParams(window.location.search).get(
-      "hotspot"
-    );
-    if (!hotspotParam) return;
-    if (appliedHotspotRef.current === hotspotParam) return;
-    const exists = hotspots.some((h) => h.id === hotspotParam);
-    if (!exists) return;
-
-    appliedHotspotRef.current = hotspotParam;
-    queueMicrotask(() => {
-      setSelectedHotspotId(hotspotParam);
-      if (!isReview) markHotspotVisited(hotspotParam);
+  const handleHotspotClick = useCallback(
+    (id: string) => {
+      setSelectedHotspotId(id);
+      if (!isReview) markHotspotVisited(id);
       setPopupOpen(true);
+      if (mode === "whole") setMode("exploded");
+    },
+    [isReview, markHotspotVisited, mode, setSelectedHotspotId]
+  );
+
+  const handleDeepLink = useCallback(
+    (hotspotId: string) => {
+      handleHotspotClick(hotspotId);
       setMode("exploded");
-    });
-  }, [
-    hydrated,
-    ready,
-    isReview,
-    markHotspotVisited,
-    setSelectedHotspotId,
-  ]);
+    },
+    [handleHotspotClick]
+  );
 
   const hasLocalResult = postAnswers.length > 0;
 
@@ -117,13 +110,6 @@ export default function AnatomyPage() {
       />
     );
   }
-
-  const handleHotspotClick = (id: string) => {
-    setSelectedHotspotId(id);
-    if (!isReview) markHotspotVisited(id);
-    setPopupOpen(true);
-    if (mode === "whole") setMode("exploded");
-  };
 
   const goNextHotspot = () => {
     if (!nextHotspot) return;
@@ -341,6 +327,11 @@ export default function AnatomyPage() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
+      <AnatomyHotspotDeepLink
+        hydrated={hydrated}
+        ready={ready}
+        onDeepLink={handleDeepLink}
+      />
       <AppNavbar
         title={isReview ? "ทบทวนโมเดล 3D" : "สำรวจ 3 มิติ"}
         showBack

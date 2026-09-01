@@ -61,20 +61,29 @@ export function useSceneFullscreen(rootRef: RefObject<HTMLElement | null>) {
     };
   }, [cssFullscreen]);
 
+  const isElementFullscreen = useCallback(() => {
+    const el = rootRef.current;
+    return Boolean(el && (cssFullscreen || getNativeFullscreenElement() === el));
+  }, [cssFullscreen, rootRef]);
+
   const enter = useCallback(async () => {
     const el = rootRef.current;
-    if (!el || isFullscreen) return;
+    if (!el || isElementFullscreen()) return;
 
     if (canNativeFullscreen(el)) {
       try {
         await requestNativeFullscreen(el);
-        return;
+        if (getNativeFullscreenElement() === el) {
+          setNativeFullscreen(true);
+          dispatchSceneFullscreenChange();
+          return;
+        }
       } catch {
         /* fall through to CSS */
       }
     }
     setCssFullscreen(true);
-  }, [isFullscreen, rootRef]);
+  }, [isElementFullscreen, rootRef]);
 
   const exit = useCallback(async () => {
     if (getNativeFullscreenElement()) {
@@ -85,12 +94,14 @@ export function useSceneFullscreen(rootRef: RefObject<HTMLElement | null>) {
       }
     }
     setCssFullscreen(false);
+    setNativeFullscreen(false);
+    dispatchSceneFullscreenChange();
   }, []);
 
   const toggle = useCallback(async () => {
-    if (isFullscreen) await exit();
+    if (isElementFullscreen()) await exit();
     else await enter();
-  }, [enter, exit, isFullscreen]);
+  }, [enter, exit, isElementFullscreen]);
 
   return {
     isFullscreen,

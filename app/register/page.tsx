@@ -6,7 +6,6 @@ import { useAppRouter } from "@/hooks/useAppRouter";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { CompletedLearnerChoice } from "@/components/auth/CompletedLearnerChoice";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { ConfirmDialog } from "@/components/layout/ConfirmDialog";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
@@ -46,7 +45,6 @@ export default function RegisterPage() {
   const hydrated = useHydrated();
   const supabaseReady = isSupabaseConfigured();
   const [submitting, setSubmitting] = useState(false);
-  const [awaitingChoice, setAwaitingChoice] = useState(false);
   const [declineConfirmOpen, setDeclineConfirmOpen] = useState(false);
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
@@ -54,8 +52,6 @@ export default function RegisterPage() {
   const setUser = useQuizStore((s) => s.setUser);
   const setConsentAccepted = useQuizStore((s) => s.setConsentAccepted);
   const setPhase = useQuizStore((s) => s.setPhase);
-  const setResultSaved = useQuizStore((s) => s.setResultSaved);
-  const resetProgress = useQuizStore((s) => s.resetProgress);
   const resetQuiz = useQuizStore((s) => s.resetQuiz);
 
   const {
@@ -76,29 +72,11 @@ export default function RegisterPage() {
   });
 
   useEffect(() => {
-    if (!hydrated || awaitingChoice) return;
+    if (!hydrated) return;
     if (isLoggedIn({ nickname, consentAccepted })) {
       router.replace(phaseToPath(currentPhase));
     }
-  }, [
-    hydrated,
-    awaitingChoice,
-    nickname,
-    consentAccepted,
-    currentPhase,
-    router,
-  ]);
-
-  const goRetake = () => {
-    resetProgress();
-    toast.message("เริ่มทำแบบทดสอบใหม่");
-    router.push("/pretest");
-  };
-
-  const goViewModel = () => {
-    toast.success("เข้าโหมดทบทวนโมเดล");
-    router.push("/anatomy");
-  };
+  }, [hydrated, nickname, consentAccepted, currentPhase, router]);
 
   const onSubmit = async (values: RegisterFormState) => {
     if (!supabaseReady) {
@@ -195,15 +173,7 @@ export default function RegisterPage() {
         destructive
       />
       <main id="main-content" className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 text-left sm:px-6 xl:max-w-4xl xl:justify-center xl:py-12">
-        {awaitingChoice && nickname ? (
-          <CompletedLearnerChoice
-            nickname={nickname}
-            context="register"
-            onViewModel={goViewModel}
-            onRetake={goRetake}
-          />
-        ) : (
-          <>
+        <>
             <h1 className="font-heading text-2xl font-bold text-textPrimary xl:text-3xl">
               ยินยอมและเริ่มต้น
             </h1>
@@ -302,7 +272,7 @@ export default function RegisterPage() {
                   control={control}
                   render={({ field }) => (
                     <Select
-                      value={field.value}
+                      value={field.value ?? null}
                       onValueChange={(value) => field.onChange(value)}
                     >
                       <SelectTrigger
@@ -400,8 +370,7 @@ export default function RegisterPage() {
                 </p>
               </div>
             </form>
-          </>
-        )}
+        </>
       </main>
     </div>
   );

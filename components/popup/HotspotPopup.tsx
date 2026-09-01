@@ -14,6 +14,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { HotspotContent } from "@/data/hotspots";
+import { getHotspotEffectSteps } from "@/data/hotspot-effects";
+import { HotspotEffectStrip } from "@/components/hotspot/HotspotEffectStrip";
+import type { ChapterLesson } from "@/data/chapters";
 import { getChapterByHotspotId } from "@/data/chapters";
 import { getMythById } from "@/data/myths";
 import {
@@ -32,10 +35,8 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
   const myth = getMythById(hotspot?.mythId);
   const chapter = hotspot ? getChapterByHotspotId(hotspot.id) : null;
   const [portalTarget, setPortalTarget] = useState<Element | null>(null);
-  const [lessonOpen, setLessonOpen] = useState(false);
 
   const handleClose = useCallback(() => {
-    setLessonOpen(false);
     onClose();
   }, [onClose]);
 
@@ -121,6 +122,11 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
               </Button>
             </div>
 
+            <HotspotEffectStrip
+              hotspotId={hotspot.id}
+              steps={getHotspotEffectSteps(hotspot.id)}
+            />
+
             <div className="mt-5 space-y-4">
               <InfoBlock
                 icon={<Flame className="size-4 text-warning" />}
@@ -157,80 +163,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
               ) : null}
 
               {chapter ? (
-                <div className="rounded-lg border border-border bg-surface">
-                  <button
-                    type="button"
-                    className="flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
-                    aria-expanded={lessonOpen}
-                    onClick={() => setLessonOpen((prev) => !prev)}
-                  >
-                    <span className="flex items-center gap-2 font-medium text-textPrimary">
-                      <BookOpen className="size-4 text-info" />
-                      อ่านบทเรียนเต็ม — บทที่ {chapter.id}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        "size-4 shrink-0 text-textSecondary transition-transform duration-normal",
-                        lessonOpen && "rotate-180"
-                      )}
-                    />
-                  </button>
-
-                  <AnimatePresence initial={false}>
-                    {lessonOpen ? (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="space-y-3 border-t border-border px-3.5 pb-3.5 pt-3">
-                          <div>
-                            <p className="font-heading text-sm font-semibold text-textPrimary">
-                              {chapter.title}
-                            </p>
-                            <p className="mt-1 text-sm leading-relaxed text-textSecondary">
-                              {chapter.summary}
-                            </p>
-                          </div>
-
-                          {chapter.sections.map((section) => (
-                            <div
-                              key={section.heading}
-                              className="rounded-md border border-border/70 bg-card p-3"
-                            >
-                              <p className="text-sm font-semibold text-textPrimary">
-                                {section.heading}
-                              </p>
-                              <p className="mt-1 text-sm leading-relaxed text-textSecondary">
-                                {section.body}
-                              </p>
-                              {section.bulletPoints?.length ? (
-                                <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-textSecondary">
-                                  {section.bulletPoints.map((point) => (
-                                    <li key={point}>{point}</li>
-                                  ))}
-                                </ul>
-                              ) : null}
-                            </div>
-                          ))}
-
-                          <div className="rounded-md border border-info/30 bg-info/10 p-3">
-                            <p className="text-xs font-semibold tracking-wide text-info">
-                              จุดที่ควรจำ
-                            </p>
-                            <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-textPrimary">
-                              {chapter.keyTakeaways.map((item) => (
-                                <li key={item}>{item}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
-                </div>
+                <HotspotLessonAccordion key={hotspot.id} chapter={chapter} />
               ) : null}
             </div>
 
@@ -246,6 +179,87 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
       ) : null}
     </AnimatePresence>,
     portalTarget
+  );
+}
+
+function HotspotLessonAccordion({ chapter }: { chapter: ChapterLesson }) {
+  const [lessonOpen, setLessonOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-border bg-surface">
+      <button
+        type="button"
+        className="flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
+        aria-expanded={lessonOpen}
+        onClick={() => setLessonOpen((prev) => !prev)}
+      >
+        <span className="flex items-center gap-2 font-medium text-textPrimary">
+          <BookOpen className="size-4 text-info" />
+          อ่านบทเรียนเต็ม — บทที่ {chapter.id}
+        </span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 text-textSecondary transition-transform duration-normal",
+            lessonOpen && "rotate-180"
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {lessonOpen ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 border-t border-border px-3.5 pb-3.5 pt-3">
+              <div>
+                <p className="font-heading text-sm font-semibold text-textPrimary">
+                  {chapter.title}
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-textSecondary">
+                  {chapter.summary}
+                </p>
+              </div>
+
+              {chapter.sections.map((section) => (
+                <div
+                  key={section.heading}
+                  className="rounded-md border border-border/70 bg-card p-3"
+                >
+                  <p className="text-sm font-semibold text-textPrimary">
+                    {section.heading}
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-textSecondary">
+                    {section.body}
+                  </p>
+                  {section.bulletPoints?.length ? (
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-textSecondary">
+                      {section.bulletPoints.map((point) => (
+                        <li key={point}>{point}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))}
+
+              <div className="rounded-md border border-info/30 bg-info/10 p-3">
+                <p className="text-xs font-semibold tracking-wide text-info">
+                  จุดที่ควรจำ
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-textPrimary">
+                  {chapter.keyTakeaways.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }
 
