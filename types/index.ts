@@ -81,6 +81,8 @@ export interface HotspotData {
   id: string;
   chapter: number;
   label: string;
+  /** ชื่อส่วนของบุหรี่ไฟฟ้าบนโมเดล เช่น ที่สูบ แท้งก์ */
+  partLabel?: string;
   description: string;
   position: HotspotPosition;
   /** ชื่อ mesh/part บนโมเดล — position เป็น offset จากศูนย์กลางชิ้นนี้ */

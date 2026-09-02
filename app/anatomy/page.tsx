@@ -44,7 +44,7 @@ export default function AnatomyPage() {
   const router = useAppRouter();
   const hydrated = useHydrated();
   const { ready, blockedReason } = useRequirePhase("anatomy");
-  const [mode, setMode] = useState<ViewMode>("exploded");
+  const [mode, setMode] = useState<ViewMode>("whole");
   const [popupOpen, setPopupOpen] = useState(false);
 
   useEffect(() => {
@@ -78,15 +78,13 @@ export default function AnatomyPage() {
       setSelectedHotspotId(id);
       if (!isReview) markHotspotVisited(id);
       setPopupOpen(true);
-      if (mode === "whole") setMode("exploded");
     },
-    [isReview, markHotspotVisited, mode, setSelectedHotspotId]
+    [isReview, markHotspotVisited, setSelectedHotspotId]
   );
 
   const handleDeepLink = useCallback(
     (hotspotId: string) => {
       handleHotspotClick(hotspotId);
-      setMode("exploded");
     },
     [handleHotspotClick]
   );

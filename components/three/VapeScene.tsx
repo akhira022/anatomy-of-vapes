@@ -487,8 +487,15 @@ export function VapeScene({
                         <Check className="size-3 stroke-[3]" />
                       ) : null}
                     </span>
-                    <span className="truncate text-sm font-medium">
-                      {item.label}
+                    <span className="min-w-0 leading-tight">
+                      {item.partLabel ? (
+                        <span className="block truncate text-[11px] opacity-80">
+                          {item.partLabel}
+                        </span>
+                      ) : null}
+                      <span className="block truncate text-sm font-medium">
+                        {item.label}
+                      </span>
                     </span>
                   </button>
                 );

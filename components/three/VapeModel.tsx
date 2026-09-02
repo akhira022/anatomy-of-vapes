@@ -343,6 +343,7 @@ export function VapeModel({
                 key={hs.id}
                 id={hs.id}
                 label={hs.label}
+                partLabel={hs.partLabel}
                 position={[
                   hs.position.x,
                   yOf(part) + hs.position.y,

@@ -70,8 +70,15 @@ export function HotspotList({
                   {visited ? <Check className="size-3 stroke-[3]" /> : null}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-sm font-semibold text-textPrimary">
-                    {item.label}
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-heading text-sm font-semibold text-textPrimary">
+                      {item.label}
+                    </span>
+                    {item.partLabel ? (
+                      <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-textSecondary">
+                        {item.partLabel}
+                      </span>
+                    ) : null}
                   </span>
                   <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-textSecondary">
                     {item.description}

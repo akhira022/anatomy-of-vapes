@@ -18,6 +18,7 @@ export const hotspots: HotspotContent[] = [
     id: "hs-nicotine",
     chapter: 1,
     label: "นิโคติน",
+    partLabel: "ที่สูบ",
     description:
       "สารเสพติดหลักในน้ำยาบุหรี่ไฟฟ้า ที่ทำให้สมองอยากกลับมาใช้ซ้ำ",
     position: { x: 0, y: 0.06, z: 0.48 },
@@ -35,6 +36,7 @@ export const hotspots: HotspotContent[] = [
     id: "hs-pg-vg",
     chapter: 2,
     label: "พีจีและวีจี",
+    partLabel: "แท้งก์",
     description:
       "โพรพิลีนไกลคอล (PG) และกลีเซอรีนพืช (VG) — ตัวทำละลายหลักที่สร้างไอและพารสชาติ",
     position: { x: 0.32, y: 0.14, z: 0.52 },
@@ -52,6 +54,7 @@ export const hotspots: HotspotContent[] = [
     id: "hs-formaldehyde",
     chapter: 2,
     label: "ฟอร์มาลดีไฮด์",
+    partLabel: "คอยล์",
     description:
       "สารก่อมะเร็งกลุ่มหนึ่ง ที่อาจเกิดเมื่อน้ำยาถูกความร้อนสูงจากคอยล์",
     position: { x: -0.34, y: 0.04, z: 0.52 },
@@ -69,6 +72,7 @@ export const hotspots: HotspotContent[] = [
     id: "hs-acrolein",
     chapter: 2,
     label: "อะโครลีน",
+    partLabel: "แท้งก์/คอยล์",
     description:
       "สารพิษระคายเคืองรุนแรง ที่มักเกิดเมื่อพีจี/วีจีถูกความร้อนสูง",
     position: { x: 0.36, y: -0.16, z: 0.5 },
@@ -85,6 +89,7 @@ export const hotspots: HotspotContent[] = [
     id: "hs-lithium",
     chapter: 3,
     label: "ลิเธียมและโลหะหนัก",
+    partLabel: "แบตเตอรี่",
     description:
       "ความเสี่ยงจากแบตเตอรี่ลิเธียม และโลหะจากคอยล์/ชิ้นส่วนภายใน",
     position: { x: 0, y: 0.08, z: 0.48 },

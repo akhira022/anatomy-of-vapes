@@ -98,6 +98,11 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
                   >
                     {hotspot.label}
                   </h2>
+                  {hotspot.partLabel ? (
+                    <span className="rounded bg-surface-2 px-2 py-0.5 text-xs font-medium text-textSecondary">
+                      {hotspot.partLabel}
+                    </span>
+                  ) : null}
                   <Badge variant="destructive">{hotspot.classification}</Badge>
                   {chapter ? (
                     <Badge variant="secondary">บทที่ {chapter.id}</Badge>

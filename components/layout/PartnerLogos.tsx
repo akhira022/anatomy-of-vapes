@@ -32,6 +32,12 @@ const PARTNER_LOGOS = [
     width: 300,
     height: 300,
   },
+  {
+    src: "/images/logo_phatthalung.png",
+    alt: "วิทยาลัยเทคนิคพัทลุง",
+    width: 253,
+    height: 253,
+  },
 ] as const;
 
 interface PartnerLogosProps {

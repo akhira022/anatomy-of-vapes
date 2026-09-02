@@ -16,6 +16,8 @@ import { HeroTypingLine } from "@/components/HeroTypingLine";
 import { HeroBrandCopy } from "@/components/HeroBrandCopy";
 import { HeroToxinCallouts } from "@/components/HeroToxinCallouts";
 import { HeroMoleculeField } from "@/components/HeroMoleculeField";
+import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
 
 const HeroVapeCanvas = dynamic(
   () =>
@@ -34,14 +36,18 @@ const HeroVapeCanvas = dynamic(
 function PrimaryCtaMotion({
   children,
   reduceMotion,
+  className,
 }: {
   children: ReactNode;
   reduceMotion: boolean;
+  className?: string;
 }) {
-  if (reduceMotion) return <>{children}</>;
+  if (reduceMotion) {
+    return <div className={cn("inline-flex", className)}>{children}</div>;
+  }
   return (
     <motion.div
-      className="inline-flex"
+      className={cn("inline-flex", className)}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -95,7 +101,7 @@ export function Hero() {
             <HeroTypingLine className="mt-5 sm:mt-6" />
 
             <motion.div
-              className="mt-8 flex w-full max-w-sm flex-col items-start gap-3 sm:mt-10"
+              className="mt-8 flex w-full max-w-md flex-col items-start gap-3 sm:mt-10"
               initial={reduceMotion ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={
@@ -189,33 +195,37 @@ export function Hero() {
                   </div>
                 </>
               ) : (
-                <>
-                  <PrimaryCtaMotion reduceMotion={Boolean(reduceMotion)}>
-                    <Button
-                      render={<Link href="/register" />}
-                      nativeButton={false}
-                      className="h-11 w-auto rounded-lg px-5 text-base font-semibold shadow-glowRed sm:px-6 sm:text-lg"
+                <div className="flex w-full max-w-md flex-col items-stretch gap-3">
+                  <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:items-center">
+                    <PrimaryCtaMotion
+                      reduceMotion={Boolean(reduceMotion)}
+                      className="w-full sm:w-auto"
                     >
-                      เริ่มเรียนรู้
+                      <Button
+                        render={<Link href="/register" />}
+                        nativeButton={false}
+                        className="h-12 w-full rounded-lg px-6 text-base font-semibold shadow-glowRed sm:min-w-[11rem] sm:w-auto sm:text-lg"
+                      >
+                        เริ่มเรียนรู้
+                      </Button>
+                    </PrimaryCtaMotion>
+                    <Button
+                      render={<Link href="/login" />}
+                      nativeButton={false}
+                      variant="outline"
+                      className="h-12 w-full rounded-lg border-border bg-background px-6 text-base text-textPrimary light:border-textPrimary/20 light:bg-surface sm:min-w-[11rem] sm:w-auto"
+                    >
+                      เข้าสู่ระบบ
                     </Button>
-                  </PrimaryCtaMotion>
-                  <Button
-                    render={<Link href="/login" />}
-                    nativeButton={false}
-                    variant="outline"
-                    className="h-11 w-auto rounded-lg bg-background px-5 text-base light:border-border light:bg-surface sm:px-6"
-                  >
-                    เข้าสู่ระบบ
-                  </Button>
-                  <Button
-                    render={<Link href="/guest" />}
-                    nativeButton={false}
-                    variant="ghost"
-                    className="h-11 w-auto rounded-lg px-5 text-base sm:px-6"
+                  </div>
+                  <Link
+                    href="/guest"
+                    className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-textSecondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     เข้าชมไม่ต้องสมัคร
-                  </Button>
-                </>
+                    <ArrowRight className="size-3.5" aria-hidden="true" />
+                  </Link>
+                </div>
               )}
             </motion.div>
           </div>
