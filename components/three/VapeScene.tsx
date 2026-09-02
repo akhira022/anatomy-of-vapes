@@ -39,6 +39,7 @@ import {
   HINT_STORAGE_KEY,
 } from "@/components/three/AnatomyTutorialOverlay";
 import { ModelReadySignal } from "@/components/three/ModelReadySignal";
+import { hotspotTitles } from "@/lib/hotspot-display";
 
 const IDLE_RESUME_MS = 2500;
 
@@ -114,7 +115,19 @@ export function VapeScene({
   const [showHint, setShowHint] = useState(readShowHint);
   const [modelLoading, setModelLoading] = useState(true);
   const [userInteracting, setUserInteracting] = useState(false);
-  const onModelReady = useCallback(() => setModelLoading(false), []);
+  /** Ignore stray WebGL taps after tutorial/model teardown (click-through). */
+  const ignoreHotspotUntilRef = useRef(0);
+  const onModelReady = useCallback(() => {
+    setModelLoading(false);
+    ignoreHotspotUntilRef.current = performance.now() + 700;
+  }, []);
+  const handleSceneHotspotClick = useCallback(
+    (id: string) => {
+      if (performance.now() < ignoreHotspotUntilRef.current) return;
+      onHotspotClick(id);
+    },
+    [onHotspotClick]
+  );
   const reduceMotion = useReducedMotion();
   const lite = usePreferLite3D();
   const defaultDpr: [number, number] = lite ? [1, 1.25] : [1, 1.75];
@@ -130,8 +143,12 @@ export function VapeScene({
   const visitedCount = visitedHotspots.length;
   const hotspotTotal = hotspotItems.length;
   const remainingCount = Math.max(0, hotspotTotal - visitedCount);
-  const nextLabel =
-    hotspotItems.find((h) => h.id === nextHotspotId)?.label ?? null;
+  const nextLabel = nextHotspotId
+    ? (() => {
+        const item = hotspotItems.find((h) => h.id === nextHotspotId);
+        return item ? hotspotTitles(item).primary : null;
+      })()
+    : null;
 
   const clearIdleTimer = useCallback(() => {
     if (idleTimerRef.current !== null) {
@@ -168,6 +185,7 @@ export function VapeScene({
 
   const dismissHint = () => {
     setShowHint(false);
+    ignoreHotspotUntilRef.current = performance.now() + 700;
     try {
       window.localStorage.setItem(HINT_STORAGE_KEY, "1");
     } catch {
@@ -268,7 +286,7 @@ export function VapeScene({
               exploded={exploded}
               visitedHotspots={visitedHotspots}
               selectedHotspotId={selectedHotspotId}
-              onHotspotClick={onHotspotClick}
+              onHotspotClick={handleSceneHotspotClick}
               castShadows={!lite}
               lite={lite}
             />
@@ -454,52 +472,53 @@ export function VapeScene({
               aria-label="จุดสารพิษ"
               className="pointer-events-auto flex justify-start gap-2 overflow-x-auto pb-1 sm:justify-center sm:flex-wrap sm:overflow-visible"
             >
-              {hotspotItems.map((item) => {
-                const visited = visitedHotspots.includes(item.id);
-                const isSelected = selectedHotspotId === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="listitem"
-                    onClick={() => onHotspotClick(item.id)}
+            {hotspotItems.map((item) => {
+              const visited = visitedHotspots.includes(item.id);
+              const isSelected = selectedHotspotId === item.id;
+              const { primary, secondary } = hotspotTitles(item);
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="listitem"
+                  onClick={() => onHotspotClick(item.id)}
+                  className={cn(
+                    "flex min-h-11 min-w-[7.25rem] shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors duration-normal",
+                    isSelected
+                      ? "border-primary bg-primary text-white"
+                      : visited
+                        ? "border-success/50 bg-card/95 text-textPrimary"
+                        : "border-border bg-card/95 text-textPrimary"
+                  )}
+                >
+                  <span
                     className={cn(
-                      "flex min-h-11 min-w-[7.25rem] shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors duration-normal",
+                      "flex size-5 shrink-0 items-center justify-center rounded-full border",
                       isSelected
-                        ? "border-primary bg-primary text-white"
+                        ? "border-white/40 bg-white/20"
                         : visited
-                          ? "border-success/50 bg-card/95 text-textPrimary"
-                          : "border-border bg-card/95 text-textPrimary"
+                          ? "border-success bg-success text-white"
+                          : "border-primary bg-primary/20 text-primary"
                     )}
+                    aria-hidden="true"
                   >
-                    <span
-                      className={cn(
-                        "flex size-5 shrink-0 items-center justify-center rounded-full border",
-                        isSelected
-                          ? "border-white/40 bg-white/20"
-                          : visited
-                            ? "border-success bg-success text-white"
-                            : "border-primary bg-primary/20 text-primary"
-                      )}
-                      aria-hidden="true"
-                    >
-                      {visited && !isSelected ? (
-                        <Check className="size-3 stroke-[3]" />
-                      ) : null}
+                    {visited && !isSelected ? (
+                      <Check className="size-3 stroke-[3]" />
+                    ) : null}
+                  </span>
+                  <span className="min-w-0 leading-tight">
+                    <span className="block truncate text-sm font-medium">
+                      {primary}
                     </span>
-                    <span className="min-w-0 leading-tight">
-                      {item.partLabel ? (
-                        <span className="block truncate text-[11px] opacity-80">
-                          {item.partLabel}
-                        </span>
-                      ) : null}
-                      <span className="block truncate text-sm font-medium">
-                        {item.label}
+                    {secondary ? (
+                      <span className="block truncate text-[11px] opacity-80">
+                        {secondary}
                       </span>
-                    </span>
-                  </button>
-                );
-              })}
+                    ) : null}
+                  </span>
+                </button>
+              );
+            })}
             </div>
 
             {remainingCount > 0 ? (

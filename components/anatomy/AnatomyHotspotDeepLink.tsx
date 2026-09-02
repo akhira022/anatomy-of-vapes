@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { hotspots } from "@/data/hotspots";
 
 interface AnatomyHotspotDeepLinkProps {
@@ -10,11 +10,17 @@ interface AnatomyHotspotDeepLinkProps {
   onDeepLink: (hotspotId: string) => void;
 }
 
+/**
+ * Opens a hotspot from `?hotspot=` once, then strips the query so refresh /
+ * back-navigation does not auto-reopen the detail sheet.
+ */
 export function AnatomyHotspotDeepLink({
   ready,
   hydrated,
   onDeepLink,
 }: AnatomyHotspotDeepLinkProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const hotspotParam = searchParams.get("hotspot");
   const lastAppliedRef = useRef<string | null>(null);
@@ -26,7 +32,20 @@ export function AnatomyHotspotDeepLink({
 
     lastAppliedRef.current = hotspotParam;
     onDeepLink(hotspotParam);
-  }, [hydrated, ready, hotspotParam, onDeepLink]);
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("hotspot");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [
+    hydrated,
+    ready,
+    hotspotParam,
+    onDeepLink,
+    pathname,
+    router,
+    searchParams,
+  ]);
 
   return null;
 }

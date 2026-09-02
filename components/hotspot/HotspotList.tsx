@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import type { HotspotContent } from "@/data/hotspots";
+import { hotspotTitles } from "@/lib/hotspot-display";
 import { cn } from "@/lib/utils";
 
 interface HotspotListProps {
@@ -42,6 +43,7 @@ export function HotspotList({
         {items.map((item) => {
           const visited = visitedIds.includes(item.id);
           const selected = selectedId === item.id;
+          const { primary, secondary } = hotspotTitles(item);
 
           return (
             <li key={item.id}>
@@ -72,11 +74,11 @@ export function HotspotList({
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="font-heading text-sm font-semibold text-textPrimary">
-                      {item.label}
+                      {primary}
                     </span>
-                    {item.partLabel ? (
+                    {secondary ? (
                       <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-textSecondary">
-                        {item.partLabel}
+                        {secondary}
                       </span>
                     ) : null}
                   </span>
