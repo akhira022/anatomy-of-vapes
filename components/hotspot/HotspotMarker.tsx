@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { invalidate, useFrame } from "@react-three/fiber";
 import { Billboard } from "@react-three/drei";
 import {
@@ -25,12 +25,26 @@ interface HotspotMarkerProps {
 
 const labelTextureCache = new Map<string, CanvasTexture>();
 
+/** Match app/layout.tsx — next/font IBM Plex Sans Thai (400/500/700). */
+const LABEL_FONT =
+  '700 22px "IBM Plex Sans Thai", "Noto Sans Thai", Tahoma, sans-serif';
+
+function measureLabelWidth(ctx: CanvasRenderingContext2D, text: string) {
+  const metrics = ctx.measureText(text);
+  const bounding =
+    (metrics.actualBoundingBoxLeft ?? 0) +
+    (metrics.actualBoundingBoxRight ?? 0);
+  // Thai glyphs often measure narrow before the webfont settles; keep a floor.
+  return Math.ceil(Math.max(metrics.width, bounding, text.length * 11) * 1.12);
+}
+
 function getLabelTexture(
   text: string,
   accent: string,
-  selected: boolean
+  selected: boolean,
+  fontReadyToken: number
 ): CanvasTexture {
-  const key = `${text}|${accent}|${selected ? 1 : 0}`;
+  const key = `${text}|${accent}|${selected ? 1 : 0}|f${fontReadyToken}`;
   const cached = labelTextureCache.get(key);
   if (cached) return cached;
 
@@ -38,8 +52,9 @@ function getLabelTexture(
     typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
     2
   );
-  const padX = 14;
-  const padY = 8;
+  const padX = 16;
+  // Extra vertical room for Thai vowel/tone marks above and below the line.
+  const padY = 10;
   const fontSize = 22;
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -49,16 +64,16 @@ function getLabelTexture(
     return empty;
   }
 
-  ctx.font = `600 ${fontSize}px "Segoe UI", "Sarabun", "Noto Sans Thai", Tahoma, sans-serif`;
-  const textWidth = Math.ceil(ctx.measureText(text).width);
+  ctx.font = LABEL_FONT;
+  const textWidth = measureLabelWidth(ctx, text);
   const w = textWidth + padX * 2;
-  const h = fontSize + padY * 2;
+  const h = fontSize + padY * 2 + 4;
   canvas.width = Math.ceil(w * dpr);
   canvas.height = Math.ceil(h * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  ctx.font = `600 ${fontSize}px "Segoe UI", "Sarabun", "Noto Sans Thai", Tahoma, sans-serif`;
-  const radius = h / 2;
+  ctx.font = LABEL_FONT;
+  const radius = Math.min(h / 2, 14);
   ctx.beginPath();
   ctx.moveTo(radius, 0);
   ctx.arcTo(w, 0, w, h, radius);
@@ -66,7 +81,9 @@ function getLabelTexture(
   ctx.arcTo(0, h, 0, 0, radius);
   ctx.arcTo(0, 0, w, 0, radius);
   ctx.closePath();
-  ctx.fillStyle = selected ? "rgba(229, 57, 53, 0.95)" : "rgba(20, 20, 22, 0.82)";
+  ctx.fillStyle = selected
+    ? "rgba(229, 57, 53, 0.95)"
+    : "rgba(20, 20, 22, 0.82)";
   ctx.fill();
   ctx.strokeStyle = selected ? "rgba(255,255,255,0.55)" : accent;
   ctx.lineWidth = 1.5;
@@ -80,6 +97,7 @@ function getLabelTexture(
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
+  texture.anisotropy = 2;
   labelTextureCache.set(key, texture);
   return texture;
 }
@@ -102,10 +120,44 @@ export function HotspotMarker({
   const coreScale = selected ? 1.22 : 1;
   const fill = visited ? "#22C55E" : "#E53935";
   const caption = partLabel?.trim() || label;
+  // Prefer labels on the outer side so left/right markers don't collide.
+  const labelSide = position[0] < -0.05 ? -1 : 1;
+
+  const [fontReadyToken, setFontReadyToken] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const markReady = () => {
+      if (cancelled) return;
+      setFontReadyToken((n) => n + 1);
+      invalidate();
+    };
+
+    if (typeof document === "undefined" || !document.fonts?.load) {
+      return;
+    }
+
+    void document.fonts
+      .load('700 22px "IBM Plex Sans Thai"')
+      .then(markReady)
+      .catch(() => {
+        /* keep fallback metrics */
+      });
+
+    if (document.fonts.status === "loaded") {
+      markReady();
+    } else {
+      document.fonts.ready.then(markReady).catch(() => {});
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const labelTexture = useMemo(
-    () => getLabelTexture(caption, fill, selected),
-    [caption, fill, selected]
+    () => getLabelTexture(caption, fill, selected, fontReadyToken),
+    [caption, fill, selected, fontReadyToken]
   );
 
   const labelAspect = useMemo(() => {
@@ -131,6 +183,7 @@ export function HotspotMarker({
 
   const labelH = selected ? 0.2 : 0.16;
   const labelW = labelH * labelAspect;
+  const labelX = labelSide * (0.22 + labelW * 0.35);
 
   return (
     <group position={position} userData={{ hotspotId: id, label, partLabel }}>
@@ -173,7 +226,8 @@ export function HotspotMarker({
         </mesh>
 
         <mesh
-          position={[0.22 + labelW * 0.35, 0.02, 0]}
+          key={`label-${caption}-${fontReadyToken}-${selected ? 1 : 0}`}
+          position={[labelX, 0.02, 0]}
           renderOrder={4}
           onClick={handleSelect}
           onPointerDown={(e) => e.stopPropagation()}
