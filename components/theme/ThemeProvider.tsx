@@ -4,9 +4,9 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { useServerInsertedHTML } from "next/navigation";
@@ -64,20 +64,21 @@ function runThemeTransition(apply: () => void, origin?: ThemeOrigin) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   // Same default on server + client first paint — avoid hydration mismatch.
-  // Actual preference is applied by themeInitScript (DOM) then synced in useEffect.
-  const [theme, setThemeState] = useState<ThemeMode>(DEFAULT_THEME);
-  const [ready, setReady] = useState(false);
+  // Actual preference is applied by themeInitScript (DOM) then synced on client.
+  const [theme, setThemeState] = useState<ThemeMode>(() =>
+    typeof window === "undefined"
+      ? DEFAULT_THEME
+      : (getStoredTheme() ?? DEFAULT_THEME)
+  );
+  const ready = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   useServerInsertedHTML(() => (
     <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
   ));
-
-  useEffect(() => {
-    const stored = getStoredTheme() ?? DEFAULT_THEME;
-    setThemeState(stored);
-    applyThemeClass(stored);
-    setReady(true);
-  }, []);
 
   const setTheme = useCallback((next: ThemeMode, origin?: ThemeOrigin) => {
     runThemeTransition(() => {

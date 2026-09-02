@@ -1,22 +1,29 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAppRouter } from "@/hooks/useAppRouter";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Box, Trophy, Star } from "lucide-react";
 import { CompletedLearnerChoice } from "@/components/auth/CompletedLearnerChoice";
 import { AppNavbar } from "@/components/layout/AppNavbar";
+import { PageLoading } from "@/components/feedback/PageLoading";
+import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { saveQuizResult } from "@/lib/db";
-import { useRequirePhase, useHydrated } from "@/hooks/useRequirePhase";
+import {
+  getPhaseBlockMessage,
+  useRequirePhase,
+  useHydrated,
+} from "@/hooks/useRequirePhase";
 import { useQuizStore } from "@/store/useQuizStore";
 import { toast } from "sonner";
 
 export default function ResultPage() {
   const router = useAppRouter();
   const hydrated = useHydrated();
-  const ready = useRequirePhase("result");
+  const reduceMotion = useReducedMotion();
+  const { ready, blockedReason } = useRequirePhase("result");
   const nickname = useQuizStore((s) => s.nickname);
   const userId = useQuizStore((s) => s.userId);
   const preScore = useQuizStore((s) => s.preScore);
@@ -26,8 +33,12 @@ export default function ResultPage() {
   const resultSaved = useQuizStore((s) => s.resultSaved);
   const setResultSaved = useQuizStore((s) => s.setResultSaved);
   const resetProgress = useQuizStore((s) => s.resetProgress);
+  const [persisted, setPersisted] = useState(false);
 
   const hasLocalResult = postAnswers.length > 0;
+  const shouldPersist =
+    ready && hydrated && !resultSaved && Boolean(userId) && hasLocalResult;
+  const saving = shouldPersist && !persisted;
   const improvement = postScore - preScore;
   const improved = improvement > 0;
 
@@ -38,12 +49,12 @@ export default function ResultPage() {
   }, [postScore]);
 
   useEffect(() => {
-    if (!ready || !hydrated || resultSaved || !userId || !hasLocalResult) return;
+    if (!shouldPersist || persisted) return;
 
     let cancelled = false;
     (async () => {
       const result = await saveQuizResult({
-        userId,
+        userId: userId!,
         preScore,
         postScore,
         preTotal: 5,
@@ -57,6 +68,7 @@ export default function ResultPage() {
         return;
       }
       setResultSaved(true);
+      setPersisted(true);
       if (result.skipped) {
         toast.message("รอบนี้เป็นแบบฝึกซ้ำ — ไม่บันทึกลงฐานข้อมูล");
       }
@@ -66,11 +78,9 @@ export default function ResultPage() {
       cancelled = true;
     };
   }, [
-    ready,
-    hydrated,
-    resultSaved,
+    shouldPersist,
+    persisted,
     userId,
-    hasLocalResult,
     preScore,
     postScore,
     preAnswers,
@@ -80,9 +90,9 @@ export default function ResultPage() {
 
   if (!hydrated || !ready) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-background text-textSecondary">
-        กำลังโหลด...
-      </div>
+      <PageLoading
+        detail={getPhaseBlockMessage(blockedReason) ?? undefined}
+      />
     );
   }
 
@@ -90,9 +100,10 @@ export default function ResultPage() {
     return (
       <div className="flex min-h-full flex-1 flex-col bg-background">
         <AppNavbar title="ยินดีต้อนรับกลับ" showBack backHref="/" />
-        <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8 text-left sm:px-10">
+        <main id="main-content" className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 text-left sm:px-6 xl:max-w-4xl">
           <CompletedLearnerChoice
             nickname={nickname || "ผู้เรียน"}
+            context="result"
             onViewModel={() => {
               toast.success("เข้าโหมดทบทวนโมเดล");
               router.push("/anatomy");
@@ -108,52 +119,87 @@ export default function ResultPage() {
     );
   }
 
+  const trophyClassName =
+    "flex size-16 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-glowRed";
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <AppNavbar title="ผลลัพธ์" showBack backHref="/" />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-10 text-left sm:px-10">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="flex size-16 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-glowRed"
-        >
-          <Trophy className="size-8" />
-        </motion.div>
+      <main id="main-content" className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-10 text-left sm:px-6 xl:max-w-4xl xl:py-12">
+        {reduceMotion ? (
+          <div className={trophyClassName}>
+            <Trophy className="size-8" />
+          </div>
+        ) : (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className={trophyClassName}
+          >
+            <Trophy className="size-8" />
+          </motion.div>
+        )}
 
-        <h1 className="mt-6 font-heading text-3xl font-bold text-textPrimary">
+        <h1 className="mt-6 font-heading text-3xl font-bold text-textPrimary xl:text-4xl">
           {message}
         </h1>
-        <p className="mt-2 text-textSecondary">
+        <p className="mt-2 text-textSecondary xl:text-lg">
           {nickname ? `คุณ${nickname}` : "คุณ"} ทำแบบทดสอบครบแล้ว
         </p>
 
-        <div className="mt-8 grid w-full grid-cols-2 gap-3">
+        {saving ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm text-textSecondary"
+          >
+            <LoadingSpinner size="sm" label="กำลังบันทึกคะแนน" />
+            กำลังบันทึกคะแนน…
+          </div>
+        ) : resultSaved ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-4 text-sm text-success"
+          >
+            บันทึกคะแนนเรียบร้อยแล้ว
+          </p>
+        ) : null}
+
+        <div className="mt-8 grid w-full min-w-0 grid-cols-1 gap-3 min-[360px]:grid-cols-2 xl:grid-cols-3">
           <ScoreCard label="ก่อนเรียน" score={preScore} total={5} />
           <ScoreCard label="หลังเรียน" score={postScore} total={5} highlight />
-        </div>
-
-        <motion.div
-          className="mt-4 flex w-full items-center justify-start gap-2 rounded-lg border border-border bg-card px-4 py-3"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Star className={improved ? "size-5 text-warning" : "size-5 text-textDisabled"} />
-          <span className="text-sm text-textSecondary">พัฒนาการ</span>
-          <span
+          <div
             className={
               improved
-                ? "font-heading text-lg font-bold text-success"
-                : "font-heading text-lg font-bold text-textPrimary"
+                ? "flex min-w-0 items-center gap-2 rounded-lg border border-success/30 bg-success/10 p-4 min-[360px]:col-span-2 xl:col-span-1"
+                : "flex min-w-0 items-center gap-2 rounded-lg border border-border bg-card p-4 min-[360px]:col-span-2 xl:col-span-1"
             }
           >
-            {improvement >= 0 ? "+" : ""}
-            {improvement} คะแนน
-          </span>
-        </motion.div>
+            <Star
+              className={
+                improved ? "size-5 text-warning" : "size-5 text-textDisabled"
+              }
+            />
+            <div>
+              <p className="text-xs tracking-wide text-textSecondary">พัฒนาการ</p>
+              <p
+                className={
+                  improved
+                    ? "font-heading text-2xl font-bold text-success xl:text-3xl"
+                    : "font-heading text-2xl font-bold text-textPrimary xl:text-3xl"
+                }
+              >
+                {improvement >= 0 ? "+" : ""}
+                {improvement}{" "}
+                <span className="text-lg text-textSecondary">คะแนน</span>
+              </p>
+            </div>
+          </div>
+        </div>
 
-        {improved ? (
+        {improved && !reduceMotion ? (
           <motion.div
             className="pointer-events-none fixed inset-0 z-40 overflow-hidden"
             initial={{ opacity: 0 }}
@@ -175,11 +221,12 @@ export default function ResultPage() {
           </motion.div>
         ) : null}
 
-        <div className="mt-auto flex w-full flex-col items-start gap-3 pt-10">
+        <div className="mt-auto flex w-full flex-col items-start gap-3 pt-10 sm:flex-row sm:flex-wrap xl:gap-4">
           <Button
             render={<Link href="/anatomy" />}
             nativeButton={false}
-            className="h-11 w-auto rounded-lg px-6 text-base font-semibold shadow-glowRed"
+            size="touch"
+            className="font-semibold shadow-glowRed xl:min-h-12"
           >
             <Box className="size-5" aria-hidden="true" />
             ดูโมเดลอีกครั้ง
@@ -187,7 +234,8 @@ export default function ResultPage() {
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-auto rounded-lg px-6 text-base"
+            size="touch"
+            className="xl:min-h-12"
             onClick={() => {
               resetProgress();
               router.push("/pretest");
@@ -199,7 +247,8 @@ export default function ResultPage() {
             render={<Link href="/" />}
             nativeButton={false}
             variant="ghost"
-            className="h-11 w-auto rounded-lg px-6 text-base"
+            size="touch"
+            className="xl:min-h-12"
           >
             กลับหน้าหลัก
           </Button>
@@ -224,14 +273,14 @@ function ScoreCard({
     <div
       className={
         highlight
-          ? "rounded-lg border border-primary/40 bg-primary/10 p-4"
-          : "rounded-lg border border-border bg-card p-4"
+          ? "min-w-0 rounded-lg border border-primary/40 bg-primary/10 p-4"
+          : "min-w-0 rounded-lg border border-border bg-card p-4"
       }
     >
-      <p className="text-xs tracking-wide text-textSecondary">{label}</p>
-      <p className="mt-1 font-heading text-3xl font-bold text-textPrimary">
+      <p className="text-xs tracking-wide text-textSecondary xl:text-sm">{label}</p>
+      <p className="mt-1 font-heading text-3xl font-bold text-textPrimary xl:text-4xl">
         {score}
-        <span className="text-lg text-textSecondary">/{total}</span>
+        <span className="text-lg text-textSecondary xl:text-xl">/{total}</span>
       </p>
     </div>
   );

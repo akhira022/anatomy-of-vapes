@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import type { HotspotContent } from "@/data/hotspots";
+import { hotspotTitles } from "@/lib/hotspot-display";
 import { cn } from "@/lib/utils";
 
 interface HotspotListProps {
@@ -10,6 +11,7 @@ interface HotspotListProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   className?: string;
+  headingId?: string;
 }
 
 export function HotspotList({
@@ -18,15 +20,16 @@ export function HotspotList({
   selectedId,
   onSelect,
   className,
+  headingId = "hotspot-list-heading",
 }: HotspotListProps) {
   return (
     <section
-      aria-labelledby="hotspot-list-heading"
+      aria-labelledby={headingId}
       className={cn("space-y-3", className)}
     >
       <div>
         <h2
-          id="hotspot-list-heading"
+          id={headingId}
           className="font-heading text-base font-semibold text-textPrimary"
         >
           หรือเลือกจากรายการ
@@ -40,6 +43,7 @@ export function HotspotList({
         {items.map((item) => {
           const visited = visitedIds.includes(item.id);
           const selected = selectedId === item.id;
+          const { primary, secondary } = hotspotTitles(item);
 
           return (
             <li key={item.id}>
@@ -68,10 +72,17 @@ export function HotspotList({
                   {visited ? <Check className="size-3 stroke-[3]" /> : null}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-sm font-semibold text-textPrimary">
-                    {item.label}
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-heading text-sm font-semibold text-textPrimary">
+                      {primary}
+                    </span>
+                    {secondary ? (
+                      <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-textSecondary">
+                        {secondary}
+                      </span>
+                    ) : null}
                   </span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-textSecondary">
+                  <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-textSecondary">
                     {item.description}
                   </span>
                 </span>

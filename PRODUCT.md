@@ -27,7 +27,9 @@ The differentiating mechanism is learning by inspecting the device itself: rotat
 
 ## Operating Context
 
-Typical flow: QR or link → Landing → PDPA + nickname/grade registration → Pre-test → Anatomy 3D (whole / exploded, hotspot popups) → Post-test → Result summary. Admins sign in separately to view dashboard stats and export data. Sessions are expected to be mobile-first, often in classrooms, youth activities, or campaign settings with limited patience and noisy environments.
+Typical flow: QR or link → Landing → PDPA + nickname/grade registration → Pre-test → Anatomy 3D (whole / exploded, hotspot popups) → Post-test → Result summary. Admins sign in separately to view dashboard stats and export data. Sessions are expected to be **mobile-first**, often in classrooms, youth activities, or campaign settings with limited patience and noisy environments.
+
+Secondary classroom context: the same learner URLs also adapt at **xl (≥1280px)** for All-in-one / large touchscreen displays (taller 3D canvas, two-column anatomy, larger form and quiz targets)—without a separate `/kiosk` route. Dedicated exhibition kiosk mode (idle reset, locked browser chrome) is out of current scope.
 
 ## Capabilities and Constraints
 
@@ -37,10 +39,12 @@ Confirmed in MVP / current build intent:
 - Interactive 3D model with exploded view and toxin hotspots + detail popups
 - Result comparison (pre vs post, improvement)
 - Admin dashboard with aggregate stats and CSV export
+- AI knowledge assistant (RAG chat) with citations, guardrails, and 3D hotspot deep links
+- Responsive large-screen learner layout (`xl` / ≥1280px) for classroom All-in-one touch displays
 - Supabase-backed storage for users, consent, quiz results, and per-question answers
 - Deploy target: Vercel (web)
 
-Out of MVP scope (must not be assumed present): leaderboard / social sharing, heat / X-ray modes, AI chatbot, badge / achievement systems, full multi-language product.
+Out of MVP scope (must not be assumed present): leaderboard / social sharing, heat / X-ray modes, badge / achievement systems, full multi-language product, voice input for chat, persistent chat history in Supabase, dedicated `/kiosk` exhibition mode with idle session reset.
 
 Undecided: formal accessibility standard mandate (e.g. WCAG AA as a hard gate) — not binding unless later confirmed.
 

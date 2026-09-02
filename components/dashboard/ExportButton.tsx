@@ -12,19 +12,27 @@ interface ExportButtonProps {
 export function ExportButton({ rows }: ExportButtonProps) {
   const handleExport = () => {
     const headers = [
+      "email",
       "nickname",
       "grade",
+      "age_range",
+      "user_type",
+      "flow_type",
       "pre_score",
       "post_score",
       "improvement",
       "created_at",
     ];
     const data = rows.map((r) => ({
+      email: r.email ?? "",
       nickname: r.nickname,
       grade: r.grade,
+      age_range: r.age_range ?? "",
+      user_type: r.user_type,
+      flow_type: r.flow_type,
       pre_score: r.pre_score,
-      post_score: r.post_score,
-      improvement: r.improvement,
+      post_score: r.flow_type === "guest" ? "" : r.post_score,
+      improvement: r.flow_type === "guest" ? "" : r.improvement,
       created_at: r.created_at,
     }));
     const csv = toCsv(data, headers);

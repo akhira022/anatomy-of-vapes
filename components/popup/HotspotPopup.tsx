@@ -1,17 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Flame, HeartPulse, Lightbulb, X } from "lucide-react";
+import {
+  BookOpen,
+  ChevronDown,
+  Flame,
+  HeartPulse,
+  Lightbulb,
+  X,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { HotspotContent } from "@/data/hotspots";
+import { getHotspotEffectSteps } from "@/data/hotspot-effects";
+import { HotspotEffectStrip } from "@/components/hotspot/HotspotEffectStrip";
+import type { ChapterLesson } from "@/data/chapters";
+import { getChapterByHotspotId } from "@/data/chapters";
 import { getMythById } from "@/data/myths";
+import { hotspotTitles } from "@/lib/hotspot-display";
 import {
   SCENE_FULLSCREEN_EVENT,
   getSceneFullscreenRoot,
 } from "@/lib/scene-fullscreen";
+import { cn } from "@/lib/utils";
 
 interface HotspotPopupProps {
   hotspot: HotspotContent | null;
@@ -21,7 +34,13 @@ interface HotspotPopupProps {
 
 export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
   const myth = getMythById(hotspot?.mythId);
+  const chapter = hotspot ? getChapterByHotspotId(hotspot.id) : null;
+  const titles = hotspot ? hotspotTitles(hotspot) : null;
   const [portalTarget, setPortalTarget] = useState<Element | null>(null);
+
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   // Native + CSS fullscreen only show descendants of the fullscreen root.
   useEffect(() => {
@@ -42,11 +61,11 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") handleClose();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open, handleClose]);
 
   if (!portalTarget) return null;
 
@@ -59,7 +78,7 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          onClick={onClose}
+          onClick={handleClose}
         >
           <motion.div
             role="dialog"
@@ -79,9 +98,17 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
                     id="hotspot-title"
                     className="font-heading text-xl font-bold text-textPrimary"
                   >
-                    {hotspot.label}
+                    {titles?.primary}
                   </h2>
+                  {titles?.secondary ? (
+                    <span className="rounded bg-surface-2 px-2 py-0.5 text-xs font-medium text-textSecondary">
+                      {titles.secondary}
+                    </span>
+                  ) : null}
                   <Badge variant="destructive">{hotspot.classification}</Badge>
+                  {chapter ? (
+                    <Badge variant="secondary">บทที่ {chapter.id}</Badge>
+                  ) : null}
                 </div>
                 <p className="mt-1 text-sm text-textSecondary">
                   ระดับอันตราย:{" "}
@@ -96,11 +123,16 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
                 variant="ghost"
                 aria-label="ปิด"
                 className="size-11 shrink-0"
-                onClick={onClose}
+                onClick={handleClose}
               >
                 <X className="size-5" />
               </Button>
             </div>
+
+            <HotspotEffectStrip
+              hotspotId={hotspot.id}
+              steps={getHotspotEffectSteps(hotspot.id)}
+            />
 
             <div className="mt-5 space-y-4">
               <InfoBlock
@@ -125,19 +157,27 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
                     ความเข้าใจผิด vs ข้อเท็จจริง
                   </p>
                   <p className="mt-2 text-sm text-textSecondary">
-                    <span className="font-semibold text-error">ความเข้าใจผิด: {myth.myth}</span>
+                    <span className="font-semibold text-error">
+                      ความเข้าใจผิด: {myth.myth}
+                    </span>
                   </p>
                   <p className="mt-1 text-sm text-textPrimary">
-                    <span className="font-semibold text-success">ข้อเท็จจริง: {myth.fact}</span>
+                    <span className="font-semibold text-success">
+                      ข้อเท็จจริง: {myth.fact}
+                    </span>
                   </p>
                 </div>
+              ) : null}
+
+              {chapter ? (
+                <HotspotLessonAccordion key={hotspot.id} chapter={chapter} />
               ) : null}
             </div>
 
             <Button
               type="button"
               className="mt-6 h-11 w-auto rounded-lg px-6 font-semibold"
-              onClick={onClose}
+              onClick={handleClose}
             >
               ปิด
             </Button>
@@ -146,6 +186,87 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
       ) : null}
     </AnimatePresence>,
     portalTarget
+  );
+}
+
+function HotspotLessonAccordion({ chapter }: { chapter: ChapterLesson }) {
+  const [lessonOpen, setLessonOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-border bg-surface">
+      <button
+        type="button"
+        className="flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
+        aria-expanded={lessonOpen}
+        onClick={() => setLessonOpen((prev) => !prev)}
+      >
+        <span className="flex items-center gap-2 font-medium text-textPrimary">
+          <BookOpen className="size-4 text-info" />
+          อ่านบทเรียนเต็ม — บทที่ {chapter.id}
+        </span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 text-textSecondary transition-transform duration-normal",
+            lessonOpen && "rotate-180"
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {lessonOpen ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 border-t border-border px-3.5 pb-3.5 pt-3">
+              <div>
+                <p className="font-heading text-sm font-semibold text-textPrimary">
+                  {chapter.title}
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-textSecondary">
+                  {chapter.summary}
+                </p>
+              </div>
+
+              {chapter.sections.map((section) => (
+                <div
+                  key={section.heading}
+                  className="rounded-md border border-border/70 bg-card p-3"
+                >
+                  <p className="text-sm font-semibold text-textPrimary">
+                    {section.heading}
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-textSecondary">
+                    {section.body}
+                  </p>
+                  {section.bulletPoints?.length ? (
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-textSecondary">
+                      {section.bulletPoints.map((point) => (
+                        <li key={point}>{point}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))}
+
+              <div className="rounded-md border border-info/30 bg-info/10 p-3">
+                <p className="text-xs font-semibold tracking-wide text-info">
+                  จุดที่ควรจำ
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-textPrimary">
+                  {chapter.keyTakeaways.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }
 

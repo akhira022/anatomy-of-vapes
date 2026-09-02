@@ -3,9 +3,11 @@
 **เวอร์ชัน:** v0.2.0 — Thai Mobile Learner  
 **แท็ก Git:** `v0.2.0`  
 **สาขาหลักของเวอร์ชันนี้:** `cursor/thai-mobile-learner-ux`  
-**เอกสารคู่กัน:** [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md)
+**เอกสารคู่กัน:** [PROJECT-GUIDE.md](./PROJECT-GUIDE.md) (ขั้นตอนทำเว็บทั้งระบบ) · [CHANGELOG.md](./CHANGELOG.md) · [SETUP.md](./SETUP.md)
 
 เอกสารนี้รวบรวมสิ่งที่ควรรู้เมื่อจะศึกษาหรือเขียนต่อเว็บนี้: เป้าหมาย ฟีเจอร์ สถาปัตยกรรม user journey workflow ปัญหาที่เจอและวิธีแก้
+
+> ถ้ายังไม่เคยทำเว็บนี้เลย เริ่มที่ **[PROJECT-GUIDE.md](./PROJECT-GUIDE.md)** ก่อน แล้วค่อยกลับมาอ่านคู่มือนี้เพื่อไล่โค้ดลึกขึ้น
 
 ---
 

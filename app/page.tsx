@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Box, ClipboardList, FlaskConical } from "lucide-react";
+import { Box, Bot, ClipboardList, FlaskConical } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { PartnerLogos } from "@/components/layout/PartnerLogos";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
+
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+const VIEWPORT = { once: true, margin: "-10%" } as const;
 
 const features = [
   {
@@ -23,6 +27,11 @@ const features = [
     icon: ClipboardList,
     title: "ทำแบบทดสอบ",
     description: "วัดความรู้ก่อนและหลังเรียน",
+  },
+  {
+    icon: Bot,
+    title: "ถาม AI ผู้ช่วย",
+    description: "ถามเรื่องส่วนประกอบ ผลเสีย กฎหมาย พร้อมอ้างอิงแหล่ง",
   },
 ] as const;
 
@@ -42,25 +51,28 @@ const learningSteps = [
 ] as const;
 
 export default function Home() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <header className="absolute inset-x-0 top-0 z-50 light:bg-gradient-to-b light:from-background light:via-background/80 light:to-transparent">
         <nav
           aria-label="หลัก"
-          className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6"
+          className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 xl:max-w-6xl"
         >
           <Link
             href="/"
-            className="font-heading text-sm font-semibold tracking-wide text-textPrimary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            title="ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้าอัจฉริยะ"
+            className="max-w-[min(72vw,20rem)] truncate font-heading text-xs font-semibold tracking-wide text-textPrimary transition-colors hover:text-primary sm:max-w-none sm:text-sm sm:whitespace-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            Anatomy of Vapes
+            ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้าอัจฉริยะ
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              href="/#contact"
-              className="hidden text-sm font-medium text-textPrimary/70 transition-colors hover:text-textPrimary sm:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              href="/#partners"
+              className="text-xs font-medium text-textPrimary/70 transition-colors hover:text-textPrimary sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              ติดต่อเรา
+              สนับสนุนโดย
             </Link>
             <ThemeToggle />
             <UserSessionMenu />
@@ -68,25 +80,48 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Hero />
 
         <section
           id="how-it-works"
           aria-labelledby="features-heading"
-          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20"
+          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20 xl:py-24"
         >
-          <div className="mx-auto max-w-5xl">
-            <h2
+          <div className="mx-auto max-w-5xl xl:max-w-6xl">
+            <motion.h2
               id="features-heading"
-              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl"
+              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl xl:text-4xl"
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={VIEWPORT}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { duration: 0.4, ease: EASE_OUT }
+              }
             >
               เรียนรู้ยังไง
-            </h2>
+            </motion.h2>
 
-            <ul className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
-              {features.map(({ icon: Icon, title, description }) => (
-                <li key={title} className="flex gap-4 sm:flex-col sm:gap-3">
+            <ul className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 sm:gap-8">
+              {features.map(({ icon: Icon, title, description }, index) => (
+                <motion.li
+                  key={title}
+                  className="flex gap-4 sm:flex-col sm:gap-3"
+                  initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={VIEWPORT}
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : {
+                          delay: Math.min(index * 0.1, 0.3),
+                          duration: 0.4,
+                          ease: EASE_OUT,
+                        }
+                  }
+                >
                   <Icon
                     className="mt-0.5 size-6 shrink-0 text-primary sm:size-7"
                     aria-hidden="true"
@@ -99,7 +134,7 @@ export default function Home() {
                       {description}
                     </p>
                   </div>
-                </li>
+                </motion.li>
               ))}
             </ul>
           </div>
@@ -107,35 +142,80 @@ export default function Home() {
 
         <section
           aria-labelledby="path-heading"
-          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20"
+          className="border-t border-border px-4 py-14 sm:px-6 sm:py-20 xl:py-24"
         >
-          <div className="mx-auto max-w-5xl">
-            <h2
+          <div className="mx-auto max-w-5xl xl:max-w-6xl">
+            <motion.h2
               id="path-heading"
-              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl"
+              className="font-heading text-2xl font-bold tracking-tight text-textPrimary sm:text-3xl xl:text-4xl"
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={VIEWPORT}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { duration: 0.4, ease: EASE_OUT }
+              }
             >
               เส้นทางผู้เรียน
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-textSecondary sm:text-base">
+            </motion.h2>
+            <motion.p
+              className="mt-3 max-w-2xl text-sm leading-relaxed text-textSecondary sm:text-base"
+              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={VIEWPORT}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { delay: 0.05, duration: 0.4, ease: EASE_OUT }
+              }
+            >
               เข้าสู่ระบบแล้วเรียนตามลำดับ — หลังจบครบทุกขั้น สามารถกลับมาดูโมเดลได้อีกทันที
-            </p>
+            </motion.p>
 
             <ol className="mt-10 space-y-8 border-l border-border pl-6 sm:pl-8">
               {learningSteps.map((step, index) => (
-                <li key={step.title} className="relative">
-                  <span
+                <motion.li
+                  key={step.title}
+                  className="relative"
+                  initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={VIEWPORT}
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : {
+                          delay: Math.min(index * 0.1, 0.3),
+                          duration: 0.4,
+                          ease: EASE_OUT,
+                        }
+                  }
+                >
+                  <motion.span
                     aria-hidden="true"
                     className="absolute -left-[1.9rem] top-1 flex size-6 items-center justify-center rounded-full border border-border bg-background font-heading text-xs font-semibold text-primary sm:-left-[2.4rem]"
+                    initial={reduceMotion ? false : { scale: 0.6, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    viewport={VIEWPORT}
+                    transition={
+                      reduceMotion
+                        ? { duration: 0 }
+                        : {
+                            delay: Math.min(index * 0.1, 0.3),
+                            duration: 0.35,
+                            ease: EASE_OUT,
+                          }
+                    }
                   >
                     {index + 1}
-                  </span>
+                  </motion.span>
                   <h3 className="font-heading text-base font-semibold text-textPrimary sm:text-lg">
                     {step.title}
                   </h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-textSecondary sm:text-base">
                     {step.description}
                   </p>
-                </li>
+                </motion.li>
               ))}
             </ol>
           </div>
@@ -143,9 +223,19 @@ export default function Home() {
 
         <section
           aria-labelledby="partners-heading"
-          className="border-t border-border px-4 py-14 sm:px-6 sm:py-16"
+          className="border-t border-border px-4 py-14 sm:px-6 sm:py-16 xl:py-20"
         >
-          <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
+          <motion.div
+            className="mx-auto flex max-w-5xl flex-col items-center text-center xl:max-w-6xl"
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={VIEWPORT}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { duration: 0.45, ease: EASE_OUT }
+            }
+          >
             <h2
               id="partners-heading"
               className="font-heading text-xl font-bold tracking-tight text-textPrimary sm:text-2xl"
@@ -156,7 +246,7 @@ export default function Home() {
               เครือข่ายสื่อสร้างสรรค์และส่งเสริมสุขภาพ
             </p>
             <PartnerLogos className="mt-8 max-w-3xl" density="section" />
-          </div>
+          </motion.div>
         </section>
       </main>
 

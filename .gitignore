@@ -43,3 +43,7 @@ next-env.d.ts
 
 # Meshy raw GLB backups (pre-simplify)
 /public/models/_raw/
+
+# Large local demo videos (keep out of git)
+/docs/video/*.mp4
+/docs/video/*.webm

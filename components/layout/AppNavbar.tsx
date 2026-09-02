@@ -10,16 +10,23 @@ interface AppNavbarProps {
   title?: string;
   showBack?: boolean;
   backHref?: string;
+  onBack?: () => void;
   rightSlot?: React.ReactNode;
+  showSessionMenu?: boolean;
   className?: string;
+  /** Extra classes for the inner nav row (e.g. wider max-width on xl). */
+  contentClassName?: string;
 }
 
 export function AppNavbar({
-  title = "Anatomy of Vapes",
+  title = "ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้าอัจฉริยะ",
   showBack = false,
   backHref = "/",
+  onBack,
   rightSlot,
+  showSessionMenu = true,
   className,
+  contentClassName,
 }: AppNavbarProps) {
   return (
     <header
@@ -28,16 +35,32 @@ export function AppNavbar({
         className
       )}
     >
-      <nav className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
+      <nav
+        className={cn(
+          "mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6",
+          contentClassName
+        )}
+      >
         <div className="flex min-w-0 items-center gap-2">
           {showBack ? (
-            <Link
-              href={backHref}
-              aria-label="ย้อนกลับ"
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
-            >
-              <ArrowLeft className="size-5" />
-            </Link>
+            onBack ? (
+              <button
+                type="button"
+                aria-label="ย้อนกลับ"
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
+                onClick={onBack}
+              >
+                <ArrowLeft className="size-5" />
+              </button>
+            ) : (
+              <Link
+                href={backHref}
+                aria-label="ย้อนกลับ"
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-textPrimary transition-colors hover:bg-surface"
+              >
+                <ArrowLeft className="size-5" />
+              </Link>
+            )
           ) : null}
           <span className="truncate font-heading text-base font-bold tracking-wide text-textPrimary sm:text-lg">
             {title}
@@ -45,7 +68,8 @@ export function AppNavbar({
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          {rightSlot ?? <UserSessionMenu />}
+          {rightSlot ??
+            (showSessionMenu ? <UserSessionMenu showNicknameOnMobile /> : null)}
         </div>
       </nav>
     </header>

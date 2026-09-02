@@ -4,10 +4,16 @@ import { useAppRouter } from "@/hooks/useAppRouter";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useQuizStore } from "@/store/useQuizStore";
+import { signOutLearner } from "@/lib/learner-auth";
 import { isLoggedIn } from "@/lib/phase";
 
-export function UserSessionMenu() {
+export function UserSessionMenu({
+  showNicknameOnMobile = false,
+}: {
+  showNicknameOnMobile?: boolean;
+}) {
   const router = useAppRouter();
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
@@ -18,6 +24,7 @@ export function UserSessionMenu() {
   }
 
   const handleLogout = () => {
+    void signOutLearner();
     logout();
     toast.success("ออกจากระบบแล้ว");
     router.replace("/");
@@ -25,7 +32,12 @@ export function UserSessionMenu() {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="hidden max-w-[8rem] truncate text-sm text-textSecondary sm:inline">
+      <span
+        className={cn(
+          "max-w-[5.5rem] truncate text-xs text-textSecondary sm:max-w-[8rem] sm:text-sm",
+          !showNicknameOnMobile && "hidden sm:inline"
+        )}
+      >
         {nickname}
       </span>
       <Button

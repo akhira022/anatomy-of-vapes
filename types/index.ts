@@ -7,11 +7,23 @@ export type Grade =
   | "นักศึกษา"
   | "อื่นๆ";
 
+/** ช่วงอายุ */
+export type AgeRange = "13-15" | "16-18" | "19-24" | "25+";
+
+/** ประเภทผู้ใช้ */
+export type UserType = "member" | "guest";
+
+/** ประเภท flow ผลคะแนน */
+export type FlowType = "full" | "guest";
+
 /** ข้อมูลผู้ใช้ */
 export interface User {
   id?: string;
   nickname: string;
   grade: Grade;
+  ageRange?: AgeRange;
+  userType?: UserType;
+  email?: string;
   createdAt?: string;
 }
 
@@ -69,6 +81,8 @@ export interface HotspotData {
   id: string;
   chapter: number;
   label: string;
+  /** ชื่อส่วนของบุหรี่ไฟฟ้าบนโมเดล เช่น ที่สูบ แท้งก์ */
+  partLabel?: string;
   description: string;
   position: HotspotPosition;
   /** ชื่อ mesh/part บนโมเดล — position เป็น offset จากศูนย์กลางชิ้นนี้ */
@@ -83,4 +97,5 @@ export type AppPhase =
   | "pretest"
   | "anatomy"
   | "posttest"
-  | "result";
+  | "result"
+  | "guest_complete";

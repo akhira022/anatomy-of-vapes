@@ -1,32 +1,173 @@
 import {
   getSupabase,
   isSupabaseConfigured,
+  type DbAgeRange,
+  type DbFlowType,
   type DbGrade,
   type DbQuizType,
+  type DbUserType,
 } from "@/lib/supabase";
+import {
+  isNetworkFailure,
+  normalizeDbError,
+  offlineSessionMessage,
+} from "@/lib/db-errors";
 import type { QuizAnswer } from "@/types";
+
+async function runDb<T>(fn: () => Promise<T>): Promise<T | { error: string }> {
+  try {
+    return await fn();
+  } catch (err) {
+    return { error: normalizeDbError(err) };
+  }
+}
 
 export async function createUser(input: {
   nickname: string;
   grade: DbGrade;
+  email?: string;
+  id?: string;
+  ageRange?: DbAgeRange;
+  userType?: DbUserType;
 }): Promise<{ id: string } | { error: string }> {
   const supabase = getSupabase();
   if (!supabase) {
     return { id: `local-${crypto.randomUUID()}` };
   }
 
-  // Client-generated id avoids INSERT…RETURNING which needs SELECT grant on anon.
-  const id = crypto.randomUUID();
-  const { error } = await supabase.from("users").insert({
-    id,
-    nickname: input.nickname,
-    grade: input.grade,
+  const result = await runDb(async () => {
+    const id = input.id ?? crypto.randomUUID();
+    const { error } = await supabase.from("users").insert({
+      id,
+      nickname: input.nickname,
+      grade: input.grade,
+      user_type: input.userType ?? "member",
+      ...(input.email ? { email: input.email.trim().toLowerCase() } : {}),
+      ...(input.ageRange ? { age_range: input.ageRange } : {}),
+    });
+
+    if (error) throw new Error(error.message);
+    return { id };
   });
 
-  if (error) {
-    return { error: error.message };
+  if (result && typeof result === "object" && "error" in result) {
+    if (isNetworkFailure(result.error)) {
+      return { id: `local-${crypto.randomUUID()}` };
+    }
+    return result;
   }
-  return { id };
+
+  return result as { id: string };
+}
+
+export type LearnerProfile = {
+  id: string;
+  nickname: string;
+  grade: DbGrade;
+  email?: string | null;
+  ageRange?: DbAgeRange | null;
+  userType?: DbUserType;
+};
+
+async function mapLearnerRpcRow(
+  row: Record<string, unknown> | null | undefined
+): Promise<LearnerProfile | null> {
+  if (!row?.id) return null;
+  return {
+    id: row.id as string,
+    nickname: row.nickname as string,
+    grade: row.grade as DbGrade,
+    email: (row.email as string | null | undefined) ?? null,
+    ageRange: (row.age_range as DbAgeRange | null | undefined) ?? null,
+    userType: (row.user_type as DbUserType | undefined) ?? "member",
+  };
+}
+
+export async function findUserByEmail(
+  email: string
+): Promise<LearnerProfile | { error: string } | null> {
+  const trimmed = email.trim();
+  if (!trimmed) return null;
+
+  if (!isSupabaseConfigured()) {
+    return { error: offlineSessionMessage() };
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { error: "เชื่อมต่อฐานข้อมูลไม่สำเร็จ" };
+  }
+
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("find_learner_by_email", {
+      p_email: trimmed,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) {
+        return { error: offlineSessionMessage() };
+      }
+      if (
+        error.message.includes("find_learner_by_email") ||
+        error.code === "PGRST202"
+      ) {
+        return {
+          error:
+            "ยังไม่ได้รัน migration อีเมล — รัน supabase/migrations/006_learner_email.sql",
+        };
+      }
+      return { error: error.message };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    return mapLearnerRpcRow(row as Record<string, unknown>);
+  });
+
+  if (result && "error" in result) return result;
+  return result as LearnerProfile | null;
+}
+
+export async function findUserById(
+  userId: string
+): Promise<LearnerProfile | { error: string } | null> {
+  if (!userId) return null;
+
+  if (!isSupabaseConfigured()) {
+    return { error: offlineSessionMessage() };
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { error: "เชื่อมต่อฐานข้อมูลไม่สำเร็จ" };
+  }
+
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("find_learner_by_id", {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) {
+        return { error: offlineSessionMessage() };
+      }
+      if (
+        error.message.includes("find_learner_by_id") ||
+        error.code === "PGRST202"
+      ) {
+        return {
+          error:
+            "ยังไม่ได้รัน migration อีเมล — รัน supabase/migrations/006_learner_email.sql",
+        };
+      }
+      return { error: error.message };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    return mapLearnerRpcRow(row as Record<string, unknown>);
+  });
+
+  if (result && "error" in result) return result;
+  return result as LearnerProfile | null;
 }
 
 export async function findUserByNickname(
@@ -40,10 +181,7 @@ export async function findUserByNickname(
   if (!trimmed) return null;
 
   if (!isSupabaseConfigured()) {
-    return {
-      error:
-        "โหมดออฟไลน์ — session ถูกเก็บในเครื่องนี้แล้ว หากออกจากระบบแล้วให้ลงทะเบียนใหม่",
-    };
+    return { error: offlineSessionMessage() };
   }
 
   const supabase = getSupabase();
@@ -51,31 +189,42 @@ export async function findUserByNickname(
     return { error: "เชื่อมต่อฐานข้อมูลไม่สำเร็จ" };
   }
 
-  const { data, error } = await supabase.rpc("find_learner_by_nickname", {
-    p_nickname: trimmed,
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("find_learner_by_nickname", {
+      p_nickname: trimmed,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) {
+        return { error: offlineSessionMessage() };
+      }
+      if (
+        error.message.includes("find_learner_by_nickname") ||
+        error.code === "PGRST202"
+      ) {
+        return {
+          error:
+            "ยังไม่ได้รัน migration login — รัน supabase/migrations/005_learner_rpcs.sql",
+        };
+      }
+      return { error: error.message };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row?.id) return null;
+
+    return {
+      id: row.id as string,
+      nickname: row.nickname as string,
+      grade: row.grade as DbGrade,
+    };
   });
 
-  if (error) {
-    if (
-      error.message.includes("find_learner_by_nickname") ||
-      error.code === "PGRST202"
-    ) {
-      return {
-        error:
-          "ยังไม่ได้รัน migration login — รัน supabase/migrations/005_learner_rpcs.sql",
-      };
-    }
-    return { error: error.message };
-  }
-
-  const row = Array.isArray(data) ? data[0] : data;
-  if (!row?.id) return null;
-
-  return {
-    id: row.id as string,
-    nickname: row.nickname as string,
-    grade: row.grade as DbGrade,
-  };
+  if (result && "error" in result) return result;
+  return result as
+    | { id: string; nickname: string; grade: DbGrade }
+    | null
+    | { error: string };
 }
 
 export async function saveConsent(
@@ -89,12 +238,20 @@ export async function saveConsent(
   const supabase = getSupabase();
   if (!supabase) return { ok: true };
 
-  const { error } = await supabase.from("consent").insert({
-    user_id: userId,
-    accepted,
+  const result = await runDb(async () => {
+    const { error } = await supabase.from("consent").insert({
+      user_id: userId,
+      accepted,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) return { ok: true as const };
+      return { error: error.message };
+    }
+    return { ok: true as const };
   });
 
-  if (error) return { error: error.message };
+  if (result && "error" in result) return result;
   return { ok: true };
 }
 
@@ -122,22 +279,31 @@ export async function hasQuizResult(
   const supabase = getSupabase();
   if (!supabase) return false;
 
-  const { data, error } = await supabase.rpc("learner_has_quiz_result", {
-    p_user_id: userId,
+  const result = await runDb(async () => {
+    const { data, error } = await supabase.rpc("learner_has_quiz_result", {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      if (isNetworkFailure(error.message)) return false;
+      if (
+        error.message.includes("learner_has_quiz_result") ||
+        error.code === "PGRST202"
+      ) {
+        return false;
+      }
+      throw new Error(error.message);
+    }
+
+    return Boolean(data);
   });
 
-  if (error) {
-    if (
-      error.message.includes("learner_has_quiz_result") ||
-      error.code === "PGRST202"
-    ) {
-      // RPC not installed yet — allow save rather than blocking the learner flow.
-      return false;
-    }
-    return { error: error.message };
+  if (result && typeof result === "object" && "error" in result) {
+    if (isNetworkFailure(result.error)) return false;
+    return result;
   }
 
-  return Boolean(data);
+  return result as boolean;
 }
 
 export async function saveQuizResult(input: {
@@ -148,6 +314,7 @@ export async function saveQuizResult(input: {
   postTotal?: number;
   preAnswers?: QuizAnswer[];
   postAnswers?: QuizAnswer[];
+  flowType?: DbFlowType;
 }): Promise<{ id: string; skipped?: boolean } | { error: string }> {
   if (input.userId.startsWith("local-") || !isSupabaseConfigured()) {
     return { id: `local-result-${crypto.randomUUID()}` };
@@ -167,6 +334,7 @@ export async function saveQuizResult(input: {
   }
 
   const resultId = crypto.randomUUID();
+  const flowType = input.flowType ?? "full";
   const { error } = await supabase.from("quiz_results").insert({
     id: resultId,
     user_id: input.userId,
@@ -174,6 +342,7 @@ export async function saveQuizResult(input: {
     post_score: input.postScore,
     pre_total: input.preTotal ?? 5,
     post_total: input.postTotal ?? 5,
+    flow_type: flowType,
   });
 
   if (error) {
@@ -198,11 +367,34 @@ export async function saveQuizResult(input: {
   return { id: resultId };
 }
 
+/** Persist guest pretest-only result (no post-test). */
+export async function saveGuestPretestResult(input: {
+  userId: string;
+  preScore: number;
+  preTotal?: number;
+  preAnswers?: QuizAnswer[];
+}): Promise<{ id: string; skipped?: boolean } | { error: string }> {
+  return saveQuizResult({
+    userId: input.userId,
+    preScore: input.preScore,
+    postScore: 0,
+    preTotal: input.preTotal ?? 5,
+    postTotal: 0,
+    preAnswers: input.preAnswers ?? [],
+    postAnswers: [],
+    flowType: "guest",
+  });
+}
+
 export interface AdminResultRow {
   id: string;
   user_id: string;
   nickname: string;
+  email: string | null;
   grade: string;
+  age_range: string | null;
+  user_type: string;
+  flow_type: string;
   pre_score: number;
   post_score: number;
   improvement: number;
@@ -255,7 +447,11 @@ export async function getAdminStats(): Promise<
     id: r.id as string,
     user_id: r.user_id as string,
     nickname: (r.nickname as string) ?? "-",
+    email: (r.email as string | null) ?? null,
     grade: (r.grade as string) ?? "-",
+    age_range: (r.age_range as string | null) ?? null,
+    user_type: (r.user_type as string) ?? "member",
+    flow_type: (r.flow_type as string) ?? "full",
     pre_score: r.pre_score as number,
     post_score: r.post_score as number,
     improvement: r.improvement as number,
@@ -268,21 +464,26 @@ export async function getAdminStats(): Promise<
 }
 
 function summarize(totalUsers: number, results: AdminResultRow[]): AdminStats {
-  const n = results.length || 1;
+  const fullResults = results.filter((r) => r.flow_type !== "guest" && r.post_total > 0);
+  const nFull = fullResults.length || 1;
+  const nPre = results.length || 1;
   const avgPreScore =
     results.reduce((s, r) => s + (r.pre_score / r.pre_total) * 100, 0) /
-    (results.length ? n : 1);
+    (results.length ? nPre : 1);
   const avgPostScore =
-    results.reduce((s, r) => s + (r.post_score / r.post_total) * 100, 0) /
-    (results.length ? n : 1);
+    fullResults.reduce((s, r) => s + (r.post_score / r.post_total) * 100, 0) /
+    (fullResults.length ? nFull : 1);
   const avgImprovement =
-    results.reduce((s, r) => s + r.improvement, 0) / (results.length ? n : 1);
+    fullResults.reduce((s, r) => s + r.improvement, 0) /
+    (fullResults.length ? nFull : 1);
 
   return {
     totalUsers,
     avgPreScore: results.length ? Math.round(avgPreScore) : 0,
-    avgPostScore: results.length ? Math.round(avgPostScore) : 0,
-    avgImprovement: results.length ? Math.round(avgImprovement * 10) / 10 : 0,
+    avgPostScore: fullResults.length ? Math.round(avgPostScore) : 0,
+    avgImprovement: fullResults.length
+      ? Math.round(avgImprovement * 10) / 10
+      : 0,
     results,
   };
 }

@@ -23,7 +23,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       size="icon"
       aria-label={isLight ? "สลับเป็นธีมมืด" : "สลับเป็นธีมสว่าง"}
       title={isLight ? "ธีมมืด" : "ธีมสว่าง"}
-      className={cn("size-10 rounded-lg text-textPrimary", className)}
+      className={cn("size-11 rounded-lg text-textPrimary", className)}
       onClick={(event) => {
         toggleTheme({ x: event.clientX, y: event.clientY });
       }}

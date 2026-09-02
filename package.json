@@ -1,17 +1,26 @@
 {
   "name": "anatomy-of-vapes",
-  "version": "0.2.0",
+  "version": "0.3.2",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
     "dev:mobile": "node scripts/print-mobile-url.mjs && next dev -H 0.0.0.0 -p 3001",
     "mobile:url": "node scripts/print-mobile-url.mjs",
+    "tunnel": "npx --yes cloudflared tunnel --url http://127.0.0.1:3001",
     "build": "next build",
+    "prebuild": "npm run build:knowledge",
+    "build:knowledge": "npx --yes tsx scripts/build-knowledge-index.ts",
+    "test:retrieve": "npx --yes tsx scripts/test-retrieve.ts",
+    "test:chat": "npx --yes tsx scripts/test-chat-api.ts",
+    "doctor:gemini": "npx --yes tsx scripts/doctor-gemini.ts",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "record:preview": "node scripts/record-preview.mjs",
+    "record:intro": "node scripts/record-intro.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@google/genai": "^2.19.0",
     "@hookform/resolvers": "^5.7.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.7.0",
@@ -21,6 +30,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
     "lucide-react": "^1.28.0",
+    "motion": "^12.43.0",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -41,7 +51,9 @@
     "@types/three": "^0.185.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "ffmpeg-static": "^5.2.0",
     "pg": "^8.22.0",
+    "playwright": "^1.62.1",
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
     "typescript": "^5"
