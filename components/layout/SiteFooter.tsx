@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
 import { PartnerLogos } from "@/components/layout/PartnerLogos";
 
 const exploreLinks = [
   { href: "/register", label: "เริ่มเรียนรู้" },
   { href: "/login", label: "เข้าสู่ระบบ" },
   { href: "/#how-it-works", label: "เรียนรู้ยังไง" },
-  { href: "/#contact", label: "ติดต่อเรา" },
 ] as const;
 
 const aboutLinks = [
@@ -15,13 +13,13 @@ const aboutLinks = [
   { href: "/admin/login", label: "สำหรับผู้ดูแล" },
 ] as const;
 
-/** Draft placeholders — replace with confirmed partner contacts before launch. */
-const contactDraft = {
-  email: "contact@anatomyofvapes.example",
-  phone: "02-000-0000",
-  address: "กรุงเทพฯ (ที่อยู่รออัปเดต)",
-  note: "ข้อมูลติดต่อเป็นร่างชั่วคราว — จะอัปเดตเมื่อได้รายละเอียดจากพันธมิตรโครงการ",
-} as const;
+const partnerNames = [
+  "คิดดี iDOL",
+  "ยกกำลังสุข · Sook Enterprise",
+  "ศูนย์สร้างสรรค์สื่อเพื่อเด็กเยาวชนและครอบครัว",
+  "สสส. สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ",
+  "วิทยาลัยเทคนิคพัทลุง",
+] as const;
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -36,10 +34,6 @@ export function SiteFooter() {
           <p className="mt-2 text-sm leading-relaxed text-textSecondary">
             ส่องไส้ในบุหรี่ไฟฟ้า — สำรวจส่วนประกอบและสารพิษผ่านโมเดล 3 มิติ
           </p>
-          <p className="mt-6 text-xs font-medium tracking-wide text-textSecondary">
-            สนับสนุนโดย
-          </p>
-          <PartnerLogos className="mt-3" density="footer" />
         </div>
 
         <nav aria-labelledby="footer-explore" className="md:col-span-2">
@@ -84,46 +78,16 @@ export function SiteFooter() {
           </ul>
         </nav>
 
-        <div className="md:col-span-4" id="contact">
+        <div className="md:col-span-4" id="partners">
           <h2 className="font-heading text-sm font-semibold text-textPrimary">
-            ติดต่อเรา
+            สนับสนุนโดย
           </h2>
-          <p className="mt-2 text-xs leading-relaxed text-warning">
-            {contactDraft.note}
-          </p>
-          <ul className="mt-4 space-y-3 text-sm text-textSecondary">
-            <li className="flex items-start gap-2.5">
-              <Mail
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              <a
-                href={`mailto:${contactDraft.email}`}
-                className="transition-colors hover:text-textPrimary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {contactDraft.email}
-              </a>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <Phone
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              <a
-                href={`tel:${contactDraft.phone.replace(/-/g, "")}`}
-                className="transition-colors hover:text-textPrimary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {contactDraft.phone}
-              </a>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <MapPin
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              <span>{contactDraft.address}</span>
-            </li>
+          <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-textSecondary">
+            {partnerNames.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
           </ul>
+          <PartnerLogos className="mt-4" density="footer" />
         </div>
       </div>
 
@@ -136,6 +100,9 @@ export function SiteFooter() {
             โครงการสื่อการเรียนรู้เพื่อส่งเสริมสุขภาพเยาวชน
           </p>
         </div>
+        <p className="mx-auto mt-3 max-w-5xl text-center text-[10px] leading-relaxed text-textDisabled/60">
+          พัฒนาโดย นักศึกษาวิทยาลัยเทคนิคพัทลุง สาขาเทคโนโลยีสารสนเทศ
+        </p>
       </div>
     </footer>
   );

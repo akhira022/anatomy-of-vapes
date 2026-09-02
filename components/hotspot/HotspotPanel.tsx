@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import type { HotspotContent } from "@/data/hotspots";
+import { hotspotTitles } from "@/lib/hotspot-display";
 import { cn } from "@/lib/utils";
 
 interface HotspotPanelProps {
@@ -17,6 +18,8 @@ export function HotspotPanel({
   total,
   className,
 }: HotspotPanelProps) {
+  const titles = hotspot ? hotspotTitles(hotspot) : null;
+
   return (
     <div
       className={cn(
@@ -33,8 +36,13 @@ export function HotspotPanel({
         ) : null}
       </div>
       <h3 className="mt-2 font-heading text-lg font-semibold text-textPrimary">
-        {hotspot?.label ?? "เลือกจุดบนโมเดล"}
+        {titles?.primary ?? "เลือกจุดบนโมเดล"}
       </h3>
+      {titles?.secondary ? (
+        <p className="mt-0.5 text-sm font-medium text-textSecondary">
+          {titles.secondary}
+        </p>
+      ) : null}
       <p className="mt-1 text-sm leading-relaxed text-textSecondary">
         {hotspot?.description ??
           "แตะจุดสีแดงเพื่อดูข้อมูลสารพิษแบบสั้นๆ"}

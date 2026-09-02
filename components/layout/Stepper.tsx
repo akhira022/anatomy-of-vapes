@@ -2,25 +2,37 @@
 
 import { cn } from "@/lib/utils";
 
-const steps = [
+const fullSteps = [
   { id: "pretest", label: "ก่อนเรียน" },
   { id: "anatomy", label: "สำรวจ 3D" },
   { id: "posttest", label: "หลังเรียน" },
 ] as const;
 
+const guestSteps = [
+  { id: "pretest", label: "ก่อนเรียน" },
+  { id: "anatomy", label: "สำรวจ 3D" },
+] as const;
+
 interface StepperProps {
-  current: "pretest" | "anatomy" | "posttest" | "result";
+  current: "pretest" | "anatomy" | "posttest" | "result" | "guest_complete";
+  variant?: "full" | "guest";
   className?: string;
 }
 
-export function Stepper({ current, className }: StepperProps) {
+export function Stepper({
+  current,
+  variant = "full",
+  className,
+}: StepperProps) {
+  const steps = variant === "guest" ? guestSteps : fullSteps;
   const activeIndex =
-    current === "result"
+    current === "result" || current === "guest_complete"
       ? steps.length
       : steps.findIndex((s) => s.id === current);
 
   return (
     <ol
+      aria-label="ขั้นตอนการเรียน"
       className={cn(
         "flex w-full items-start justify-start gap-6 text-xs sm:gap-8 sm:text-sm",
         className
@@ -30,7 +42,11 @@ export function Stepper({ current, className }: StepperProps) {
         const done = index < activeIndex;
         const active = index === activeIndex;
         return (
-          <li key={step.id} className="flex flex-col items-start gap-1.5">
+          <li
+            key={step.id}
+            className="flex flex-col items-start gap-1.5"
+            aria-current={active ? "step" : undefined}
+          >
             <span
               className={cn(
                 "size-2.5 rounded-full transition-all duration-normal sm:size-3",

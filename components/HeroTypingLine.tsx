@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useReducedMotion } from "framer-motion";
 
 const PHRASES = [
   "สำรวจส่วนประกอบและสารพิษผ่านโมเดล 3 มิติแบบอินเทอร์แอกทีฟ",
-  "นิโคตินในบุหรี่ไฟฟ้าเสพติดได้เร็วและแรง",
-  "สารเคมีในไอระเหยอาจทำร้ายปอดและหัวใจ",
-  "กลิ่นผลไม้ไม่ได้แปลว่าปลอดภัยกว่า",
-  "โลหะหนักจากคอยล์อาจปนเปื้อนในควันไอ",
-  "รู้เท่าทันส่วนประกอบ ป้องกันตัวเองได้ดีขึ้น",
+  "ไอจากบุหรี่ไฟฟ้าไม่ใช่ไอน้ำบริสุทธิ์ — มีนิโคตินและสารเคมีปนอยู่",
+  "นิโคตินรบกวนพัฒนาการสมองวัยรุ่นด้านความจำและสมาธิ",
+  "กลิ่นผลไม้ไม่ได้แปลว่าปลอดภัยเมื่อสูดเข้าปอด",
+  "คอยล์ร้อนจัดอาจสร้างสารพิษอย่างฟอร์มาลดีไฮด์",
+  "รู้เท่าทันส่วนประกอบ เลือกหลีกเลี่ยงได้ดีขึ้น",
 ] as const;
 
 const TYPING_MS = 42;
@@ -17,16 +17,24 @@ const DELETING_MS = 24;
 const HOLD_MS = 2200;
 const GAP_MS = 380;
 
-export function HeroTypingLine() {
+type HeroTypingLineProps = {
+  className?: string;
+};
+
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
+export function HeroTypingLine({ className }: HeroTypingLineProps) {
   const reduceMotion = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [charCount, setCharCount] = useState(PHRASES[0].length);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!mounted || reduceMotion) return;
@@ -51,10 +59,11 @@ export function HeroTypingLine() {
     return () => clearTimeout(timeoutId);
   }, [charCount, isDeleting, phraseIndex, reduceMotion, mounted]);
 
-  // SSR + first client paint: static phrase (avoids hydration mismatch).
   if (!mounted || reduceMotion) {
     return (
-      <p className="hero-copy-readable mt-4 max-w-md text-base leading-relaxed text-textSecondary light:text-textPrimary/85 sm:text-lg">
+      <p
+        className={`hero-copy-readable max-w-md text-left text-base leading-relaxed text-textSecondary light:text-textPrimary/85 sm:text-lg ${className ?? "mt-4"}`}
+      >
         {PHRASES[0]}
       </p>
     );
@@ -64,7 +73,7 @@ export function HeroTypingLine() {
 
   return (
     <p
-      className="hero-copy-readable mt-4 flex min-h-[3.25rem] max-w-md items-start justify-center text-base leading-relaxed text-textSecondary light:text-textPrimary/85 sm:text-lg"
+      className={`hero-copy-readable flex min-h-[3.25rem] max-w-md items-start justify-start text-left text-base leading-relaxed text-textSecondary light:text-textPrimary/85 sm:text-lg ${className ?? "mt-4"}`}
       aria-live="polite"
     >
       <span>

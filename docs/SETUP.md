@@ -1,5 +1,7 @@
 # Anatomy of Vapes — Supabase setup
 
+คู่มือขั้นตอนทั้งโปรเจกต์ (UX/UI → หน้า → DB → Deploy): **[PROJECT-GUIDE.md](./PROJECT-GUIDE.md)**
+
 ## Checklist (โปรเจกต์ใหม่)
 
 1. [ ] สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com) (แนะนำ region Singapore)
@@ -76,28 +78,42 @@ node scripts/apply-supabase-migration.mjs
 7. [ ] Login `/admin/login` แล้วเห็นสถิติ + ตารางผล
 8. [ ] กด Export CSV ได้
 
-## 5. Placeholders to replace later
+## 5. Content & assets
 
-- Quiz copy: `data/quiz-questions.ts`
-- Hotspot copy: `data/hotspots.ts`
-- Myth vs Fact: `data/myths.ts`
+เนื้อหาเรียนใน `data/` (quiz / hotspot / myth) และรายการอ้างอิงใน `data/sources.ts` ถูกแทนด้วยข้อความที่รีเสิร์ชจาก WHO / CDC / ACS / ALA / กรมควบคุมโรค / สสส. แล้ว — ให้ทีมเนื้อหาหรือหน่วยงานพันธมิตรตรวจยืนยันก่อนแคมเปญอย่างเป็นทางการ
+
+ยังอาจต้องอัปเดตสินทรัพย์ 3D ถ้ามีเวอร์ชันสุดท้าย:
+
 - 3D model parts: `public/models/mouthpiece.glb`, `coilTank.glb`, `battery.glb` (loaded in `components/three/VapeModel.tsx`)
 
-## 5.1 ทดสอบบนมือถือจริง (LAN)
+## 5.1 ทดสอบบนมือถือจริง
 
-1. มือถือและ PC ต่อ **Wi‑Fi เดียวกัน** (ปิด VPN ชั่วคราว)
-2. หยุด `npm run dev` เดิม แล้วรัน:
+คู่มือเต็ม (LAN + Cloudflare Tunnel): **[MOBILE-TUNNEL.md](./MOBILE-TUNNEL.md)**
+
+### แนะนำ — Cloudflare Tunnel (ข้าม Firewall ได้)
+
+เทอร์มินัล 1:
 
 ```bash
 npm run dev:mobile
 ```
 
-3. ดู URL ที่พิมพ์ในคอนโซล (หรือรัน `npm run mobile:url` แยก)
-4. เปิดลิงก์ `http://192.168.x.x:3000` ใน Safari / Chrome บนมือถือ
+เทอร์มินัล 2:
 
-ถ้าเปิดไม่ได้: Windows → Firewall → Allow an app → Node.js หรือเปิดพอร์ต **3000** TCP ขาเข้า
+```bash
+npm run tunnel
+```
 
-Supabase ใช้ URL บน cloud อยู่แล้ว — ไม่ต้องแก้ `.env.local` สำหรับ LAN (ต่างจาก localhost API)
+เปิดลิงก์ `https://….trycloudflare.com` ที่พิมพ์ในคอนโซลบนมือถือ
+
+### สำรอง — LAN
+
+1. มือถือและ PC ต่อ **Wi‑Fi เดียวกัน** (ปิด VPN ชั่วคราว)
+2. รัน `npm run dev:mobile` แล้วเปิด `http://192.168.x.x:3001`
+
+ถ้าเปิดไม่ได้: อนุญาตพอร์ต **3001** ใน Firewall หรือใช้ tunnel ด้านบน
+
+Supabase ใช้ URL บน cloud อยู่แล้ว — ไม่ต้องแก้ `.env.local` สำหรับ LAN / tunnel
 
 ## 6. Deploy (Vercel)
 

@@ -36,9 +36,9 @@ const HEIGHT_FACTOR = {
 
 /** Extra gap only when exploded. */
 const EXPLODE_GAP = {
-  mouthpiece: 0.42,
+  mouthpiece: 0.58,
   coilTank: 0,
-  battery: -0.42,
+  battery: -0.58,
 } as const;
 
 type PartKey = keyof typeof HEIGHT_FACTOR;
@@ -112,15 +112,17 @@ function tuneMaterials(root: Object3D, castShadows: boolean, lite: boolean) {
     for (const mat of asMaterials(mesh.material)) {
       const m = mat as TunableMaterial;
 
+      // Keep normal + roughness maps even on lite — stripping them makes
+      // Meshy meshes look faceted/"broken". Textures are already decoded.
       if (lite) {
-        // Drop expensive maps only — keep baseColor + emissiveMap for correct color.
-        if (m.normalMap) m.normalMap = null;
         if (m.metalnessMap) m.metalnessMap = null;
-        if (m.roughnessMap) m.roughnessMap = null;
         if (m.aoMap) m.aoMap = null;
-        if (typeof m.metalness === "number") m.metalness = Math.min(m.metalness, 0.35);
-        if (typeof m.roughness === "number") m.roughness = Math.max(m.roughness, 0.5);
-        if (typeof m.envMapIntensity === "number") m.envMapIntensity = 0.1;
+        if (typeof m.envMapIntensity === "number") m.envMapIntensity = 0.22;
+      }
+
+      for (const tex of [m.map, m.normalMap, m.roughnessMap, m.emissiveMap]) {
+        if (!tex) continue;
+        if (tex.anisotropy < 8) tex.anisotropy = 8;
       }
 
       // Critical: never leave white emissive without a working map.
@@ -341,6 +343,7 @@ export function VapeModel({
                 key={hs.id}
                 id={hs.id}
                 label={hs.label}
+                partLabel={hs.partLabel}
                 position={[
                   hs.position.x,
                   yOf(part) + hs.position.y,

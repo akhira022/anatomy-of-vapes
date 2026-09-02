@@ -1,11 +1,51 @@
 # Changelog — Anatomy of Vapes / ส่องไส้ใน
 
+## v0.3.2 — Large-screen touch layout (2026-08-29)
+
+### สิ่งที่ได้
+
+- Learner flow ปรับ layout ที่ `xl` (≥1280px) สำหรับ All-in-one / จอทัชใหญ่
+- Anatomy: สองคอลัมน์ — โมเดล 3D สูงเต็มพื้นที่ + แผง hotspot/CTA ขวา
+- Register / login / quiz / result: ฟอร์มกว้างขึ้น ตัวอักษรและ touch target ใหญ่ขึ้น
+- Landing + chat drawer/FAB จัดตำแหน่งบนจอใหญ่
+- ยังไม่มี `/kiosk` แยก — ใช้ URL ผู้เรียนเดิม
+
+---
+
+## v0.3.1 — A11y + Chat Streaming (2026-08-29)
+
+### สิ่งที่ได้
+
+- Sync ขอบเขตใน PROJECT-GUIDE กับ PRODUCT.md (AI chat อยู่ใน MVP)
+- Accessibility pass: contrast รอง, touch target ≥44px, skip link, chat focus trap / Escape
+- Chat streaming แบบ NDJSON (`stream: true`) + typewriter สำหรับ local RAG
+- ทดสอบสตรีมใน `npm run test:chat`
+
+---
+
+## v0.3.0 — AI RAG Chat (2026-08-29)
+
+ชื่อฟีเจอร์: **AI ผู้ช่วยเรียนรู้ (Knowledge Assistant)**  
+คู่มือสถาปัตยกรรมเต็ม: [CHATBOT-RAG-GUIDE.md](./CHATBOT-RAG-GUIDE.md)
+
+### สิ่งที่ได้
+
+- RAG chatbot ภาษาไทย (101 knowledge chunks)
+- Chat widget (FAB + drawer) + quick prompts + citations
+- Deep link ไป hotspot 3D
+- Guardrails (นอกเรื่อง / ข้อสอบ / rate limit)
+- Gemini + OpenRouter + local RAG fallback
+- คำสั่ง: `build:knowledge`, `test:retrieve`, `test:chat`, `doctor:gemini`
+
+---
+
 ## v0.2.0 — Thai Mobile Learner (2026-08-06)
 
 ชื่อเวอร์ชัน: **Thai Mobile Learner**  
 แท็ก Git: `v0.2.0`  
 สาขา: `cursor/thai-mobile-learner-ux`  
-คู่มือศึกษาทั้งระบบ: [STUDY-GUIDE-v0.2.0.md](./STUDY-GUIDE-v0.2.0.md)
+คู่มือศึกษาทั้งระบบ: [STUDY-GUIDE-v0.2.0.md](./STUDY-GUIDE-v0.2.0.md)  
+คู่มือขั้นตอนทำเว็บตั้งแต่ต้นจน deploy: [PROJECT-GUIDE.md](./PROJECT-GUIDE.md)
 
 เวอร์ชันนี้โฟกัสผู้เรียนไทยบนมือถือ: flow ครบ, 3D ใช้งานจริง, Supabase learner, และแก้บัคที่เจอระหว่างทดสอบบนเครื่องจริง
 

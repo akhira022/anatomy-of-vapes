@@ -39,8 +39,18 @@ import {
   HINT_STORAGE_KEY,
 } from "@/components/three/AnatomyTutorialOverlay";
 import { ModelReadySignal } from "@/components/three/ModelReadySignal";
+import { hotspotTitles } from "@/lib/hotspot-display";
 
 const IDLE_RESUME_MS = 2500;
+
+function readShowHint(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(HINT_STORAGE_KEY) !== "1";
+  } catch {
+    return true;
+  }
+}
 
 interface OrbitControlsHandle {
   reset: () => void;
@@ -102,13 +112,26 @@ export function VapeScene({
   const idleTimerRef = useRef<number | null>(null);
   const { isFullscreen, cssFullscreen, toggle: toggleFullscreen, enter } =
     useSceneFullscreen(rootRef);
-  const [showHint, setShowHint] = useState(false);
+  const [showHint, setShowHint] = useState(readShowHint);
   const [modelLoading, setModelLoading] = useState(true);
   const [userInteracting, setUserInteracting] = useState(false);
-  const [dpr, setDpr] = useState<[number, number]>([1, 1.25]);
-  const onModelReady = useCallback(() => setModelLoading(false), []);
+  /** Ignore stray WebGL taps after tutorial/model teardown (click-through). */
+  const ignoreHotspotUntilRef = useRef(0);
+  const onModelReady = useCallback(() => {
+    setModelLoading(false);
+    ignoreHotspotUntilRef.current = performance.now() + 700;
+  }, []);
+  const handleSceneHotspotClick = useCallback(
+    (id: string) => {
+      if (performance.now() < ignoreHotspotUntilRef.current) return;
+      onHotspotClick(id);
+    },
+    [onHotspotClick]
+  );
   const reduceMotion = useReducedMotion();
   const lite = usePreferLite3D();
+  const defaultDpr: [number, number] = lite ? [1, 1.25] : [1, 1.75];
+  const [dpr, setDpr] = useState<[number, number]>(defaultDpr);
   const { theme } = useTheme();
   const isLight = theme === "light";
   const sceneBg = useMemo(
@@ -120,8 +143,12 @@ export function VapeScene({
   const visitedCount = visitedHotspots.length;
   const hotspotTotal = hotspotItems.length;
   const remainingCount = Math.max(0, hotspotTotal - visitedCount);
-  const nextLabel =
-    hotspotItems.find((h) => h.id === nextHotspotId)?.label ?? null;
+  const nextLabel = nextHotspotId
+    ? (() => {
+        const item = hotspotItems.find((h) => h.id === nextHotspotId);
+        return item ? hotspotTitles(item).primary : null;
+      })()
+    : null;
 
   const clearIdleTimer = useCallback(() => {
     if (idleTimerRef.current !== null) {
@@ -147,24 +174,10 @@ export function VapeScene({
     !userInteracting;
 
   useEffect(() => {
-    setDpr(lite ? [1, 1] : [1, 1.5]);
-  }, [lite]);
-
-  useEffect(() => {
     // CSS/native fullscreen changes layout — force canvas resize + paint.
     window.dispatchEvent(new Event("resize"));
     invalidateRef.current();
   }, [isFullscreen, cssFullscreen]);
-
-  useEffect(() => {
-    try {
-      if (window.localStorage.getItem(HINT_STORAGE_KEY) !== "1") {
-        setShowHint(true);
-      }
-    } catch {
-      setShowHint(true);
-    }
-  }, []);
 
   useEffect(() => {
     return () => clearIdleTimer();
@@ -172,6 +185,7 @@ export function VapeScene({
 
   const dismissHint = () => {
     setShowHint(false);
+    ignoreHotspotUntilRef.current = performance.now() + 700;
     try {
       window.localStorage.setItem(HINT_STORAGE_KEY, "1");
     } catch {
@@ -195,7 +209,7 @@ export function VapeScene({
   };
 
   const controlBtn =
-    "pointer-events-auto flex min-h-11 w-[3.35rem] flex-col items-center justify-center gap-0.5 rounded-lg border border-border bg-card/90 px-1 py-1.5 text-[0.625rem] font-medium leading-tight text-textPrimary shadow-card";
+    "pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card/95 text-textPrimary shadow-card backdrop-blur-sm transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
     <div
@@ -203,7 +217,7 @@ export function VapeScene({
       className={cn(
         "relative h-full w-full overflow-hidden rounded-lg border border-border bg-surface",
         cssFullscreen &&
-          "fixed inset-0 z-[100] h-[100dvh] max-h-[100dvh] w-[100vw] rounded-none border-0"
+          "fixed inset-0 z-[130] h-[100dvh] max-h-[100dvh] w-[100vw] rounded-none border-0"
       )}
     >
       {modelLoading ? (
@@ -219,7 +233,7 @@ export function VapeScene({
           frameloop="demand"
           performance={{ min: 0.5, max: 1, debounce: 200 }}
           gl={{
-            antialias: !lite,
+            antialias: true,
             powerPreference: lite ? "low-power" : "high-performance",
             stencil: false,
             depth: true,
@@ -238,7 +252,7 @@ export function VapeScene({
           <PerformanceMonitor
             onIncline={() =>
               setDpr((prev) => {
-                const next: [number, number] = lite ? [1, 1.15] : [1, 1.5];
+                const next: [number, number] = lite ? [1, 1.35] : [1, 1.75];
                 return prev[1] === next[1] ? prev : next;
               })
             }
@@ -272,14 +286,23 @@ export function VapeScene({
               exploded={exploded}
               visitedHotspots={visitedHotspots}
               selectedHotspotId={selectedHotspotId}
-              onHotspotClick={onHotspotClick}
+              onHotspotClick={handleSceneHotspotClick}
               castShadows={!lite}
               lite={lite}
             />
             <ModelReadySignal onReady={onModelReady} />
-            {!lite ? (
-              <Environment preset="city" environmentIntensity={isLight ? 0.48 : 0.4} />
-            ) : null}
+            <Environment
+              preset="city"
+              environmentIntensity={
+                lite
+                  ? isLight
+                    ? 0.32
+                    : 0.26
+                  : isLight
+                    ? 0.48
+                    : 0.4
+              }
+            />
             {!lite ? (
               <ContactShadows
                 position={[0, -1.6, 0]}
@@ -345,18 +368,29 @@ export function VapeScene({
       />
 
       {!showHint && isFullscreen ? (
-        <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg border border-border bg-card/90 px-3 py-2 text-sm text-textPrimary shadow-card">
-          สำรวจแล้ว {visitedCount}/{hotspotTotal}
-          <span className="mt-0.5 block text-xs text-textSecondary">
+        <div className="pointer-events-none absolute top-[max(0.75rem,env(safe-area-inset-top))] left-[max(0.75rem,env(safe-area-inset-left))] z-10 max-w-[min(16rem,calc(100%-5.5rem))] rounded-xl border border-border bg-card/95 px-3.5 py-2.5 text-sm text-textPrimary shadow-card backdrop-blur-sm">
+          <p className="font-medium">
+            สำรวจแล้ว {visitedCount}/{hotspotTotal}
+          </p>
+          <p className="mt-0.5 text-xs text-textSecondary">
             {exploded ? "โหมดแยกชิ้นส่วน" : "โหมดทั้งชิ้น"}
-          </span>
+          </p>
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute inset-y-3 right-2 z-10 flex flex-col gap-1.5 sm:right-3 sm:gap-2">
+      <div
+        className={cn(
+          "pointer-events-none absolute flex flex-col gap-2",
+          showHint ? "z-30" : "z-10",
+          isFullscreen
+            ? "top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))]"
+            : "top-3 left-2 sm:left-3"
+        )}
+      >
         {onExplodedChange ? (
           <button
             type="button"
+            title={exploded ? "รวมชิ้นส่วน" : "แยกชิ้นส่วน"}
             aria-label={exploded ? "รวมชิ้นส่วน" : "แยกชิ้นส่วน"}
             aria-pressed={exploded}
             className={cn(
@@ -370,38 +404,38 @@ export function VapeScene({
             }}
           >
             <Split className="size-4" aria-hidden="true" />
-            <span>{exploded ? "รวมชิ้น" : "แยกชิ้น"}</span>
           </button>
         ) : null}
         <button
           type="button"
+          title="ซูมเข้า"
           aria-label="ซูมเข้า"
           className={controlBtn}
           onClick={() => zoomBy(-0.12)}
         >
           <ZoomIn className="size-4" aria-hidden="true" />
-          <span>ซูม+</span>
         </button>
         <button
           type="button"
+          title="ซูมออก"
           aria-label="ซูมออก"
           className={controlBtn}
           onClick={() => zoomBy(0.12)}
         >
           <ZoomOut className="size-4" aria-hidden="true" />
-          <span>ซูม−</span>
         </button>
         <button
           type="button"
+          title="รีเซ็ตมุมมอง"
           aria-label="รีเซ็ตมุมมอง"
           className={controlBtn}
           onClick={resetCamera}
         >
           <RotateCcw className="size-4" aria-hidden="true" />
-          <span>รีเซ็ต</span>
         </button>
         <button
           type="button"
+          title={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
           aria-label={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
           className={controlBtn}
           onClick={() => {
@@ -414,33 +448,34 @@ export function VapeScene({
           ) : (
             <Maximize2 className="size-4" aria-hidden="true" />
           )}
-          <span>{isFullscreen ? "ย่อ" : "เต็มจอ"}</span>
         </button>
       </div>
 
-      {isFullscreen && onNextHotspot && nextHotspotId ? (
-        <div className="pointer-events-none absolute inset-x-3 bottom-[5.75rem] z-10 sm:bottom-[6.25rem]">
-          <Button
-            type="button"
-            className="pointer-events-auto mx-auto h-11 w-auto rounded-lg px-6 font-semibold shadow-glowRed"
-            onClick={onNextHotspot}
-          >
-            สำรวจต่อ{nextLabel ? `: ${nextLabel}` : ""}
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      ) : null}
-
       {isFullscreen ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-background/95 via-background/80 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8">
-          <div
-            role="list"
-            aria-label="จุดสารพิษ"
-            className="pointer-events-auto flex gap-2 overflow-x-auto pb-1"
-          >
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-background via-background/90 to-transparent pt-16 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="pointer-events-none mx-auto flex w-full max-w-3xl flex-col items-stretch gap-2.5 px-3 sm:px-4">
+            {onNextHotspot && nextHotspotId ? (
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  className="pointer-events-auto h-11 rounded-xl px-6 font-semibold shadow-glowRed"
+                  onClick={onNextHotspot}
+                >
+                  สำรวจต่อ{nextLabel ? `: ${nextLabel}` : ""}
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            ) : null}
+
+            <div
+              role="list"
+              aria-label="จุดสารพิษ"
+              className="pointer-events-auto flex justify-start gap-2 overflow-x-auto pb-1 sm:justify-center sm:flex-wrap sm:overflow-visible"
+            >
             {hotspotItems.map((item) => {
               const visited = visitedHotspots.includes(item.id);
               const isSelected = selectedHotspotId === item.id;
+              const { primary, secondary } = hotspotTitles(item);
               return (
                 <button
                   key={item.id}
@@ -448,7 +483,7 @@ export function VapeScene({
                   role="listitem"
                   onClick={() => onHotspotClick(item.id)}
                   className={cn(
-                    "flex min-h-11 min-w-[7.5rem] shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors duration-normal",
+                    "flex min-h-11 min-w-[7.25rem] shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors duration-normal",
                     isSelected
                       ? "border-primary bg-primary text-white"
                       : visited
@@ -471,22 +506,31 @@ export function VapeScene({
                       <Check className="size-3 stroke-[3]" />
                     ) : null}
                   </span>
-                  <span className="truncate text-sm font-medium">
-                    {item.label}
+                  <span className="min-w-0 leading-tight">
+                    <span className="block truncate text-sm font-medium">
+                      {primary}
+                    </span>
+                    {secondary ? (
+                      <span className="block truncate text-[11px] opacity-80">
+                        {secondary}
+                      </span>
+                    ) : null}
                   </span>
                 </button>
               );
             })}
+            </div>
+
+            {remainingCount > 0 ? (
+              <p className="text-center text-xs text-textSecondary">
+                สำรวจต่อได้อีก {remainingCount} จุด
+              </p>
+            ) : (
+              <p className="text-center text-xs font-medium text-success">
+                สำรวจครบแล้ว
+              </p>
+            )}
           </div>
-          {remainingCount > 0 ? (
-            <p className="mt-2 text-center text-xs text-textSecondary">
-              สำรวจต่อได้อีก {remainingCount} จุด
-            </p>
-          ) : (
-            <p className="mt-2 text-center text-xs font-medium text-success">
-              สำรวจครบแล้ว
-            </p>
-          )}
         </div>
       ) : null}
     </div>
