@@ -25,6 +25,8 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
   const submitAnswer = useQuizStore((s) => s.submitAnswer);
   const setPhase = useQuizStore((s) => s.setPhase);
+  const userType = useQuizStore((s) => s.userType);
+  const isGuest = userType === "guest";
 
   const question = questions[currentQuestionIndex];
   const total = questions.length;
@@ -43,9 +45,9 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
           variant="outline"
           size="touch"
           className="mt-4"
-          onClick={() => router.push("/register")}
+          onClick={() => router.push(isGuest ? "/guest" : "/register")}
         >
-          กลับไปลงทะเบียน
+          {isGuest ? "กลับไปโหมดผู้ชม" : "กลับไปลงทะเบียน"}
         </Button>
       </div>
     );
@@ -75,7 +77,10 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6 text-left sm:gap-8 sm:px-6 sm:py-8 xl:max-w-3xl xl:gap-8 xl:py-10">
-      <Stepper current={type === "pretest" ? "pretest" : "posttest"} />
+      <Stepper
+        current={type === "pretest" ? "pretest" : "posttest"}
+        variant={isGuest ? "guest" : "full"}
+      />
       <QuizProgress current={currentQuestionIndex + 1} total={total} />
 
       {type === "posttest" ? (

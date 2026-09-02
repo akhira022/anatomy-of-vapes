@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Anatomy of Vapes | ส่องไส้ในบุหรี่ไฟฟ้า",
+  title: "ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้าอัจฉริยะ | ส่องไส้ในบุหรี่ไฟฟ้า",
   description:
     "เรียนรู้ส่วนประกอบภายในบุหรี่ไฟฟ้า และสารพิษที่อันตรายต่อสุขภาพ",
 };

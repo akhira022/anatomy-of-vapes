@@ -62,9 +62,10 @@ export default function Home() {
         >
           <Link
             href="/"
-            className="font-heading text-sm font-semibold tracking-wide text-textPrimary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            title="ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้าอัจฉริยะ"
+            className="max-w-[min(72vw,20rem)] truncate font-heading text-xs font-semibold tracking-wide text-textPrimary transition-colors hover:text-primary sm:max-w-none sm:text-sm sm:whitespace-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            Anatomy of Vapes
+            ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้าอัจฉริยะ
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link

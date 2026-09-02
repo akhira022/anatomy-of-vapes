@@ -30,13 +30,15 @@ import { signUpLearner } from "@/lib/learner-auth";
 import { isLoggedIn, phaseToPath } from "@/lib/phase";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import {
+  ageRangeLabels,
+  ageRangeOptions,
   gradeOptions,
   registerSchema,
   type RegisterFormValues,
 } from "@/lib/validations";
 import { useHydrated } from "@/hooks/useRequirePhase";
 import { useQuizStore } from "@/store/useQuizStore";
-import type { Grade } from "@/types";
+import type { AgeRange, Grade } from "@/types";
 
 type RegisterFormState = RegisterFormValues;
 
@@ -67,6 +69,7 @@ export default function RegisterPage() {
       confirmPassword: "",
       nickname: "",
       grade: undefined,
+      ageRange: undefined,
       consent: false,
     },
   });
@@ -118,6 +121,8 @@ export default function RegisterPage() {
         nickname: values.nickname,
         grade: values.grade,
         email,
+        ageRange: values.ageRange,
+        userType: "member",
       });
 
       if ("error" in created) {
@@ -131,7 +136,14 @@ export default function RegisterPage() {
         return;
       }
 
-      setUser(values.nickname, values.grade as Grade, created.id, email);
+      setUser(
+        values.nickname,
+        values.grade as Grade,
+        created.id,
+        email,
+        values.ageRange as AgeRange,
+        "member"
+      );
       setConsentAccepted(true);
       setPhase("pretest");
 
@@ -178,7 +190,7 @@ export default function RegisterPage() {
               ยินยอมและเริ่มต้น
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-textSecondary xl:text-base">
-              สร้างบัญชีด้วยอีเมล กรอกชื่อเล่น เลือกระดับชั้น และยอมรับเงื่อนไข PDPA
+              สร้างบัญชีด้วยอีเมล กรอกชื่อเล่น เลือกระดับชั้น ช่วงอายุ และยอมรับเงื่อนไข PDPA
             </p>
 
             {!supabaseReady ? (
@@ -302,6 +314,51 @@ export default function RegisterPage() {
                 ) : null}
               </div>
 
+              <div className="space-y-2">
+                <label
+                  htmlFor="ageRange"
+                  className="text-sm font-medium leading-none text-textPrimary"
+                >
+                  ช่วงอายุ
+                  <span className="ml-1 text-error" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <Controller
+                  name="ageRange"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ?? null}
+                      onValueChange={(value) => field.onChange(value)}
+                    >
+                      <SelectTrigger
+                        id="ageRange"
+                        aria-invalid={Boolean(errors.ageRange)}
+                        aria-describedby={
+                          errors.ageRange ? "ageRange-error" : undefined
+                        }
+                        className="h-11 w-full rounded-lg xl:min-h-12 xl:text-lg"
+                      >
+                        <SelectValue placeholder="เลือกช่วงอายุ" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ageRangeOptions.map((range) => (
+                          <SelectItem key={range} value={range}>
+                            {ageRangeLabels[range]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.ageRange ? (
+                  <p id="ageRange-error" className="text-sm text-error">
+                    {errors.ageRange.message}
+                  </p>
+                ) : null}
+              </div>
+
               <div className="space-y-2 rounded-lg border-2 border-border bg-card p-5 light:border-textPrimary/20 light:bg-surface">
                 <Controller
                   name="consent"
@@ -366,6 +423,13 @@ export default function RegisterPage() {
                     className="font-medium text-primary underline-offset-4 hover:underline"
                   >
                     เข้าสู่ระบบ
+                  </Link>
+                  {" · "}
+                  <Link
+                    href="/guest"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    เข้าชมแบบไม่ต้องสมัคร
                   </Link>
                 </p>
               </div>

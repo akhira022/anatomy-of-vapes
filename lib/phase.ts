@@ -12,6 +12,8 @@ export function phaseToPath(phase: AppPhase): string {
       return "/posttest";
     case "result":
       return "/result";
+    case "guest_complete":
+      return "/guest/complete";
     default:
       return "/register";
   }

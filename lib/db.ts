@@ -1,8 +1,11 @@
 import {
   getSupabase,
   isSupabaseConfigured,
+  type DbAgeRange,
+  type DbFlowType,
   type DbGrade,
   type DbQuizType,
+  type DbUserType,
 } from "@/lib/supabase";
 import {
   isNetworkFailure,
@@ -24,6 +27,8 @@ export async function createUser(input: {
   grade: DbGrade;
   email?: string;
   id?: string;
+  ageRange?: DbAgeRange;
+  userType?: DbUserType;
 }): Promise<{ id: string } | { error: string }> {
   const supabase = getSupabase();
   if (!supabase) {
@@ -36,7 +41,9 @@ export async function createUser(input: {
       id,
       nickname: input.nickname,
       grade: input.grade,
+      user_type: input.userType ?? "member",
       ...(input.email ? { email: input.email.trim().toLowerCase() } : {}),
+      ...(input.ageRange ? { age_range: input.ageRange } : {}),
     });
 
     if (error) throw new Error(error.message);
@@ -58,6 +65,8 @@ export type LearnerProfile = {
   nickname: string;
   grade: DbGrade;
   email?: string | null;
+  ageRange?: DbAgeRange | null;
+  userType?: DbUserType;
 };
 
 async function mapLearnerRpcRow(
@@ -69,6 +78,8 @@ async function mapLearnerRpcRow(
     nickname: row.nickname as string,
     grade: row.grade as DbGrade,
     email: (row.email as string | null | undefined) ?? null,
+    ageRange: (row.age_range as DbAgeRange | null | undefined) ?? null,
+    userType: (row.user_type as DbUserType | undefined) ?? "member",
   };
 }
 
@@ -303,6 +314,7 @@ export async function saveQuizResult(input: {
   postTotal?: number;
   preAnswers?: QuizAnswer[];
   postAnswers?: QuizAnswer[];
+  flowType?: DbFlowType;
 }): Promise<{ id: string; skipped?: boolean } | { error: string }> {
   if (input.userId.startsWith("local-") || !isSupabaseConfigured()) {
     return { id: `local-result-${crypto.randomUUID()}` };
@@ -322,6 +334,7 @@ export async function saveQuizResult(input: {
   }
 
   const resultId = crypto.randomUUID();
+  const flowType = input.flowType ?? "full";
   const { error } = await supabase.from("quiz_results").insert({
     id: resultId,
     user_id: input.userId,
@@ -329,6 +342,7 @@ export async function saveQuizResult(input: {
     post_score: input.postScore,
     pre_total: input.preTotal ?? 5,
     post_total: input.postTotal ?? 5,
+    flow_type: flowType,
   });
 
   if (error) {
@@ -353,12 +367,34 @@ export async function saveQuizResult(input: {
   return { id: resultId };
 }
 
+/** Persist guest pretest-only result (no post-test). */
+export async function saveGuestPretestResult(input: {
+  userId: string;
+  preScore: number;
+  preTotal?: number;
+  preAnswers?: QuizAnswer[];
+}): Promise<{ id: string; skipped?: boolean } | { error: string }> {
+  return saveQuizResult({
+    userId: input.userId,
+    preScore: input.preScore,
+    postScore: 0,
+    preTotal: input.preTotal ?? 5,
+    postTotal: 0,
+    preAnswers: input.preAnswers ?? [],
+    postAnswers: [],
+    flowType: "guest",
+  });
+}
+
 export interface AdminResultRow {
   id: string;
   user_id: string;
   nickname: string;
   email: string | null;
   grade: string;
+  age_range: string | null;
+  user_type: string;
+  flow_type: string;
   pre_score: number;
   post_score: number;
   improvement: number;
@@ -413,6 +449,9 @@ export async function getAdminStats(): Promise<
     nickname: (r.nickname as string) ?? "-",
     email: (r.email as string | null) ?? null,
     grade: (r.grade as string) ?? "-",
+    age_range: (r.age_range as string | null) ?? null,
+    user_type: (r.user_type as string) ?? "member",
+    flow_type: (r.flow_type as string) ?? "full",
     pre_score: r.pre_score as number,
     post_score: r.post_score as number,
     improvement: r.improvement as number,
@@ -425,21 +464,26 @@ export async function getAdminStats(): Promise<
 }
 
 function summarize(totalUsers: number, results: AdminResultRow[]): AdminStats {
-  const n = results.length || 1;
+  const fullResults = results.filter((r) => r.flow_type !== "guest" && r.post_total > 0);
+  const nFull = fullResults.length || 1;
+  const nPre = results.length || 1;
   const avgPreScore =
     results.reduce((s, r) => s + (r.pre_score / r.pre_total) * 100, 0) /
-    (results.length ? n : 1);
+    (results.length ? nPre : 1);
   const avgPostScore =
-    results.reduce((s, r) => s + (r.post_score / r.post_total) * 100, 0) /
-    (results.length ? n : 1);
+    fullResults.reduce((s, r) => s + (r.post_score / r.post_total) * 100, 0) /
+    (fullResults.length ? nFull : 1);
   const avgImprovement =
-    results.reduce((s, r) => s + r.improvement, 0) / (results.length ? n : 1);
+    fullResults.reduce((s, r) => s + r.improvement, 0) /
+    (fullResults.length ? nFull : 1);
 
   return {
     totalUsers,
     avgPreScore: results.length ? Math.round(avgPreScore) : 0,
-    avgPostScore: results.length ? Math.round(avgPostScore) : 0,
-    avgImprovement: results.length ? Math.round(avgImprovement * 10) / 10 : 0,
+    avgPostScore: fullResults.length ? Math.round(avgPostScore) : 0,
+    avgImprovement: fullResults.length
+      ? Math.round(avgImprovement * 10) / 10
+      : 0,
     results,
   };
 }

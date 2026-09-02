@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useQuizStore } from "@/store/useQuizStore";
-import type { AppPhase } from "@/types";
+import type { AppPhase, UserType } from "@/types";
 import { hotspots } from "@/data/hotspots";
 
 const phaseOrder: AppPhase[] = [
@@ -12,6 +12,7 @@ const phaseOrder: AppPhase[] = [
   "anatomy",
   "posttest",
   "result",
+  "guest_complete",
 ];
 
 function phaseIndex(phase: AppPhase) {
@@ -45,7 +46,8 @@ function evaluatePhaseAccess(
   currentPhase: AppPhase,
   visitedHotspotCount: number,
   preAnswerCount: number,
-  resultSaved: boolean
+  resultSaved: boolean,
+  userType: UserType
 ): {
   ready: boolean;
   blockedReason: PhaseBlockReason | null;
@@ -56,16 +58,25 @@ function evaluatePhaseAccess(
   }
 
   const registered = Boolean(nickname && consentAccepted);
+  const isGuest = userType === "guest";
+  const registerPath = isGuest ? "/guest" : "/register";
 
   if (required !== "registration" && !registered) {
     return {
       ready: false,
       blockedReason: "not_registered",
-      redirectTo: "/register",
+      redirectTo: registerPath,
     };
   }
 
   if (required === "anatomy" && (currentPhase === "result" || resultSaved)) {
+    return { ready: true, blockedReason: null, redirectTo: null };
+  }
+
+  if (
+    required === "anatomy" &&
+    currentPhase === "guest_complete"
+  ) {
     return { ready: true, blockedReason: null, redirectTo: null };
   }
 
@@ -83,6 +94,17 @@ function evaluatePhaseAccess(
 
   if (
     required === "posttest" &&
+    isGuest
+  ) {
+    return {
+      ready: false,
+      blockedReason: "anatomy_incomplete",
+      redirectTo: "/anatomy",
+    };
+  }
+
+  if (
+    required === "posttest" &&
     visitedHotspotCount < hotspots.length &&
     phaseIndex(currentPhase) < phaseIndex("posttest")
   ) {
@@ -93,10 +115,39 @@ function evaluatePhaseAccess(
     };
   }
 
+  if (required === "guest_complete") {
+    if (!isGuest) {
+      return {
+        ready: false,
+        blockedReason: "not_registered",
+        redirectTo: "/register",
+      };
+    }
+    if (
+      visitedHotspotCount < hotspots.length &&
+      currentPhase !== "guest_complete" &&
+      !resultSaved
+    ) {
+      return {
+        ready: false,
+        blockedReason: "anatomy_incomplete",
+        redirectTo: "/anatomy",
+      };
+    }
+    return { ready: true, blockedReason: null, redirectTo: null };
+  }
+
   if (
     required === "result" &&
     phaseIndex(currentPhase) < phaseIndex("result")
   ) {
+    if (isGuest) {
+      return {
+        ready: false,
+        blockedReason: "anatomy_incomplete",
+        redirectTo: "/anatomy",
+      };
+    }
     return {
       ready: false,
       blockedReason: "posttest_incomplete",
@@ -116,6 +167,7 @@ export function useRequirePhase(required: AppPhase) {
   const visitedHotspots = useQuizStore((s) => s.visitedHotspots);
   const preAnswers = useQuizStore((s) => s.preAnswers);
   const resultSaved = useQuizStore((s) => s.resultSaved);
+  const userType = useQuizStore((s) => s.userType);
 
   const { ready, blockedReason, redirectTo } = useMemo(
     () =>
@@ -127,7 +179,8 @@ export function useRequirePhase(required: AppPhase) {
         currentPhase,
         visitedHotspots.length,
         preAnswers.length,
-        resultSaved
+        resultSaved,
+        userType
       ),
     [
       required,
@@ -138,6 +191,7 @@ export function useRequirePhase(required: AppPhase) {
       visitedHotspots.length,
       preAnswers.length,
       resultSaved,
+      userType,
     ]
   );
 

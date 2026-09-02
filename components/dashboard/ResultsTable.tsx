@@ -1,11 +1,26 @@
 "use client";
 
 import type { AdminResultRow } from "@/lib/db";
+import { ageRangeLabels } from "@/lib/validations";
 import { cn } from "@/lib/utils";
+import type { AgeRange } from "@/types";
 
 interface ResultsTableProps {
   rows: AdminResultRow[];
   limit?: number;
+}
+
+function userTypeLabel(userType: string) {
+  return userType === "guest" ? "ผู้ชม" : "สมาชิก";
+}
+
+function flowTypeLabel(flowType: string) {
+  return flowType === "guest" ? "ผู้ชม" : "ครบ";
+}
+
+function ageLabel(ageRange: string | null) {
+  if (!ageRange) return "—";
+  return ageRangeLabels[ageRange as AgeRange] ?? ageRange;
 }
 
 export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
@@ -32,7 +47,23 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
                 <p className="truncate font-medium text-textPrimary">
                   {row.nickname}
                 </p>
-                <p className="text-xs text-textSecondary">{row.grade}</p>
+                <p className="text-xs text-textSecondary">
+                  {row.grade} · {ageLabel(row.age_range)}
+                </p>
+                <p className="mt-1 text-xs text-textDisabled">
+                  <span
+                    className={cn(
+                      "rounded px-1.5 py-0.5",
+                      row.user_type === "guest"
+                        ? "bg-surface-2 text-textSecondary"
+                        : "bg-primary/10 text-primary"
+                    )}
+                  >
+                    {userTypeLabel(row.user_type)}
+                  </span>
+                  {" · "}
+                  {flowTypeLabel(row.flow_type)}
+                </p>
               </div>
               <p className="shrink-0 text-xs text-textDisabled">
                 {new Date(row.created_at).toLocaleDateString("th-TH")}
@@ -48,7 +79,9 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
               <div>
                 <dt className="text-xs text-textSecondary">หลัง</dt>
                 <dd className="font-semibold text-textPrimary">
-                  {row.post_score}/{row.post_total}
+                  {row.flow_type === "guest"
+                    ? "—"
+                    : `${row.post_score}/${row.post_total}`}
                 </dd>
               </div>
               <div>
@@ -56,11 +89,16 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
                 <dd
                   className={cn(
                     "font-semibold",
-                    row.improvement > 0 ? "text-success" : "text-textSecondary"
+                    row.flow_type === "guest"
+                      ? "text-textDisabled"
+                      : row.improvement > 0
+                        ? "text-success"
+                        : "text-textSecondary"
                   )}
                 >
-                  {row.improvement > 0 ? "+" : ""}
-                  {row.improvement}
+                  {row.flow_type === "guest"
+                    ? "—"
+                    : `${row.improvement > 0 ? "+" : ""}${row.improvement}`}
                 </dd>
               </div>
             </dl>
@@ -79,6 +117,8 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
             <tr>
               <th className="px-3 py-3 font-medium">ชื่อเล่น</th>
               <th className="px-3 py-3 font-medium">ชั้น</th>
+              <th className="px-3 py-3 font-medium">อายุ</th>
+              <th className="px-3 py-3 font-medium">ประเภท</th>
               <th className="px-3 py-3 font-medium">ก่อน</th>
               <th className="px-3 py-3 font-medium">หลัง</th>
               <th className="px-3 py-3 font-medium">พัฒนา</th>
@@ -90,21 +130,41 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
               <tr key={row.id} className="border-t border-border bg-card">
                 <td className="px-3 py-3 text-textPrimary">{row.nickname}</td>
                 <td className="px-3 py-3 text-textSecondary">{row.grade}</td>
+                <td className="px-3 py-3 text-textSecondary">
+                  {ageLabel(row.age_range)}
+                </td>
+                <td className="px-3 py-3">
+                  <span
+                    className={cn(
+                      "rounded px-1.5 py-0.5 text-xs",
+                      row.user_type === "guest"
+                        ? "bg-surface-2 text-textSecondary"
+                        : "bg-primary/10 text-primary"
+                    )}
+                  >
+                    {userTypeLabel(row.user_type)}
+                  </span>
+                </td>
                 <td className="px-3 py-3 text-textPrimary">
                   {row.pre_score}/{row.pre_total}
                 </td>
                 <td className="px-3 py-3 text-textPrimary">
-                  {row.post_score}/{row.post_total}
+                  {row.flow_type === "guest"
+                    ? "—"
+                    : `${row.post_score}/${row.post_total}`}
                 </td>
                 <td
                   className={
-                    row.improvement > 0
-                      ? "px-3 py-3 font-medium text-success"
-                      : "px-3 py-3 text-textSecondary"
+                    row.flow_type === "guest"
+                      ? "px-3 py-3 text-textDisabled"
+                      : row.improvement > 0
+                        ? "px-3 py-3 font-medium text-success"
+                        : "px-3 py-3 text-textSecondary"
                   }
                 >
-                  {row.improvement > 0 ? "+" : ""}
-                  {row.improvement}
+                  {row.flow_type === "guest"
+                    ? "—"
+                    : `${row.improvement > 0 ? "+" : ""}${row.improvement}`}
                 </td>
                 <td className="px-3 py-3 text-textDisabled">
                   {new Date(row.created_at).toLocaleDateString("th-TH")}

@@ -104,7 +104,9 @@ export default function LoginPage() {
         found.nickname,
         found.grade as Grade,
         found.id,
-        found.email ?? undefined
+        found.email ?? undefined,
+        found.ageRange ?? undefined,
+        found.userType ?? "member"
       );
       setConsentAccepted(true);
 

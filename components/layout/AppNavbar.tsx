@@ -19,7 +19,7 @@ interface AppNavbarProps {
 }
 
 export function AppNavbar({
-  title = "Anatomy of Vapes",
+  title = "ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้าอัจฉริยะ",
   showBack = false,
   backHref = "/",
   onBack,

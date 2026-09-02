@@ -8,10 +8,18 @@ export type DbGrade =
   | "นักศึกษา"
   | "อื่นๆ";
 
+export type DbAgeRange = "13-15" | "16-18" | "19-24" | "25+";
+
+export type DbUserType = "member" | "guest";
+
+export type DbFlowType = "full" | "guest";
+
 export interface DbUser {
   id: string;
   nickname: string;
   grade: DbGrade;
+  age_range?: DbAgeRange | null;
+  user_type?: DbUserType;
   email?: string | null;
   created_at: string;
 }
@@ -31,6 +39,7 @@ export interface DbQuizResult {
   improvement: number;
   pre_total: number;
   post_total: number;
+  flow_type?: DbFlowType;
   created_at: string;
 }
 

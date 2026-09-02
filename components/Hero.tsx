@@ -207,6 +207,14 @@ export function Hero() {
                   >
                     เข้าสู่ระบบ
                   </Button>
+                  <Button
+                    render={<Link href="/guest" />}
+                    nativeButton={false}
+                    variant="ghost"
+                    className="h-11 w-auto rounded-lg px-5 text-base sm:px-6"
+                  >
+                    เข้าชมไม่ต้องสมัคร
+                  </Button>
                 </>
               )}
             </motion.div>

@@ -7,11 +7,22 @@ export type Grade =
   | "นักศึกษา"
   | "อื่นๆ";
 
+/** ช่วงอายุ */
+export type AgeRange = "13-15" | "16-18" | "19-24" | "25+";
+
+/** ประเภทผู้ใช้ */
+export type UserType = "member" | "guest";
+
+/** ประเภท flow ผลคะแนน */
+export type FlowType = "full" | "guest";
+
 /** ข้อมูลผู้ใช้ */
 export interface User {
   id?: string;
   nickname: string;
   grade: Grade;
+  ageRange?: AgeRange;
+  userType?: UserType;
   email?: string;
   createdAt?: string;
 }
@@ -84,4 +95,5 @@ export type AppPhase =
   | "pretest"
   | "anatomy"
   | "posttest"
-  | "result";
+  | "result"
+  | "guest_complete";

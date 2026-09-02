@@ -3,12 +3,12 @@
 import { useReducedMotion } from "framer-motion";
 import BlurText from "@/components/BlurText";
 
-const TITLE_LEAD = "Anatomy of";
-const TITLE_ACCENT = "Vapes";
+const TITLE_LEAD = "ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้า";
+const TITLE_ACCENT = "อัจฉริยะ";
 const SUBTITLE = "ส่องไส้ในบุหรี่ไฟฟ้า";
 
 const heroTitleClass =
-  "hero-copy-readable font-heading text-[clamp(2.1rem,6.5vw,4.25rem)] font-bold leading-[0.95] tracking-[-0.03em] text-textPrimary uppercase";
+  "hero-copy-readable font-heading text-[clamp(1.75rem,5.5vw,3.5rem)] font-bold leading-[1.05] tracking-[-0.02em] text-textPrimary";
 
 const heroSubtitleClass =
   "hero-copy-readable font-heading text-lg font-semibold text-textPrimary sm:text-xl md:text-2xl";
@@ -47,7 +47,7 @@ export function HeroBrandCopy() {
             immediate
             animationFrom={heroBlurFrom}
             animationTo={heroBlurTo}
-            className="inline justify-start uppercase"
+            className="inline justify-start"
           />
           <BlurText
             tag="span"
@@ -59,7 +59,7 @@ export function HeroBrandCopy() {
             immediate
             animationFrom={heroBlurFrom}
             animationTo={heroBlurTo}
-            className="inline justify-start text-primary uppercase"
+            className="inline justify-start text-primary"
           />
         </span>
       </h1>
