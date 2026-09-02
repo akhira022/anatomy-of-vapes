@@ -19,6 +19,7 @@ import { HotspotEffectStrip } from "@/components/hotspot/HotspotEffectStrip";
 import type { ChapterLesson } from "@/data/chapters";
 import { getChapterByHotspotId } from "@/data/chapters";
 import { getMythById } from "@/data/myths";
+import { hotspotTitles } from "@/lib/hotspot-display";
 import {
   SCENE_FULLSCREEN_EVENT,
   getSceneFullscreenRoot,
@@ -34,6 +35,7 @@ interface HotspotPopupProps {
 export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
   const myth = getMythById(hotspot?.mythId);
   const chapter = hotspot ? getChapterByHotspotId(hotspot.id) : null;
+  const titles = hotspot ? hotspotTitles(hotspot) : null;
   const [portalTarget, setPortalTarget] = useState<Element | null>(null);
 
   const handleClose = useCallback(() => {
@@ -96,11 +98,11 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
                     id="hotspot-title"
                     className="font-heading text-xl font-bold text-textPrimary"
                   >
-                    {hotspot.label}
+                    {titles?.primary}
                   </h2>
-                  {hotspot.partLabel ? (
+                  {titles?.secondary ? (
                     <span className="rounded bg-surface-2 px-2 py-0.5 text-xs font-medium text-textSecondary">
-                      {hotspot.partLabel}
+                      {titles.secondary}
                     </span>
                   ) : null}
                   <Badge variant="destructive">{hotspot.classification}</Badge>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { ModelLoadingOverlay } from "@/components/feedback/ModelLoadingOverlay";
 import { PageLoading } from "@/components/feedback/PageLoading";
@@ -19,6 +19,7 @@ import {
   useRequirePhase,
   useHydrated,
 } from "@/hooks/useRequirePhase";
+import { hotspotTitles } from "@/lib/hotspot-display";
 import { useQuizStore } from "@/store/useQuizStore";
 import { cn } from "@/lib/utils";
 
@@ -88,6 +89,11 @@ export default function AnatomyPage() {
     },
     [handleHotspotClick]
   );
+
+  const closeHotspotPopup = useCallback(() => {
+    setPopupOpen(false);
+    setSelectedHotspotId(null);
+  }, [setSelectedHotspotId]);
 
   const hasLocalResult = postAnswers.length > 0;
 
@@ -212,7 +218,7 @@ export default function AnatomyPage() {
             className="font-semibold"
             onClick={goNextHotspot}
           >
-            จุดถัดไป: {nextHotspot.label}
+            จุดถัดไป: {hotspotTitles(nextHotspot).primary}
             <ArrowRight className="size-4" />
           </Button>
         ) : null}
@@ -245,7 +251,7 @@ export default function AnatomyPage() {
           </p>
         </div>
         {selected ? (
-          <Badge variant="outline">{selected.label}</Badge>
+          <Badge variant="outline">{hotspotTitles(selected).primary}</Badge>
         ) : (
           <Badge variant="outline">แตะจุดสีแดงหรือเลือกจากรายการ</Badge>
         )}
@@ -265,7 +271,9 @@ export default function AnatomyPage() {
             <>
               {" "}
               — ลองดู{" "}
-              <span className="font-semibold">{nextHotspot.label}</span>
+              <span className="font-semibold">
+                {hotspotTitles(nextHotspot).primary}
+              </span>
             </>
           ) : null}
         </p>
@@ -291,7 +299,7 @@ export default function AnatomyPage() {
             className="font-semibold shadow-glowRed xl:min-h-12"
             onClick={goNextHotspot}
           >
-            สำรวจต่อ: {nextHotspot.label}
+            สำรวจต่อ: {hotspotTitles(nextHotspot).primary}
             <ArrowRight className="size-4" />
           </Button>
         ) : null}
@@ -353,11 +361,13 @@ export default function AnatomyPage() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <AnatomyHotspotDeepLink
-        hydrated={hydrated}
-        ready={ready}
-        onDeepLink={handleDeepLink}
-      />
+      <Suspense fallback={null}>
+        <AnatomyHotspotDeepLink
+          hydrated={hydrated}
+          ready={ready}
+          onDeepLink={handleDeepLink}
+        />
+      </Suspense>
       <AppNavbar
         title={isReview ? "ทบทวนโมเดล 3D" : "สำรวจ 3 มิติ"}
         showBack
@@ -438,7 +448,7 @@ export default function AnatomyPage() {
       <HotspotPopup
         hotspot={selected}
         open={popupOpen && Boolean(selected)}
-        onClose={() => setPopupOpen(false)}
+        onClose={closeHotspotPopup}
       />
     </div>
   );
