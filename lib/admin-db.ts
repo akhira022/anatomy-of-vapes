@@ -18,6 +18,7 @@ export function adminDbClient(accessToken: string): SupabaseClient {
 /**
  * Sync NEXT_PUBLIC_ADMIN_EMAIL into app_config when the signed-in user matches.
  * Enables is_admin() / write RPCs without service role or Auth role metadata.
+ * When service role is configured, sync failure is non-fatal (writes use service role).
  */
 export async function ensureAdminAllowlist(
   accessToken: string,
@@ -32,6 +33,9 @@ export async function ensureAdminAllowlist(
   const db = adminUserClient(accessToken);
   const { error } = await db.rpc("sync_admin_email", { p_email: hint });
   if (error) {
+    if (isSupabaseAdminConfigured()) {
+      return { ok: true };
+    }
     if (
       error.message.includes("sync_admin_email") ||
       error.code === "PGRST202" ||

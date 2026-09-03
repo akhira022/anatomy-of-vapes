@@ -84,6 +84,10 @@ security definer
 set search_path = public
 as $$
 begin
+  -- service_role (API key) may call write RPCs; otherwise require is_admin().
+  if auth.role() = 'service_role' then
+    return;
+  end if;
   if not public.is_admin() then
     raise exception 'forbidden: admin only' using errcode = '42501';
   end if;
