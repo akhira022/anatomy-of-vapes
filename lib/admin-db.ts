@@ -1,5 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import {
+  getSupabaseAdmin,
+  isSupabaseAdminConfigured,
+} from "@/lib/supabase-admin";
 
 export function adminUserClient(accessToken: string): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
