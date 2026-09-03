@@ -487,3 +487,141 @@ function summarize(totalUsers: number, results: AdminResultRow[]): AdminStats {
     results,
   };
 }
+
+/** Auth header for admin API calls from the browser. */
+async function adminAuthHeaders(): Promise<
+  | { Authorization: string; "Content-Type": string }
+  | { error: string }
+> {
+  const supabase = getSupabase();
+  if (!supabase) return { error: "ยังไม่ได้ตั้งค่า Supabase" };
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    return { error: "กรุณาเข้าสู่ระบบผู้ดูแล" };
+  }
+  return {
+    Authorization: `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+  };
+}
+
+export type AdminUserUpdateInput = {
+  nickname?: string;
+  grade?: DbGrade;
+  age_range?: DbAgeRange | null;
+  email?: string | null;
+  result_id?: string;
+  pre_score?: number;
+  post_score?: number;
+  pre_total?: number;
+  post_total?: number;
+};
+
+export async function adminUpdateLearner(
+  userId: string,
+  input: AdminUserUpdateInput
+): Promise<{ ok: true } | { error: string }> {
+  const headers = await adminAuthHeaders();
+  if ("error" in headers) return { error: headers.error };
+
+  try {
+    const res = await fetch(`/api/admin/users/${userId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify(input),
+    });
+    const json = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) {
+      return { error: json.error ?? `แก้ไขไม่สำเร็จ (${res.status})` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { error: normalizeDbError(err) };
+  }
+}
+
+export async function adminDeleteLearner(
+  userId: string
+): Promise<{ ok: true } | { error: string }> {
+  const headers = await adminAuthHeaders();
+  if ("error" in headers) return { error: headers.error };
+
+  try {
+    const res = await fetch(`/api/admin/users/${userId}`, {
+      method: "DELETE",
+      headers,
+    });
+    const json = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) {
+      return { error: json.error ?? `ลบไม่สำเร็จ (${res.status})` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { error: normalizeDbError(err) };
+  }
+}
+
+export async function adminDeleteResult(
+  resultId: string
+): Promise<{ ok: true } | { error: string }> {
+  const headers = await adminAuthHeaders();
+  if ("error" in headers) return { error: headers.error };
+
+  try {
+    const res = await fetch(`/api/admin/results/${resultId}`, {
+      method: "DELETE",
+      headers,
+    });
+    const json = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) {
+      return { error: json.error ?? `ลบผลคะแนนไม่สำเร็จ (${res.status})` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { error: normalizeDbError(err) };
+  }
+}
+
+export type AdminSettingsInfo = {
+  supabaseConfigured: boolean;
+  serviceRoleConfigured: boolean;
+  adminEmailHint: string | null;
+  adminUserEmail: string | null;
+  adminRole: string | null;
+  canWriteViaServiceRole: boolean;
+  canWriteViaJwtRole: boolean;
+};
+
+export async function fetchAdminSettings(): Promise<
+  AdminSettingsInfo | { error: string }
+> {
+  const headers = await adminAuthHeaders();
+  if ("error" in headers) return { error: headers.error };
+
+  try {
+    const res = await fetch("/api/admin/settings", { headers });
+    const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      return {
+        error:
+          (typeof json.error === "string" && json.error) ||
+          `โหลดการตั้งค่าไม่สำเร็จ (${res.status})`,
+      };
+    }
+    return {
+      supabaseConfigured: Boolean(json.supabaseConfigured),
+      serviceRoleConfigured: Boolean(json.serviceRoleConfigured),
+      adminEmailHint:
+        typeof json.adminEmailHint === "string" ? json.adminEmailHint : null,
+      adminUserEmail:
+        typeof json.adminUserEmail === "string" ? json.adminUserEmail : null,
+      adminRole: typeof json.adminRole === "string" ? json.adminRole : null,
+      canWriteViaServiceRole: Boolean(json.canWriteViaServiceRole),
+      canWriteViaJwtRole: Boolean(json.canWriteViaJwtRole),
+    };
+  } catch (err) {
+    return { error: normalizeDbError(err) };
+  }
+}

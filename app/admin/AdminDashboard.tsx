@@ -8,6 +8,7 @@ import {
   BarChart3,
   Download,
   RefreshCw,
+  Settings2,
   Users,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
@@ -21,11 +22,20 @@ import { cn } from "@/lib/utils";
 
 type Tab = "overview" | "results" | "export";
 
+const RESULTS_LIMIT_KEY = "aov-admin-results-limit";
+
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "overview", label: "ภาพรวม", icon: <BarChart3 className="size-4" /> },
   { id: "results", label: "ผลคะแนน", icon: <Users className="size-4" /> },
   { id: "export", label: "ส่งออกข้อมูล", icon: <Download className="size-4" /> },
 ];
+
+function readResultsLimit() {
+  if (typeof window === "undefined") return 50;
+  const stored = window.localStorage.getItem(RESULTS_LIMIT_KEY);
+  const n = Number(stored);
+  return n === 25 || n === 50 || n === 100 || n === 200 ? n : 50;
+}
 
 export function AdminDashboard() {
   const router = useAppRouter();
@@ -37,6 +47,7 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [resultsLimit] = useState(readResultsLimit);
 
   const setTabWithUrl = useCallback(
     (next: Tab) => {
@@ -163,10 +174,17 @@ export function AdminDashboard() {
               label={label}
             />
           ))}
+          <Link
+            href="/admin/settings"
+            className={cn(
+              "mt-2 flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+              "text-textSecondary hover:bg-card hover:text-textPrimary"
+            )}
+          >
+            <Settings2 className="size-4" />
+            การตั้งค่า
+          </Link>
         </nav>
-        <p className="mt-4 rounded-lg border border-border bg-card px-3 py-2 text-xs text-textSecondary">
-          การตั้งค่าระบบ — เร็ว ๆ นี้
-        </p>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -180,6 +198,15 @@ export function AdminDashboard() {
             </p>
           </div>
           <div className="hidden items-center gap-2 md:flex">
+            <Button
+              render={<Link href="/admin/settings" />}
+              nativeButton={false}
+              variant="outline"
+              size="sm"
+            >
+              <Settings2 className="size-4" />
+              ตั้งค่า
+            </Button>
             <ExportButton rows={rows} />
           </div>
         </header>
@@ -206,6 +233,12 @@ export function AdminDashboard() {
               {label}
             </button>
           ))}
+          <Link
+            href="/admin/settings"
+            className="flex min-h-11 shrink-0 items-center rounded-full bg-card px-3 py-2 text-sm text-textSecondary"
+          >
+            ตั้งค่า
+          </Link>
         </div>
 
         <main id="main-content" className="flex-1 space-y-6 p-4 sm:p-6">
@@ -238,10 +271,25 @@ export function AdminDashboard() {
 
           {(tab === "overview" || tab === "results") && (
             <section>
-              <h2 className="mb-3 font-heading text-lg font-semibold text-textPrimary">
-                ผลลัพธ์ล่าสุด
-              </h2>
-              <ResultsTable rows={rows} />
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-heading text-lg font-semibold text-textPrimary">
+                  ผลลัพธ์ล่าสุด
+                </h2>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void load()}
+                >
+                  <RefreshCw className="size-4" />
+                  รีเฟรช
+                </Button>
+              </div>
+              <ResultsTable
+                rows={rows}
+                limit={resultsLimit}
+                onChanged={() => void load()}
+              />
             </section>
           )}
 
