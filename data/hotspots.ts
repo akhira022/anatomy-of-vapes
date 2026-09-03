@@ -39,7 +39,7 @@ export const hotspots: HotspotContent[] = [
     partLabel: "แท้งก์",
     description:
       "โพรพิลีนไกลคอล (PG) และกลีเซอรีนพืช (VG) — ตัวทำละลายหลักที่สร้างไอและพารสชาติ",
-    position: { x: 0.32, y: 0.14, z: 0.52 },
+    position: { x: 0.4, y: 0.18, z: 0.52 },
     meshName: "coilTank",
     classification: "ตัวทำละลาย",
     foundIn: "ส่วนประกอบหลักของน้ำยาบุหรี่ไฟฟ้า ผสมนิโคตินและสารแต่งกลิ่น",
@@ -75,7 +75,7 @@ export const hotspots: HotspotContent[] = [
     partLabel: "แท้งก์/คอยล์",
     description:
       "สารพิษระคายเคืองรุนแรง ที่มักเกิดเมื่อพีจี/วีจีถูกความร้อนสูง",
-    position: { x: 0.36, y: -0.16, z: 0.5 },
+    position: { x: 0.42, y: -0.2, z: 0.5 },
     meshName: "coilTank",
     classification: "สารระคายเคือง",
     foundIn: "เกิดจากการสลายตัวด้วยความร้อนของตัวทำละลายในน้ำยาบุหรี่ไฟฟ้า",

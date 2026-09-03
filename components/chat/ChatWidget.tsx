@@ -259,7 +259,8 @@ export function ChatWidget() {
         type="button"
         size="icon-lg"
         className={cn(
-          "fixed z-[120] size-14 rounded-full shadow-lg",
+          // Below hotspot dialog (z-130). CSS hides this while the dialog is open.
+          "fixed z-[90] size-14 rounded-full shadow-lg transition-opacity duration-normal",
           inSceneFullscreen
             ? // Above hotspot strip, bottom-left — clear of right-side controls
               "bottom-[max(6.5rem,calc(env(safe-area-inset-bottom)+5.5rem))] left-[max(1rem,env(safe-area-inset-left))] right-auto"

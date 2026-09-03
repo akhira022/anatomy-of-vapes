@@ -21,6 +21,8 @@ interface HotspotMarkerProps {
   onClick: (id: string) => void;
   /** WebGL pulse keeps the demand-loop awake — off on lite devices. */
   animatePulse?: boolean;
+  /** Nudge the floating caption up/down to avoid stacking with neighbors. */
+  labelOffsetY?: number;
 }
 
 const labelTextureCache = new Map<string, CanvasTexture>();
@@ -35,7 +37,7 @@ function measureLabelWidth(ctx: CanvasRenderingContext2D, text: string) {
     (metrics.actualBoundingBoxLeft ?? 0) +
     (metrics.actualBoundingBoxRight ?? 0);
   // Thai glyphs often measure narrow before the webfont settles; keep a floor.
-  return Math.ceil(Math.max(metrics.width, bounding, text.length * 11) * 1.12);
+  return Math.ceil(Math.max(metrics.width, bounding, text.length * 12) * 1.2);
 }
 
 function getLabelTexture(
@@ -52,9 +54,9 @@ function getLabelTexture(
     typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
     2
   );
-  const padX = 16;
+  const padX = 20;
   // Extra vertical room for Thai vowel/tone marks above and below the line.
-  const padY = 10;
+  const padY = 12;
   const fontSize = 22;
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -115,6 +117,7 @@ export function HotspotMarker({
   selected,
   onClick,
   animatePulse = false,
+  labelOffsetY = 0,
 }: HotspotMarkerProps) {
   const pulseRef = useRef<Mesh>(null);
   const coreScale = selected ? 1.22 : 1;
@@ -227,7 +230,7 @@ export function HotspotMarker({
 
         <mesh
           key={`label-${caption}-${fontReadyToken}-${selected ? 1 : 0}`}
-          position={[labelX, 0.02, 0]}
+          position={[labelX, 0.02 + labelOffsetY, 0]}
           renderOrder={4}
           onClick={handleSelect}
           onPointerDown={(e) => e.stopPropagation()}

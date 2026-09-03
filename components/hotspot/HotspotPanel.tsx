@@ -45,7 +45,7 @@ export function HotspotPanel({
       ) : null}
       <p className="mt-1 text-sm leading-relaxed text-textSecondary">
         {hotspot?.description ??
-          "แตะจุดสีแดงเพื่อดูข้อมูลสารพิษแบบสั้นๆ"}
+          "แตะจุดบนโมเดลเพื่อดูข้อมูลสารพิษแบบสั้นๆ"}
       </p>
     </div>
   );

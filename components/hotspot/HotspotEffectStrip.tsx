@@ -38,17 +38,17 @@ const TONE_STYLES: Record<
   { chip: string; icon: string; connector: string }
 > = {
   danger: {
-    chip: "border-error/40 bg-error/10 text-error",
-    icon: "text-error",
-    connector: "bg-error/50",
+    chip: "border-border bg-card text-textPrimary",
+    icon: "text-primary",
+    connector: "bg-primary/50",
   },
   warning: {
-    chip: "border-warning/40 bg-warning/10 text-warning",
+    chip: "border-border bg-card text-textPrimary",
     icon: "text-warning",
     connector: "bg-warning/50",
   },
   info: {
-    chip: "border-info/40 bg-info/10 text-info",
+    chip: "border-border bg-card text-textPrimary",
     icon: "text-info",
     connector: "bg-info/50",
   },
@@ -96,8 +96,8 @@ function HotspotEffectStripInner({
   if (steps.length === 0) return null;
 
   return (
-    <div className={cn("mt-4", className)}>
-      <p className="text-xs font-medium uppercase tracking-wide text-textSecondary">
+    <div className={cn(className)}>
+      <p className="text-xs font-medium text-textSecondary">
         ผลกระทบต่อเนื่อง
       </p>
 
@@ -131,9 +131,9 @@ function HotspotEffectStripInner({
                       ease: EASE_OUT,
                     }}
                     className={cn(
-                      "relative flex min-w-[7.5rem] flex-col items-center gap-1.5 rounded-lg border px-3 py-2.5 text-center transition-shadow duration-normal sm:min-w-[8.25rem]",
+                      "relative flex min-w-[6.75rem] flex-col items-center gap-1 rounded-xl border px-2.5 py-2 text-center transition-shadow duration-normal sm:min-w-[7.5rem]",
                       tone.chip,
-                      active && !reduceMotion && "shadow-glowRed ring-2 ring-primary/30"
+                      active && !reduceMotion && "ring-1 ring-primary/40"
                     )}
                     aria-current={active ? "step" : undefined}
                   >

@@ -252,17 +252,17 @@ export default function AnatomyPage() {
         </div>
         {selected ? (
           <Badge variant="outline">{hotspotTitles(selected).primary}</Badge>
-        ) : (
-          <Badge variant="outline">แตะจุดสีแดงหรือเลือกจากรายการ</Badge>
-        )}
+        ) : !allVisited ? (
+          <Badge variant="outline">แตะจุดบนโมเดลหรือเลือกจากรายการ</Badge>
+        ) : null}
       </div>
 
       {isReview ? (
-        <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary xl:text-base">
+        <p className="mt-3 text-sm leading-relaxed text-textSecondary xl:text-base">
           ทบทวนจุดสารพิษได้ตามต้องการ — กดกลับเมื่อพร้อม
         </p>
       ) : !allVisited ? (
-        <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-textPrimary xl:text-base">
+        <p className="mt-3 text-sm leading-relaxed text-textSecondary xl:text-base">
           สำรวจต่อได้อีก{" "}
           <span className="font-semibold text-primary">
             {remainingCount} จุด
@@ -271,25 +271,25 @@ export default function AnatomyPage() {
             <>
               {" "}
               — ลองดู{" "}
-              <span className="font-semibold">
+              <span className="font-semibold text-textPrimary">
                 {hotspotTitles(nextHotspot).primary}
               </span>
             </>
           ) : null}
         </p>
       ) : (
-        <p className="mt-3 rounded-lg bg-success/10 px-3 py-2.5 text-sm font-medium text-success xl:text-base">
+        <p className="mt-3 text-sm font-medium text-success xl:text-base">
           {isGuest
             ? "สำรวจครบแล้ว พร้อมเสร็จสิ้นการเรียนรู้"
             : "สำรวจครบแล้ว พร้อมไปทำแบบทดสอบหลังเรียน"}
         </p>
       )}
 
-      <p className="mt-3 text-sm leading-relaxed text-textSecondary xl:text-base">
-        {selected
-          ? selected.description
-          : "หมุนโมเดล เปิดโหมดแยกชิ้นส่วน แล้วสำรวจจุดสารพิษให้ครบทุกจุด"}
-      </p>
+      {selected ? (
+        <p className="mt-3 text-sm leading-relaxed text-textSecondary xl:text-base">
+          {selected.description}
+        </p>
+      ) : null}
 
       <div className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         {showPrimaryCta && !allVisited && nextHotspot ? (

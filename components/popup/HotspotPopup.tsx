@@ -10,9 +10,8 @@ import {
   Lightbulb,
   X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { HotspotContent } from "@/data/hotspots";
 import { getHotspotEffectSteps } from "@/data/hotspot-effects";
 import { HotspotEffectStrip } from "@/components/hotspot/HotspotEffectStrip";
@@ -25,6 +24,8 @@ import {
   getSceneFullscreenRoot,
 } from "@/lib/scene-fullscreen";
 import { cn } from "@/lib/utils";
+
+const DIALOG_OPEN_CLASS = "hotspot-dialog-open";
 
 interface HotspotPopupProps {
   hotspot: HotspotContent | null;
@@ -42,7 +43,6 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
     onClose();
   }, [onClose]);
 
-  // Native + CSS fullscreen only show descendants of the fullscreen root.
   useEffect(() => {
     const sync = () => {
       setPortalTarget(getSceneFullscreenRoot() ?? document.body);
@@ -67,120 +67,154 @@ export function HotspotPopup({ hotspot, open, onClose }: HotspotPopupProps) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, handleClose]);
 
+  // Hide chat FAB / mark modal open for the rest of the UI.
+  useEffect(() => {
+    if (!open) return;
+    document.body.classList.add(DIALOG_OPEN_CLASS);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.classList.remove(DIALOG_OPEN_CLASS);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   if (!portalTarget) return null;
 
   return createPortal(
     <AnimatePresence>
-      {open && hotspot ? (
+      {open && hotspot && titles ? (
         <motion.div
-          className="fixed inset-0 z-[110] flex items-end justify-center bg-black/60 p-4 sm:items-center"
+          className="fixed inset-0 z-[130] flex items-end justify-center bg-black/55 sm:items-center sm:p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.18 }}
           onClick={handleClose}
         >
           <motion.div
             role="dialog"
             aria-modal="true"
             aria-labelledby="hotspot-title"
-            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card p-5 shadow-popup sm:p-6"
-            initial={{ opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 16 }}
-            transition={{ duration: 0.2 }}
+            data-hotspot-dialog=""
+            className="flex max-h-[min(92dvh,40rem)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-popup sm:rounded-2xl"
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.22 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
+            {/* Sticky header */}
+            <div className="shrink-0 border-b border-border px-5 pb-3 pt-4 sm:px-6 sm:pt-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium tracking-wide text-textSecondary">
+                    {[chapter ? `บทที่ ${chapter.id}` : null, hotspot.classification]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
                   <h2
                     id="hotspot-title"
-                    className="font-heading text-xl font-bold text-textPrimary"
+                    className="mt-1 font-heading text-2xl font-bold leading-tight text-textPrimary"
                   >
-                    {titles?.primary}
+                    {titles.primary}
                   </h2>
-                  {titles?.secondary ? (
-                    <span className="rounded bg-surface-2 px-2 py-0.5 text-xs font-medium text-textSecondary">
-                      {titles.secondary}
+                  {titles.secondary ? (
+                    <p className="mt-0.5 text-sm font-medium text-textSecondary">
+                      สารที่เกี่ยวข้อง: {titles.secondary}
+                    </p>
+                  ) : null}
+                  <p className="mt-2 text-sm text-textSecondary">
+                    ระดับอันตราย{" "}
+                    <span
+                      className={cn(
+                        "font-semibold",
+                        hotspot.dangerLevel === "สูง"
+                          ? "text-primary"
+                          : hotspot.dangerLevel === "กลาง"
+                            ? "text-warning"
+                            : "text-textPrimary"
+                      )}
+                    >
+                      {hotspot.dangerLevel}
                     </span>
-                  ) : null}
-                  <Badge variant="destructive">{hotspot.classification}</Badge>
-                  {chapter ? (
-                    <Badge variant="secondary">บทที่ {chapter.id}</Badge>
-                  ) : null}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-textSecondary">
-                  ระดับอันตราย:{" "}
-                  <span className="font-semibold text-primary">
-                    {hotspot.dangerLevel}
-                  </span>
-                </p>
+                <Button
+                  type="button"
+                  size="icon-lg"
+                  variant="ghost"
+                  aria-label="ปิด"
+                  className="size-11 shrink-0 rounded-full"
+                  onClick={handleClose}
+                >
+                  <X className="size-5" />
+                </Button>
               </div>
-              <Button
-                type="button"
-                size="icon-lg"
-                variant="ghost"
-                aria-label="ปิด"
-                className="size-11 shrink-0"
-                onClick={handleClose}
-              >
-                <X className="size-5" />
-              </Button>
             </div>
 
-            <HotspotEffectStrip
-              hotspotId={hotspot.id}
-              steps={getHotspotEffectSteps(hotspot.id)}
-            />
+            {/* Scrollable body — extra bottom pad clears home indicator */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6">
+              <HotspotEffectStrip
+                hotspotId={hotspot.id}
+                steps={getHotspotEffectSteps(hotspot.id)}
+                className="mt-0"
+              />
 
-            <div className="mt-5 space-y-4">
-              <InfoBlock
-                icon={<Flame className="size-4 text-warning" />}
-                title="พบที่ไหน"
-                body={hotspot.foundIn}
-              />
-              <InfoBlock
-                icon={<HeartPulse className="size-4 text-error" />}
-                title="ผลต่อสุขภาพ"
-                body={hotspot.healthEffects}
-              />
-              <InfoBlock
-                icon={<Lightbulb className="size-4 text-info" />}
-                title="คำแนะนำ"
-                body={hotspot.advice}
-              />
+              <div className="mt-5 space-y-1 divide-y divide-border rounded-xl border border-border bg-surface">
+                <InfoRow
+                  icon={<Flame className="size-4 text-textSecondary" />}
+                  title="พบที่ไหน"
+                  body={hotspot.foundIn}
+                />
+                <InfoRow
+                  icon={<HeartPulse className="size-4 text-textSecondary" />}
+                  title="ผลต่อสุขภาพ"
+                  body={hotspot.healthEffects}
+                />
+                <InfoRow
+                  icon={<Lightbulb className="size-4 text-textSecondary" />}
+                  title="คำแนะนำ"
+                  body={hotspot.advice}
+                />
+              </div>
 
               {myth ? (
-                <div className="rounded-lg border border-toxic/40 bg-toxic/10 p-4">
-                  <p className="text-xs font-semibold tracking-wide text-toxic">
+                <div className="mt-4 rounded-xl border border-border bg-background p-4">
+                  <p className="text-xs font-semibold tracking-wide text-textSecondary">
                     ความเข้าใจผิด vs ข้อเท็จจริง
                   </p>
-                  <p className="mt-2 text-sm text-textSecondary">
-                    <span className="font-semibold text-error">
-                      ความเข้าใจผิด: {myth.myth}
-                    </span>
-                  </p>
-                  <p className="mt-1 text-sm text-textPrimary">
-                    <span className="font-semibold text-success">
-                      ข้อเท็จจริง: {myth.fact}
-                    </span>
-                  </p>
+                  <div className="mt-3 space-y-2.5">
+                    <p className="text-sm leading-relaxed text-textSecondary">
+                      <span className="font-medium text-textPrimary">เข้าใจผิด — </span>
+                      {myth.myth}
+                    </p>
+                    <p className="text-sm leading-relaxed text-textSecondary">
+                      <span className="font-medium text-textPrimary">ข้อเท็จจริง — </span>
+                      {myth.fact}
+                    </p>
+                  </div>
                 </div>
               ) : null}
 
               {chapter ? (
-                <HotspotLessonAccordion key={hotspot.id} chapter={chapter} />
+                <div className="mt-4">
+                  <HotspotLessonAccordion key={hotspot.id} chapter={chapter} />
+                </div>
               ) : null}
+
+              <div className="h-3" aria-hidden="true" />
             </div>
 
-            <Button
-              type="button"
-              className="mt-6 h-11 w-auto rounded-lg px-6 font-semibold"
-              onClick={handleClose}
-            >
-              ปิด
-            </Button>
+            <div className="shrink-0 border-t border-border px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
+              <Button
+                type="button"
+                className="h-11 w-full rounded-xl font-semibold sm:w-auto sm:px-8"
+                onClick={handleClose}
+              >
+                ปิด
+              </Button>
+            </div>
           </motion.div>
         </motion.div>
       ) : null}
@@ -193,15 +227,15 @@ function HotspotLessonAccordion({ chapter }: { chapter: ChapterLesson }) {
   const [lessonOpen, setLessonOpen] = useState(false);
 
   return (
-    <div className="rounded-lg border border-border bg-surface">
+    <div className="rounded-xl border border-border bg-surface">
       <button
         type="button"
         className="flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
         aria-expanded={lessonOpen}
         onClick={() => setLessonOpen((prev) => !prev)}
       >
-        <span className="flex items-center gap-2 font-medium text-textPrimary">
-          <BookOpen className="size-4 text-info" />
+        <span className="flex items-center gap-2 text-sm font-medium text-textPrimary">
+          <BookOpen className="size-4 text-textSecondary" />
           อ่านบทเรียนเต็ม — บทที่ {chapter.id}
         </span>
         <ChevronDown
@@ -232,10 +266,7 @@ function HotspotLessonAccordion({ chapter }: { chapter: ChapterLesson }) {
               </div>
 
               {chapter.sections.map((section) => (
-                <div
-                  key={section.heading}
-                  className="rounded-md border border-border/70 bg-card p-3"
-                >
+                <div key={section.heading} className="rounded-lg bg-card p-3">
                   <p className="text-sm font-semibold text-textPrimary">
                     {section.heading}
                   </p>
@@ -252,8 +283,8 @@ function HotspotLessonAccordion({ chapter }: { chapter: ChapterLesson }) {
                 </div>
               ))}
 
-              <div className="rounded-md border border-info/30 bg-info/10 p-3">
-                <p className="text-xs font-semibold tracking-wide text-info">
+              <div className="rounded-lg bg-card p-3">
+                <p className="text-xs font-semibold tracking-wide text-textSecondary">
                   จุดที่ควรจำ
                 </p>
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-textPrimary">
@@ -270,7 +301,7 @@ function HotspotLessonAccordion({ chapter }: { chapter: ChapterLesson }) {
   );
 }
 
-function InfoBlock({
+function InfoRow({
   icon,
   title,
   body,
@@ -280,8 +311,8 @@ function InfoBlock({
   body: string;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-3.5">
-      <div className="flex items-center gap-2 font-medium text-textPrimary">
+    <div className="px-3.5 py-3.5">
+      <div className="flex items-center gap-2 text-sm font-medium text-textPrimary">
         {icon}
         {title}
       </div>
