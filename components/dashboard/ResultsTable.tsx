@@ -1,6 +1,16 @@
 "use client";
 
-import type { AdminResultRow } from "@/lib/db";
+import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/layout/ConfirmDialog";
+import { EditResultDialog } from "@/components/dashboard/EditResultDialog";
+import { Button } from "@/components/ui/button";
+import {
+  adminDeleteLearner,
+  adminDeleteResult,
+  type AdminResultRow,
+} from "@/lib/db";
 import { ageRangeLabels } from "@/lib/validations";
 import { cn } from "@/lib/utils";
 import type { AgeRange } from "@/types";
@@ -8,6 +18,7 @@ import type { AgeRange } from "@/types";
 interface ResultsTableProps {
   rows: AdminResultRow[];
   limit?: number;
+  onChanged?: () => void;
 }
 
 function userTypeLabel(userType: string) {
@@ -23,8 +34,39 @@ function ageLabel(ageRange: string | null) {
   return ageRangeLabels[ageRange as AgeRange] ?? ageRange;
 }
 
-export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
+export function ResultsTable({
+  rows,
+  limit = 50,
+  onChanged,
+}: ResultsTableProps) {
   const visibleRows = rows.slice(0, limit);
+  const [editRow, setEditRow] = useState<AdminResultRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    row: AdminResultRow;
+    mode: "result" | "user";
+  } | null>(null);
+
+  const confirmDelete = (target: {
+    row: AdminResultRow;
+    mode: "result" | "user";
+  }) => {
+    void (async () => {
+      const result =
+        target.mode === "user"
+          ? await adminDeleteLearner(target.row.user_id)
+          : await adminDeleteResult(target.row.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(
+        target.mode === "user"
+          ? "ลบผู้เรียนและข้อมูลที่เกี่ยวข้องแล้ว"
+          : "ลบผลคะแนนแล้ว"
+      );
+      onChanged?.();
+    })();
+  };
 
   if (rows.length === 0) {
     return (
@@ -33,6 +75,30 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
       </p>
     );
   }
+
+  const actions = (row: AdminResultRow) => (
+    <div className="flex items-center justify-end gap-1">
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        aria-label={`แก้ไข ${row.nickname}`}
+        onClick={() => setEditRow(row)}
+      >
+        <Pencil className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        aria-label={`ลบผลคะแนนของ ${row.nickname}`}
+        className="text-error hover:text-error"
+        onClick={() => setDeleteTarget({ row, mode: "result" })}
+      >
+        <Trash2 className="size-4" />
+      </Button>
+    </div>
+  );
 
   return (
     <>
@@ -65,9 +131,12 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
                   {flowTypeLabel(row.flow_type)}
                 </p>
               </div>
-              <p className="shrink-0 text-xs text-textDisabled">
-                {new Date(row.created_at).toLocaleDateString("th-TH")}
-              </p>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <p className="text-xs text-textDisabled">
+                  {new Date(row.created_at).toLocaleDateString("th-TH")}
+                </p>
+                {actions(row)}
+              </div>
             </div>
             <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
               <div>
@@ -102,6 +171,17 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
                 </dd>
               </div>
             </dl>
+            <div className="mt-3 flex justify-end">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="text-error"
+                onClick={() => setDeleteTarget({ row, mode: "user" })}
+              >
+                ลบผู้เรียนทั้งหมด
+              </Button>
+            </div>
           </article>
         ))}
         {rows.length > limit ? (
@@ -123,6 +203,7 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
               <th className="px-3 py-3 font-medium">หลัง</th>
               <th className="px-3 py-3 font-medium">พัฒนา</th>
               <th className="px-3 py-3 font-medium">วันที่</th>
+              <th className="px-3 py-3 font-medium">จัดการ</th>
             </tr>
           </thead>
           <tbody>
@@ -169,6 +250,20 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
                 <td className="px-3 py-3 text-textDisabled">
                   {new Date(row.created_at).toLocaleDateString("th-TH")}
                 </td>
+                <td className="px-3 py-3">
+                  <div className="flex items-center gap-1">
+                    {actions(row)}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs text-error"
+                      onClick={() => setDeleteTarget({ row, mode: "user" })}
+                    >
+                      ลบผู้เรียน
+                    </Button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -179,6 +274,37 @@ export function ResultsTable({ rows, limit = 50 }: ResultsTableProps) {
           </p>
         ) : null}
       </div>
+
+      <EditResultDialog
+        row={editRow}
+        open={Boolean(editRow)}
+        onOpenChange={(open) => {
+          if (!open) setEditRow(null);
+        }}
+        onSaved={() => onChanged?.()}
+      />
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        destructive
+        title={
+          deleteTarget?.mode === "user"
+            ? "ลบผู้เรียนทั้งหมด?"
+            : "ลบผลคะแนนรายการนี้?"
+        }
+        description={
+          deleteTarget?.mode === "user"
+            ? `จะลบโปรไฟล์ของ “${deleteTarget.row.nickname}” พร้อมผลคะแนน ความยินยอม และคำตอบทั้งหมด ไม่สามารถกู้คืนได้`
+            : `จะลบเฉพาะผลคะแนนของ “${deleteTarget?.row.nickname ?? ""}” โปรไฟล์ผู้เรียนยังคงอยู่`
+        }
+        confirmLabel="ลบ"
+        onConfirm={() => {
+          if (deleteTarget) confirmDelete(deleteTarget);
+        }}
+      />
     </>
   );
 }

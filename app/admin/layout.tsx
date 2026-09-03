@@ -26,12 +26,14 @@ export default function AdminLayout({
     const supabase = getSupabase();
     if (!supabase) return;
 
+    const onAdminRoute = pathname.startsWith("/admin");
+
     void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session && pathname === "/admin") {
+      if (!session && onAdminRoute) {
         router.replace("/admin/login");
         return;
       }
-      if (session && pathname === "/admin" && !isAdminSession(session)) {
+      if (session && onAdminRoute && !isAdminSession(session)) {
         void supabase.auth.signOut();
         router.replace("/admin/login");
         return;
