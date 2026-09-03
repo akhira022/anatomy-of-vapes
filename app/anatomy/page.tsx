@@ -10,7 +10,10 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { Stepper } from "@/components/layout/Stepper";
 import { HotspotList } from "@/components/hotspot/HotspotList";
+import { HotspotDetailPanel } from "@/components/hotspot/HotspotDetailPanel";
 import { HotspotPopup } from "@/components/popup/HotspotPopup";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useSceneFullscreenActive } from "@/hooks/useSceneFullscreenActive";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { hotspots } from "@/data/hotspots";
@@ -48,6 +51,11 @@ export default function AnatomyPage() {
   const [mode, setMode] = useState<ViewMode>("whole");
   const [popupOpen, setPopupOpen] = useState(false);
 
+  const isDesktop = useMediaQuery("(min-width: 1280px)");
+  const sceneFullscreen = useSceneFullscreenActive();
+  // Desktop uses the side panel; modal only for smaller screens or scene fullscreen.
+  const useModalDetail = !isDesktop || sceneFullscreen;
+
   useEffect(() => {
     void import("@/components/three/VapeModel").then((m) => {
       m.preloadVapeModels();
@@ -78,6 +86,7 @@ export default function AnatomyPage() {
     (id: string) => {
       setSelectedHotspotId(id);
       if (!isReview) markHotspotVisited(id);
+      // Always mark open; desktop renders the side panel, modal only when useModalDetail.
       setPopupOpen(true);
     },
     [isReview, markHotspotVisited, setSelectedHotspotId]
@@ -303,16 +312,18 @@ export default function AnatomyPage() {
             <ArrowRight className="size-4" />
           </Button>
         ) : null}
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          className="xl:min-h-12"
-          disabled={!selected}
-          onClick={() => setPopupOpen(true)}
-        >
-          ดูรายละเอียด
-        </Button>
+        {!isDesktop ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            className="xl:min-h-12"
+            disabled={!selected}
+            onClick={() => setPopupOpen(true)}
+          >
+            ดูรายละเอียด
+          </Button>
+        ) : null}
         {isReview ? (
           <Button
             type="button"
@@ -354,7 +365,7 @@ export default function AnatomyPage() {
         hotspotItems={hotspots}
         nextHotspotId={nextHotspot?.id ?? null}
         onNextHotspot={goNextHotspot}
-        popupOpen={popupOpen && Boolean(selected)}
+        popupOpen={useModalDetail && popupOpen && Boolean(selected)}
       />
     </div>
   );
@@ -432,6 +443,10 @@ export default function AnatomyPage() {
           <div className="min-h-0 min-w-0">{scene}</div>
           <aside className="flex min-h-0 max-h-[calc(100dvh-7.5rem)] flex-col gap-3 overflow-y-auto overscroll-contain pb-6 pr-1">
             {modeToggle}
+            <HotspotDetailPanel
+              hotspot={selected}
+              onClose={closeHotspotPopup}
+            />
             {statusSection(true)}
             <HotspotList
               items={hotspots}
@@ -447,7 +462,7 @@ export default function AnatomyPage() {
 
       <HotspotPopup
         hotspot={selected}
-        open={popupOpen && Boolean(selected)}
+        open={useModalDetail && popupOpen && Boolean(selected)}
         onClose={closeHotspotPopup}
       />
     </div>
