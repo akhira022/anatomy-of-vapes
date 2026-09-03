@@ -36,7 +36,6 @@ function measureLabelWidth(ctx: CanvasRenderingContext2D, text: string) {
   const bounding =
     (metrics.actualBoundingBoxLeft ?? 0) +
     (metrics.actualBoundingBoxRight ?? 0);
-  // Thai glyphs often measure narrow before the webfont settles; keep a floor.
   return Math.ceil(Math.max(metrics.width, bounding, text.length * 12) * 1.2);
 }
 
@@ -55,7 +54,6 @@ function getLabelTexture(
     2
   );
   const padX = 20;
-  // Extra vertical room for Thai vowel/tone marks above and below the line.
   const padY = 12;
   const fontSize = 22;
   const canvas = document.createElement("canvas");
@@ -85,7 +83,7 @@ function getLabelTexture(
   ctx.closePath();
   ctx.fillStyle = selected
     ? "rgba(229, 57, 53, 0.95)"
-    : "rgba(20, 20, 22, 0.82)";
+    : "rgba(20, 20, 22, 0.88)";
   ctx.fill();
   ctx.strokeStyle = selected ? "rgba(255,255,255,0.55)" : accent;
   ctx.lineWidth = 1.5;
@@ -106,7 +104,7 @@ function getLabelTexture(
 
 /**
  * Pure WebGL markers (no Html/DOM sync) — much cheaper while orbiting on phones.
- * HotspotList remains the accessible fallback for keyboard / screen readers.
+ * Hit targets stay tight so OrbitControls can still receive drags nearby.
  */
 export function HotspotMarker({
   id,
@@ -120,10 +118,10 @@ export function HotspotMarker({
   labelOffsetY = 0,
 }: HotspotMarkerProps) {
   const pulseRef = useRef<Mesh>(null);
-  const coreScale = selected ? 1.22 : 1;
-  const fill = visited ? "#22C55E" : "#E53935";
+  const coreScale = selected ? 1.28 : 1;
+  // Quieter visited green so a completed model does not look “neon”.
+  const fill = selected ? "#E53935" : visited ? "#2F9E5B" : "#E53935";
   const caption = partLabel?.trim() || label;
-  // Prefer labels on the outer side so left/right markers don't collide.
   const labelSide = position[0] < -0.05 ? -1 : 1;
 
   const [fontReadyToken, setFontReadyToken] = useState(0);
@@ -143,9 +141,7 @@ export function HotspotMarker({
     void document.fonts
       .load('700 22px "IBM Plex Sans Thai"')
       .then(markReady)
-      .catch(() => {
-        /* keep fallback metrics */
-      });
+      .catch(() => {});
 
     if (document.fonts.status === "loaded") {
       markReady();
@@ -173,9 +169,9 @@ export function HotspotMarker({
     const mesh = pulseRef.current;
     if (!mesh || visited || !animatePulse) return;
     const t = (Math.sin(clock.elapsedTime * Math.PI) + 1) / 2;
-    mesh.scale.setScalar(1 + t * 0.4);
+    mesh.scale.setScalar(1 + t * 0.35);
     const mat = mesh.material as MeshBasicMaterial;
-    mat.opacity = 0.3 + t * 0.4;
+    mat.opacity = 0.28 + t * 0.35;
     invalidate();
   });
 
@@ -184,26 +180,32 @@ export function HotspotMarker({
     onClick(id);
   };
 
-  const labelH = selected ? 0.2 : 0.16;
+  const labelH = selected ? 0.2 : 0.15;
   const labelW = labelH * labelAspect;
-  const labelX = labelSide * (0.22 + labelW * 0.35);
+  const labelX = labelSide * (0.26 + labelW * 0.35);
 
   return (
     <group position={position} userData={{ hotspotId: id, label, partLabel }}>
       <Billboard>
-        {/* Large invisible hit target for thumbs */}
-        <mesh onClick={handleSelect} onPointerDown={(e) => e.stopPropagation()}>
-          <circleGeometry args={[0.28, 12]} />
+        {/*
+          Tight hit disc only — a large invisible plane was swallowing orbit
+          drags and made nearby green dots feel “sticky” / wrong on phones.
+        */}
+        <mesh
+          onClick={handleSelect}
+          onPointerUp={(e) => e.stopPropagation()}
+        >
+          <circleGeometry args={[0.15, 20]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
 
         {!visited && animatePulse ? (
           <mesh ref={pulseRef} renderOrder={1}>
-            <circleGeometry args={[0.12, 16]} />
+            <circleGeometry args={[0.11, 16]} />
             <meshBasicMaterial
               color="#E53935"
               transparent
-              opacity={0.45}
+              opacity={0.4}
               depthWrite={false}
               toneMapped={false}
             />
@@ -211,7 +213,7 @@ export function HotspotMarker({
         ) : null}
 
         <mesh scale={coreScale} renderOrder={2} onClick={handleSelect}>
-          <ringGeometry args={[0.07, 0.095, 20]} />
+          <ringGeometry args={[0.065, 0.09, 24]} />
           <meshBasicMaterial
             color="#FFFFFF"
             toneMapped={false}
@@ -220,7 +222,7 @@ export function HotspotMarker({
         </mesh>
 
         <mesh scale={coreScale} renderOrder={3} onClick={handleSelect}>
-          <circleGeometry args={[0.07, 16]} />
+          <circleGeometry args={[0.065, 20]} />
           <meshBasicMaterial
             color={fill}
             toneMapped={false}
@@ -233,7 +235,6 @@ export function HotspotMarker({
           position={[labelX, 0.02 + labelOffsetY, 0]}
           renderOrder={4}
           onClick={handleSelect}
-          onPointerDown={(e) => e.stopPropagation()}
         >
           <planeGeometry args={[labelW, labelH]} />
           <meshBasicMaterial

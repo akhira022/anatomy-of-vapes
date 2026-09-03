@@ -209,7 +209,7 @@ export function VapeScene({
   };
 
   const controlBtn =
-    "pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card/95 text-textPrimary shadow-card backdrop-blur-sm transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+    "pointer-events-auto flex min-h-12 min-w-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl border border-border bg-card/95 px-1.5 py-1.5 text-[0.625rem] font-medium leading-none text-textPrimary shadow-card backdrop-blur-sm transition-colors active:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
     <div
@@ -368,7 +368,7 @@ export function VapeScene({
       />
 
       {!showHint && isFullscreen ? (
-        <div className="pointer-events-none absolute top-[max(0.75rem,env(safe-area-inset-top))] left-[max(0.75rem,env(safe-area-inset-left))] z-10 max-w-[min(16rem,calc(100%-5.5rem))] rounded-xl border border-border bg-card/95 px-3.5 py-2.5 text-sm text-textPrimary shadow-card backdrop-blur-sm">
+        <div className="pointer-events-none absolute top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-10 rounded-xl border border-border bg-card/95 px-3.5 py-2.5 text-sm text-textPrimary shadow-card backdrop-blur-sm">
           <p className="font-medium">
             สำรวจแล้ว {visitedCount}/{hotspotTotal}
           </p>
@@ -380,11 +380,12 @@ export function VapeScene({
 
       <div
         className={cn(
-          "pointer-events-none absolute flex flex-col gap-2",
-          showHint ? "z-30" : "z-10",
+          // Always left — right side is reserved for 3D part labels.
+          "pointer-events-none absolute z-10 flex flex-col gap-2",
           isFullscreen
-            ? "top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))]"
-            : "top-3 left-2 sm:left-3"
+            ? "top-[max(0.75rem,env(safe-area-inset-top))] left-[max(0.75rem,env(safe-area-inset-left))]"
+            : "top-3 left-2 sm:left-3",
+          showHint && "z-30"
         )}
       >
         {onExplodedChange ? (
@@ -404,6 +405,7 @@ export function VapeScene({
             }}
           >
             <Split className="size-4" aria-hidden="true" />
+            <span>{exploded ? "รวม" : "แยก"}</span>
           </button>
         ) : null}
         <button
@@ -414,6 +416,7 @@ export function VapeScene({
           onClick={() => zoomBy(-0.12)}
         >
           <ZoomIn className="size-4" aria-hidden="true" />
+          <span>ซูม+</span>
         </button>
         <button
           type="button"
@@ -423,6 +426,7 @@ export function VapeScene({
           onClick={() => zoomBy(0.12)}
         >
           <ZoomOut className="size-4" aria-hidden="true" />
+          <span>ซูม−</span>
         </button>
         <button
           type="button"
@@ -432,6 +436,7 @@ export function VapeScene({
           onClick={resetCamera}
         >
           <RotateCcw className="size-4" aria-hidden="true" />
+          <span>รีเซ็ต</span>
         </button>
         <button
           type="button"
@@ -448,6 +453,7 @@ export function VapeScene({
           ) : (
             <Maximize2 className="size-4" aria-hidden="true" />
           )}
+          <span>{isFullscreen ? "ย่อ" : "เต็มจอ"}</span>
         </button>
       </div>
 
@@ -470,7 +476,7 @@ export function VapeScene({
             <div
               role="list"
               aria-label="จุดสารพิษ"
-              className="pointer-events-auto flex justify-start gap-2 overflow-x-auto pb-1 sm:justify-center sm:flex-wrap sm:overflow-visible"
+              className="pointer-events-auto flex justify-start gap-2 overflow-x-auto pb-1 pl-14 sm:justify-center sm:overflow-visible sm:pl-0"
             >
             {hotspotItems.map((item) => {
               const visited = visitedHotspots.includes(item.id);
@@ -483,11 +489,11 @@ export function VapeScene({
                   role="listitem"
                   onClick={() => onHotspotClick(item.id)}
                   className={cn(
-                    "flex min-h-11 min-w-[7.25rem] shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors duration-normal",
+                    "flex min-h-12 min-w-[7.75rem] shrink-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors duration-normal active:scale-[0.98]",
                     isSelected
                       ? "border-primary bg-primary text-white"
                       : visited
-                        ? "border-success/50 bg-card/95 text-textPrimary"
+                        ? "border-success/40 bg-card/95 text-textPrimary"
                         : "border-border bg-card/95 text-textPrimary"
                   )}
                 >
