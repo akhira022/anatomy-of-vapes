@@ -338,9 +338,9 @@ export function VapeModel({
       {showHotspots && onHotspotClick
         ? hotspots.map((hs) => {
             const part = (hs.meshName ?? "coilTank") as PartKey;
-            // Keep right-side tank labels from stacking on top of each other.
+            // Centered captions sit on the marker axis — nudge tank cluster apart.
             const labelOffsetY =
-              hs.id === "hs-pg-vg" ? 0.16 : hs.id === "hs-acrolein" ? -0.14 : 0;
+              hs.id === "hs-pg-vg" ? 0.04 : hs.id === "hs-acrolein" ? -0.08 : 0;
             return (
               <HotspotMarker
                 key={hs.id}

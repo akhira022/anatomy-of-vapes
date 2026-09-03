@@ -122,7 +122,6 @@ export function HotspotMarker({
   // Quieter visited green so a completed model does not look “neon”.
   const fill = selected ? "#E53935" : visited ? "#2F9E5B" : "#E53935";
   const caption = partLabel?.trim() || label;
-  const labelSide = position[0] < -0.05 ? -1 : 1;
 
   const [fontReadyToken, setFontReadyToken] = useState(0);
 
@@ -182,7 +181,13 @@ export function HotspotMarker({
 
   const labelH = selected ? 0.2 : 0.15;
   const labelW = labelH * labelAspect;
-  const labelX = labelSide * (0.26 + labelW * 0.35);
+  // Center the caption on the marker: above by default, below when offset is negative.
+  const ringTop = 0.09 * coreScale;
+  const gap = 0.035;
+  const placeBelow = labelOffsetY < -0.02;
+  const labelY = placeBelow
+    ? -(ringTop + gap + labelH / 2) + labelOffsetY * 0.25
+    : ringTop + gap + labelH / 2 + labelOffsetY;
 
   return (
     <group position={position} userData={{ hotspotId: id, label, partLabel }}>
@@ -232,7 +237,7 @@ export function HotspotMarker({
 
         <mesh
           key={`label-${caption}-${fontReadyToken}-${selected ? 1 : 0}`}
-          position={[labelX, 0.02 + labelOffsetY, 0]}
+          position={[0, labelY, 0]}
           renderOrder={4}
           onClick={handleSelect}
         >
