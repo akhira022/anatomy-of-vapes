@@ -6,7 +6,6 @@ import {
   adminWriteDeniedMessage,
   ensureAdminAllowlist,
 } from "@/lib/admin-db";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 
@@ -29,20 +28,7 @@ export async function DELETE(request: Request, { params }: Params) {
     return NextResponse.json({ error: "รหัสผลคะแนนไม่ถูกต้อง" }, { status: 400 });
   }
 
-  const serviceRole = Boolean(getSupabaseAdmin());
   const db = adminDbClient(auth.accessToken);
-
-  if (serviceRole) {
-    const { error } = await db.from("quiz_results").delete().eq("id", resultId);
-    if (error) {
-      return NextResponse.json(
-        { error: adminWriteDeniedMessage(error.message, error.code) },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json({ ok: true });
-  }
-
   const { error } = await db.rpc("admin_delete_result", {
     p_result_id: resultId,
   });
