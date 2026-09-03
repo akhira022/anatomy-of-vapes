@@ -592,6 +592,9 @@ export type AdminSettingsInfo = {
   adminRole: string | null;
   canWriteViaServiceRole: boolean;
   canWriteViaJwtRole: boolean;
+  canWriteViaAllowlist: boolean;
+  canWrite: boolean;
+  allowlistError: string | null;
 };
 
 export async function fetchAdminSettings(): Promise<
@@ -620,6 +623,10 @@ export async function fetchAdminSettings(): Promise<
       adminRole: typeof json.adminRole === "string" ? json.adminRole : null,
       canWriteViaServiceRole: Boolean(json.canWriteViaServiceRole),
       canWriteViaJwtRole: Boolean(json.canWriteViaJwtRole),
+      canWriteViaAllowlist: Boolean(json.canWriteViaAllowlist),
+      canWrite: Boolean(json.canWrite),
+      allowlistError:
+        typeof json.allowlistError === "string" ? json.allowlistError : null,
     };
   } catch (err) {
     return { error: normalizeDbError(err) };
