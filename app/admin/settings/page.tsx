@@ -90,9 +90,7 @@ export default function AdminSettingsPage() {
     window.localStorage.setItem(RESULTS_LIMIT_KEY, String(n));
   };
 
-  const canWrite = Boolean(
-    info?.canWriteViaServiceRole || info?.canWriteViaJwtRole
-  );
+  const canWrite = Boolean(info?.canWrite);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-4 sm:p-6">
@@ -221,22 +219,28 @@ export default function AdminSettingsPage() {
                 <div className="space-y-1">
                   <p className="font-medium">ยังแก้/ลบข้อมูลบนเซิร์ฟเวอร์ไม่ได้</p>
                   <p className="text-textSecondary">
-                    เลือกอย่างน้อยหนึ่งอย่าง: ใส่{" "}
-                    <code className="rounded bg-surface px-1">SUPABASE_SERVICE_ROLE_KEY</code>{" "}
-                    ใน env ฝั่งเซิร์ฟเวอร์ หรือตั้ง{" "}
-                    <code className="rounded bg-surface px-1">app_metadata.role = admin</code>{" "}
-                    ใน Supabase Auth แล้วรัน{" "}
+                    {info.allowlistError ??
+                      "รัน supabase/migrations/009_admin_allowlist_writes.sql ใน Supabase SQL Editor แล้วรีเฟรชหน้านี้ — หรือตั้ง SUPABASE_SERVICE_ROLE_KEY / Auth role=admin"}
+                  </p>
+                  <p className="text-textSecondary">
+                    ตรวจว่า{" "}
                     <code className="rounded bg-surface px-1">
-                      supabase/migrations/008_admin_write.sql
-                    </code>
+                      NEXT_PUBLIC_ADMIN_EMAIL
+                    </code>{" "}
+                    ตรงกับอีเมลที่ล็อกอินอยู่
+                    {info.adminUserEmail
+                      ? ` (ตอนนี้: ${info.adminUserEmail})`
+                      : ""}
                   </p>
                 </div>
               </div>
             ) : (
               <p className="mt-4 text-sm text-textSecondary">
                 {info.canWriteViaServiceRole
-                  ? "เขียนข้อมูลผ่าน service role (แนะนำ)"
-                  : "เขียนข้อมูลผ่าน JWT role=admin ตาม RLS"}
+                  ? "เขียนข้อมูลผ่าน service role"
+                  : info.canWriteViaJwtRole
+                    ? "เขียนข้อมูลผ่าน JWT role=admin"
+                    : "เขียนข้อมูลผ่านอีเมลแอดมินใน allowlist (migration 009)"}
               </p>
             )}
           </section>

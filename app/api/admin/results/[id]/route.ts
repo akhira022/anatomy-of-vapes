@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
 import { requireAdminRequest } from "@/lib/admin-api-auth";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import {
+  adminDbClient,
+  adminWriteDeniedMessage,
+  ensureAdminAllowlist,
+} from "@/lib/admin-db";
 
 export const runtime = "nodejs";
-
-function userClient(accessToken: string) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim();
-  return createClient(url, anon, {
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -24,21 +18,23 @@ export async function DELETE(request: Request, { params }: Params) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
+  const synced = await ensureAdminAllowlist(auth.accessToken, auth.user.email);
+  if ("error" in synced) {
+    return NextResponse.json({ error: synced.error }, { status: 400 });
+  }
+
   const { id: resultId } = await params;
   if (!z.string().uuid().safeParse(resultId).success) {
     return NextResponse.json({ error: "รหัสผลคะแนนไม่ถูกต้อง" }, { status: 400 });
   }
 
-  const db = getSupabaseAdmin() ?? userClient(auth.accessToken);
-  const { error } = await db.from("quiz_results").delete().eq("id", resultId);
+  const db = adminDbClient(auth.accessToken);
+  const { error } = await db.rpc("admin_delete_result", {
+    p_result_id: resultId,
+  });
   if (error) {
     return NextResponse.json(
-      {
-        error:
-          error.message.includes("permission") || error.code === "42501"
-            ? "ไม่มีสิทธิ์ลบ — ตั้งค่า SUPABASE_SERVICE_ROLE_KEY หรือใส่ role=admin ใน Auth แล้วรัน migration 008"
-            : error.message,
-      },
+      { error: adminWriteDeniedMessage(error.message, error.code) },
       { status: 400 }
     );
   }

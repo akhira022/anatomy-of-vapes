@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
 import { requireAdminRequest } from "@/lib/admin-api-auth";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import {
+  adminDbClient,
+  adminWriteDeniedMessage,
+  ensureAdminAllowlist,
+} from "@/lib/admin-db";
 import { ageRangeOptions, gradeOptions } from "@/lib/validations";
 
 export const runtime = "nodejs";
@@ -19,28 +22,17 @@ const updateSchema = z.object({
   result_id: z.string().uuid().optional(),
 });
 
-function userClient(accessToken: string) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim();
-  return createClient(url, anon, {
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-function writeDeniedMessage(message: string, code?: string) {
-  if (message.includes("permission") || code === "42501") {
-    return "ไม่มีสิทธิ์แก้ไข — ตั้งค่า SUPABASE_SERVICE_ROLE_KEY หรือใส่ role=admin ใน Auth แล้วรัน migration 008";
-  }
-  return message;
-}
-
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
   const auth = await requireAdminRequest(request);
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const synced = await ensureAdminAllowlist(auth.accessToken, auth.user.email);
+  if ("error" in synced) {
+    return NextResponse.json({ error: synced.error }, { status: 400 });
   }
 
   const { id: userId } = await params;
@@ -64,50 +56,34 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   const data = parsed.data;
-  const db = getSupabaseAdmin() ?? userClient(auth.accessToken);
-
-  const userPatch: Record<string, unknown> = {};
-  if (data.nickname !== undefined) userPatch.nickname = data.nickname;
-  if (data.grade !== undefined) userPatch.grade = data.grade;
-  if (data.age_range !== undefined) userPatch.age_range = data.age_range;
   if (data.email !== undefined) {
     const trimmed = data.email.trim();
     if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       return NextResponse.json({ error: "อีเมลไม่ถูกต้อง" }, { status: 400 });
     }
-    userPatch.email = trimmed ? trimmed.toLowerCase() : null;
   }
 
-  if (Object.keys(userPatch).length > 0) {
-    const { error } = await db.from("users").update(userPatch).eq("id", userId);
-    if (error) {
-      return NextResponse.json(
-        { error: writeDeniedMessage(error.message, error.code) },
-        { status: 400 }
-      );
-    }
-  }
+  const db = adminDbClient(auth.accessToken);
+  const { error } = await db.rpc("admin_update_learner", {
+    p_user_id: userId,
+    p_nickname: data.nickname ?? null,
+    p_grade: data.grade ?? null,
+    p_age_range: data.age_range ?? null,
+    p_clear_age_range: data.age_range === null,
+    p_email: data.email?.trim() ?? null,
+    p_set_email: data.email !== undefined,
+    p_result_id: data.result_id ?? null,
+    p_pre_score: data.pre_score ?? null,
+    p_post_score: data.post_score ?? null,
+    p_pre_total: data.pre_total ?? null,
+    p_post_total: data.post_total ?? null,
+  });
 
-  if (data.result_id) {
-    const resultPatch: Record<string, unknown> = {};
-    if (data.pre_score !== undefined) resultPatch.pre_score = data.pre_score;
-    if (data.post_score !== undefined) resultPatch.post_score = data.post_score;
-    if (data.pre_total !== undefined) resultPatch.pre_total = data.pre_total;
-    if (data.post_total !== undefined) resultPatch.post_total = data.post_total;
-
-    if (Object.keys(resultPatch).length > 0) {
-      const { error } = await db
-        .from("quiz_results")
-        .update(resultPatch)
-        .eq("id", data.result_id)
-        .eq("user_id", userId);
-      if (error) {
-        return NextResponse.json(
-          { error: writeDeniedMessage(error.message, error.code) },
-          { status: 400 }
-        );
-      }
-    }
+  if (error) {
+    return NextResponse.json(
+      { error: adminWriteDeniedMessage(error.message, error.code) },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ ok: true });
@@ -119,16 +95,23 @@ export async function DELETE(request: Request, { params }: Params) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
+  const synced = await ensureAdminAllowlist(auth.accessToken, auth.user.email);
+  if ("error" in synced) {
+    return NextResponse.json({ error: synced.error }, { status: 400 });
+  }
+
   const { id: userId } = await params;
   if (!z.string().uuid().safeParse(userId).success) {
     return NextResponse.json({ error: "รหัสผู้ใช้ไม่ถูกต้อง" }, { status: 400 });
   }
 
-  const db = getSupabaseAdmin() ?? userClient(auth.accessToken);
-  const { error } = await db.from("users").delete().eq("id", userId);
+  const db = adminDbClient(auth.accessToken);
+  const { error } = await db.rpc("admin_delete_learner", {
+    p_user_id: userId,
+  });
   if (error) {
     return NextResponse.json(
-      { error: writeDeniedMessage(error.message, error.code) },
+      { error: adminWriteDeniedMessage(error.message, error.code) },
       { status: 400 }
     );
   }

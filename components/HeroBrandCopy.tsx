@@ -3,8 +3,8 @@
 import { useReducedMotion } from "framer-motion";
 import BlurText from "@/components/BlurText";
 
-const TITLE_LEAD = "ระบบประชาสัมพันธ์ภัยบุหรี่ไฟฟ้า";
-const TITLE_ACCENT = "อัจฉริยะ";
+const TITLE_LEAD = "Anatomy of";
+const TITLE_ACCENT = "Vapes";
 const SUBTITLE = "ส่องไส้ในบุหรี่ไฟฟ้า";
 
 const heroTitleClass =
