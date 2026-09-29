@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
+import { PartnerLogos } from "@/components/layout/PartnerLogos";
 
 interface AppNavbarProps {
   title?: string;
@@ -37,7 +38,7 @@ export function AppNavbar({
     >
       <nav
         className={cn(
-          "mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6",
+          "relative mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6",
           contentClassName
         )}
       >
@@ -66,7 +67,11 @@ export function AppNavbar({
             {title}
           </span>
         </div>
-        <div className="flex items-center gap-1">
+        <PartnerLogos
+          density="nav"
+          className="absolute left-1/2 hidden -translate-x-1/2 xl:flex"
+        />
+        <div className="flex shrink-0 items-center gap-1">
           <ThemeToggle />
           {rightSlot ??
             (showSessionMenu ? <UserSessionMenu showNicknameOnMobile /> : null)}

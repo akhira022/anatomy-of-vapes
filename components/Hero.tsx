@@ -90,7 +90,7 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-brand"
-      className="relative isolate overflow-hidden bg-background pt-14 sm:pt-16"
+      className="relative isolate overflow-hidden bg-background pt-28 sm:pt-[7.5rem] lg:pt-16"
     >
       <div className="mx-auto grid min-h-[min(100dvh,54rem)] w-full max-w-6xl grid-cols-1 sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] sm:items-center xl:min-h-[min(100dvh,58rem)] xl:max-w-7xl">
         {/* Copy column */}
