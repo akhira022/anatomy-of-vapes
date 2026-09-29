@@ -58,26 +58,27 @@ export default function Home() {
       <header className="absolute inset-x-0 top-0 z-50 light:bg-gradient-to-b light:from-background light:via-background/80 light:to-transparent">
         <nav
           aria-label="หลัก"
-          className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 xl:max-w-6xl"
+          className="relative mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 xl:max-w-6xl"
         >
           <Link
             href="/"
             title="Anatomy of Vapes"
-            className="max-w-[min(72vw,20rem)] truncate font-heading text-xs font-semibold tracking-wide text-textPrimary transition-colors hover:text-primary sm:max-w-none sm:text-sm sm:whitespace-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="min-w-0 truncate font-heading text-sm font-semibold tracking-wide text-textPrimary transition-colors hover:text-primary lg:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Anatomy of Vapes
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/#partners"
-              className="text-xs font-medium text-textPrimary/70 transition-colors hover:text-textPrimary sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              สนับสนุนโดย
-            </Link>
+          <PartnerLogos
+            density="nav"
+            className="absolute left-1/2 hidden -translate-x-1/2 lg:flex"
+          />
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <UserSessionMenu />
           </div>
         </nav>
+        <div className="flex h-14 items-center justify-center border-t border-border/70 bg-background/85 px-4 backdrop-blur-sm lg:hidden">
+          <PartnerLogos density="nav" />
+        </div>
       </header>
 
       <main id="main-content" className="flex-1">
@@ -222,6 +223,7 @@ export default function Home() {
         </section>
 
         <section
+          id="partners"
           aria-labelledby="partners-heading"
           className="border-t border-border px-4 py-14 sm:px-6 sm:py-16 xl:py-20"
         >

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const PARTNER_LOGOS = [
@@ -40,10 +41,34 @@ const PARTNER_LOGOS = [
   },
 ] as const;
 
+/** Four public sponsor marks, cropped to ink and scaled to one height. */
+const NAV_PARTNER_LOGOS = [
+  {
+    ...PARTNER_LOGOS[0],
+    frame: "h-9 w-[2.53rem]",
+    image: "h-[2.87rem] w-[2.87rem] -ml-[0.17rem] -mt-[0.29rem]",
+  },
+  {
+    ...PARTNER_LOGOS[1],
+    frame: "h-9 w-[1.36rem]",
+    image: "h-[2.78rem] w-[2.78rem] -ml-[0.67rem] -mt-[0.35rem]",
+  },
+  {
+    ...PARTNER_LOGOS[2],
+    frame: "h-9 w-[2.97rem]",
+    image: "h-[3.26rem] w-[3.24rem] -ml-[0.11rem] -mt-[0.62rem]",
+  },
+  {
+    ...PARTNER_LOGOS[3],
+    frame: "h-9 w-[7.43rem]",
+    image: "h-[2.62rem] w-[7.84rem] -ml-[0.23rem] -mt-[0.19rem]",
+  },
+] as const;
+
 interface PartnerLogosProps {
   className?: string;
-  /** Compact row for footer; roomier wrap for landing section. */
-  density?: "section" | "footer";
+  /** Compact row for footer; roomier wrap for landing section; single nowrap row for nav. */
+  density?: "section" | "footer" | "nav";
 }
 
 export function PartnerLogos({
@@ -51,6 +76,32 @@ export function PartnerLogos({
   density = "section",
 }: PartnerLogosProps) {
   const isFooter = density === "footer";
+  const isNav = density === "nav";
+
+  if (isNav) {
+    return (
+      <Link
+        href="/#partners"
+        aria-label="ผู้สนับสนุน: สสส. คิดดี iDOL ศูนย์สร้างสรรค์สื่อ และยกกำลังสุข"
+        className={cn(
+          "flex shrink-0 items-center justify-center gap-3 rounded-md sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          className
+        )}
+      >
+        {NAV_PARTNER_LOGOS.map((logo) => (
+          <span key={logo.src} className={cn("relative block shrink-0 overflow-hidden", logo.frame)}>
+            <Image
+              src={logo.src}
+              alt=""
+              width={logo.width}
+              height={logo.height}
+              className={cn("absolute left-0 top-0 max-w-none object-fill", logo.image)}
+            />
+          </span>
+        ))}
+      </Link>
+    );
+  }
 
   return (
     <ul

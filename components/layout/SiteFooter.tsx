@@ -78,7 +78,7 @@ export function SiteFooter() {
           </ul>
         </nav>
 
-        <div className="md:col-span-4" id="partners">
+        <div className="md:col-span-4">
           <h2 className="font-heading text-sm font-semibold text-textPrimary">
             สนับสนุนโดย
           </h2>
