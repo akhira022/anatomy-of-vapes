@@ -57,14 +57,15 @@ function sanitizeChunkContent(chunk: RetrievedChunk): string {
   }
 
   if (chunk.type === "refusal") {
-    const situation = lines.find((line) => line.startsWith("สถานการณ์"));
     const tips = lines
       .filter((line) => line.startsWith("เคล็ดลับ"))
       .map((line) => stripLabel(line, "เคล็ดลับ"));
-    const parts = [
-      situation ? stripLabel(situation, "สถานการณ์") : "",
-      ...tips,
-    ].filter(Boolean);
+    const examples = lines.find((line) => line.startsWith("ตัวอย่างประโยค"));
+    const phrase = examples
+      ? stripLabel(examples, "ตัวอย่างประโยค").split(/\s*\/\s*/)[0]?.trim()
+      : "";
+    const parts = [...tips];
+    if (phrase) parts.push(`พูดได้เลยว่า “${phrase}”`);
     if (parts.length > 0) return parts.join(" ");
   }
 
@@ -101,16 +102,19 @@ export function buildLocalAnswer(chunks: RetrievedChunk[]): string {
 
   const [primary, ...related] = chunks;
   const main = sanitizeChunkContent(primary);
-  const parts = [main];
 
-  const extras = related.slice(0, 2).map((chunk) => {
-    const snippet = truncate(sanitizeChunkContent(chunk), 100);
-    return `• ${chunk.title} — ${snippet}`;
-  });
-
-  if (extras.length > 0) {
-    parts.push("", "ข้อมูลที่เกี่ยวข้อง:", ...extras);
+  if (primary.type === "faq" || primary.type === "refusal") {
+    return main;
   }
 
-  return parts.join("\n");
+  const extra = related.find(
+    (chunk) =>
+      chunk.type !== "glossary" &&
+      chunk.category === primary.category &&
+      chunk.id !== primary.id
+  );
+  if (!extra) return main;
+
+  const snippet = truncate(sanitizeChunkContent(extra), 120);
+  return `${main}\n\n${snippet}`;
 }
