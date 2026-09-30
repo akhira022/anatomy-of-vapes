@@ -79,7 +79,7 @@ export function QuizEngine({ type, questions }: QuizEngineProps) {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6 text-left sm:gap-8 sm:px-6 sm:py-8 xl:max-w-3xl xl:gap-8 xl:py-10">
       <Stepper
         current={type === "pretest" ? "pretest" : "posttest"}
-        variant={isGuest ? "guest" : "full"}
+        variant="full"
       />
       <QuizProgress current={currentQuestionIndex + 1} total={total} />
 
