@@ -94,17 +94,6 @@ function evaluatePhaseAccess(
 
   if (
     required === "posttest" &&
-    isGuest
-  ) {
-    return {
-      ready: false,
-      blockedReason: "anatomy_incomplete",
-      redirectTo: "/anatomy",
-    };
-  }
-
-  if (
-    required === "posttest" &&
     visitedHotspotCount < hotspots.length &&
     phaseIndex(currentPhase) < phaseIndex("posttest")
   ) {
@@ -141,13 +130,6 @@ function evaluatePhaseAccess(
     required === "result" &&
     phaseIndex(currentPhase) < phaseIndex("result")
   ) {
-    if (isGuest) {
-      return {
-        ready: false,
-        blockedReason: "anatomy_incomplete",
-        redirectTo: "/anatomy",
-      };
-    }
     return {
       ready: false,
       blockedReason: "posttest_incomplete",

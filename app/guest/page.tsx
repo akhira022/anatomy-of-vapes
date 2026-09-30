@@ -148,15 +148,15 @@ export default function GuestPage() {
           เข้าชมไม่ต้องสมัคร
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-textSecondary xl:text-base">
-          กรอกข้อมูลเบื้องต้น ยอมรับ PDPA แล้วทำแบบทดสอบก่อนเรียนและสำรวจโมเดล 3D
-          โดยไม่ต้องสร้างบัญชี
+          กรอกชื่อเล่น ยอมรับ PDPA แล้วทำแบบทดสอบก่อนเรียน สำรวจโมเดล
+          และทำแบบทดสอบหลังเรียน คะแนนถูกบันทึกโดยไม่ต้องสร้างบัญชี
         </p>
 
         <div
           role="note"
           className="mt-4 rounded-lg border border-border bg-surface-2 px-4 py-3 text-sm leading-relaxed text-textPrimary"
         >
-          โหมดผู้ชมไม่สามารถกลับมาเข้าสู่ระบบได้ — หากต้องการบันทึกถาวรและทำแบบทดสอบหลังเรียน{" "}
+          โหมดนี้เข้าสู่ระบบซ้ำไม่ได้ — หากต้องการใช้อีเมลกลับมาดูผลภายหลัง{" "}
           <Link
             href="/register"
             className="font-medium text-primary underline-offset-4 hover:underline"

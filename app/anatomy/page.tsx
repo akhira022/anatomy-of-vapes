@@ -59,13 +59,10 @@ export default function AnatomyPage() {
   const selectedHotspotId = useQuizStore((s) => s.selectedHotspotId);
   const postAnswers = useQuizStore((s) => s.postAnswers);
   const resultSaved = useQuizStore((s) => s.resultSaved);
-  const userType = useQuizStore((s) => s.userType);
   const markHotspotVisited = useQuizStore((s) => s.markHotspotVisited);
   const setSelectedHotspotId = useQuizStore((s) => s.setSelectedHotspotId);
   const setPhase = useQuizStore((s) => s.setPhase);
   const setQuestionIndex = useQuizStore((s) => s.setQuestionIndex);
-
-  const isGuest = userType === "guest";
 
   const isReview =
     currentPhase === "result" ||
@@ -124,33 +121,15 @@ export default function AnatomyPage() {
     handleHotspotClick(nextHotspot.id);
   };
 
-  const goPosttest = () => {
+  const goNextAfterAnatomy = () => {
     if (!allVisited || isReview) return;
     setQuestionIndex(0);
     setPhase("posttest");
     router.push("/posttest");
   };
 
-  const goGuestComplete = () => {
-    if (!allVisited || isReview) return;
-    setPhase("guest_complete");
-    router.push("/guest/complete");
-  };
-
-  const goNextAfterAnatomy = () => {
-    if (isGuest) {
-      goGuestComplete();
-      return;
-    }
-    goPosttest();
-  };
-
   const goResult = () => {
-    if (isGuest) {
-      router.push(resultSaved || currentPhase === "guest_complete" ? "/guest/complete" : "/");
-      return;
-    }
-    router.push(hasLocalResult ? "/result" : "/");
+    router.push(hasLocalResult || currentPhase === "guest_complete" ? "/result" : "/");
   };
 
   const modeToggle = (
@@ -207,7 +186,7 @@ export default function AnatomyPage() {
             className="font-semibold shadow-glowRed"
             onClick={goNextAfterAnatomy}
           >
-            {isGuest ? "เสร็จสิ้นการเรียนรู้" : "ไปแบบทดสอบหลังเรียน"}
+            ไปแบบทดสอบหลังเรียน
             <ArrowRight className="size-4" />
           </Button>
         ) : nextHotspot ? (
@@ -279,9 +258,7 @@ export default function AnatomyPage() {
         </p>
       ) : (
         <p className="mt-3 text-sm font-medium text-success xl:text-base">
-          {isGuest
-            ? "สำรวจครบแล้ว พร้อมเสร็จสิ้นการเรียนรู้"
-            : "สำรวจครบแล้ว พร้อมไปทำแบบทดสอบหลังเรียน"}
+          สำรวจครบแล้ว พร้อมไปทำแบบทดสอบหลังเรียน
         </p>
       )}
 
@@ -320,11 +297,7 @@ export default function AnatomyPage() {
             className="font-semibold shadow-glowRed xl:min-h-12"
             onClick={goResult}
           >
-            {isGuest
-              ? "กลับไปสรุปผล"
-              : hasLocalResult
-                ? "กลับไปดูผลลัพธ์"
-                : "กลับหน้าหลัก"}
+            {hasLocalResult ? "กลับไปดูผลลัพธ์" : "กลับหน้าหลัก"}
             <ArrowRight className="size-4" />
           </Button>
         ) : null}
@@ -335,7 +308,7 @@ export default function AnatomyPage() {
             className="font-semibold shadow-glowRed xl:min-h-12"
             onClick={goNextAfterAnatomy}
           >
-            {isGuest ? "เสร็จสิ้นการเรียนรู้" : "ถัดไป: แบบทดสอบหลังเรียน"}
+            ถัดไป: แบบทดสอบหลังเรียน
             <ArrowRight className="size-4" />
           </Button>
         ) : null}
@@ -373,11 +346,9 @@ export default function AnatomyPage() {
         showBack
         backHref={
           isReview
-            ? isGuest
-              ? "/guest/complete"
-              : hasLocalResult
-                ? "/result"
-                : "/"
+            ? hasLocalResult
+              ? "/result"
+              : "/"
             : "/pretest"
         }
         showSessionMenu
@@ -392,7 +363,7 @@ export default function AnatomyPage() {
             โหมดทบทวน — สำรวจโมเดลและจุดสารพิษได้อิสระ ไม่กระทบคะแนนที่ทำไว้แล้ว
           </p>
         ) : (
-          <Stepper current="anatomy" variant={isGuest ? "guest" : "full"} />
+          <Stepper current="anatomy" />
         )}
 
         {/* Mobile / tablet: stacked — sticky owns next CTA */}
