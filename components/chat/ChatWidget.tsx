@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatMessage } from "@/components/chat/ChatMessage";
@@ -21,6 +22,8 @@ const ENABLED_PREFIXES = [
   "/login",
   "/anatomy",
   "/result",
+  "/practice",
+  "/guest",
 ];
 
 const HIDDEN_PREFIXES = ["/pretest", "/posttest", "/admin"];
@@ -225,6 +228,15 @@ export function ChatWidget() {
                   สวัสดี! ถามได้เรื่องส่วนประกอบ ผลเสีย กฎหมาย
                   หรือทักษะปฏิเสธเพื่อน
                 </p>
+                {!pathname.startsWith("/practice") ? (
+                  <Link
+                    href="/practice"
+                    className="inline-flex min-h-10 items-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => setOpen(false)}
+                  >
+                    ไปฝึกปฏิเสธเพื่อน
+                  </Link>
+                ) : null}
                 <ChatQuickPrompts
                   onSelect={sendMessage}
                   disabled={loading}

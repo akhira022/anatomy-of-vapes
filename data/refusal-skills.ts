@@ -1,6 +1,15 @@
 /**
- * ทักษะปฏิเสธและสถานการณ์จริง — เสริม RAG ให้ตอบกว่า FAQ ความรู้
+ * ทักษะปฏิเสธและสถานการณ์จริง — เสริม RAG และหน้าฝึกปฏิเสธ
  */
+
+export interface RefusalPracticeScript {
+  /** ข้อความเพื่อนในแชทจำลอง (2–3 บรรทัด) */
+  friendLines: string[];
+  /** คำตอบสั้นๆ ของเพื่อนหลังผู้เรียนเลือกประโยคปฏิเสธ */
+  friendReply: string;
+  /** คำแนะนำสรุปในแผงด้านข้าง */
+  advice: string;
+}
 
 export interface RefusalSkillEntry {
   id: string;
@@ -9,6 +18,8 @@ export interface RefusalSkillEntry {
   examplePhrases: string[];
   sourceIds: string[];
   keywords: string[];
+  /** มีเฉพาะสถานการณ์ที่ใช้ในหน้าฝึกปฏิเสธ */
+  practice?: RefusalPracticeScript;
 }
 
 export const refusalSkills: RefusalSkillEntry[] = [
@@ -21,12 +32,24 @@ export const refusalSkills: RefusalSkillEntry[] = [
       "ถ้าถูกกดดันซ้ำ ให้เดินออกจากวงหรือขอความช่วยเหลือจากผู้ใหญ่ที่ไว้ใจ",
     ],
     examplePhrases: [
-      "ไม่เอาดีกว่า ปอดฉันยังอยากใช้ได้นานๆ",
-      "ขอบคุณที่ชวน แต่ฉันไม่ลองของแบบนี้",
-      "ฉันมีเรื่องอื่นอยากทำมากกว่า ไปกินอะไรไหม",
+      "ไม่สูบนะ ขอบคุณ",
+      "ไม่เอาดีกว่า เราดูแลสุขภาพอยู่",
+      "ไม่สะดวก เราไม่อยากเสี่ยง",
+      "เราไม่ลอง ขอบคุณนะ",
+      "เราเล่นกีฬาอยู่ ไม่อยากทำร้ายปอด",
+      "ไม่เอา เราโอเคแบบนี้แล้ว",
     ],
     sourceIds: ["thaihealth", "ddc-thai"],
     keywords: ["เพื่อนชวน", "ชวนลอง", "ครั้งแรก", "ปฏิเสธ", "กดดัน"],
+    practice: {
+      friendLines: [
+        "เฮ้ ลองหน่อยสิ เป็นบุหรี่ไฟฟ้า ไม่อันตรายหรอก แค่ลอง",
+        "ทุกคนในกลุ่มก็ทำกัน เธอควรลองด้วยนะ",
+      ],
+      friendReply: "โอเค ตามสบายนะ เดี๋ยวเปลี่ยนเรื่องอื่นดีกว่า",
+      advice:
+        "การปฏิเสธที่ดี ควรชัดเจน สุภาพ และมั่นใจ ไม่ต้องอธิบายยาวหรือขอโทษเกินจำเป็น",
+    },
   },
   {
     id: "refuse-teasing",
@@ -43,6 +66,15 @@ export const refusalSkills: RefusalSkillEntry[] = [
     ],
     sourceIds: ["thaihealth", "ddc-thai"],
     keywords: ["ล้อ", "กลั่นแกล้ง", "ไม่สูบ", "บูลลี่", "ถูกกดดัน"],
+    practice: {
+      friendLines: [
+        "ยังไม่สูบอีกเหรอ เด็กเกินไปไหม",
+        "ในกลุ่มมีแค่เธอที่ยังไม่ลอง กลัวหรือไง",
+      ],
+      friendReply: "ได้ๆ ไม่ล้อแล้วนะ",
+      advice:
+        "การไม่สูบไม่ใช่เรื่องน่าอาย ตอบสั้นชัด แล้วไม่โต้เถียงยืดเยื้อ",
+    },
   },
   {
     id: "refuse-share-pod",
@@ -59,6 +91,15 @@ export const refusalSkills: RefusalSkillEntry[] = [
     ],
     sourceIds: ["cdc-ecig", "thaihealth"],
     keywords: ["ยืม", "แชร์", "แชร์พอต", "ใช้ร่วม", "ยืมพอต"],
+    practice: {
+      friendLines: [
+        "ขอยืมพอตหน่อยสิ แค่สูบสองที",
+        "แชร์กันได้มั้ย ของฉันหมดแล้ว",
+      ],
+      friendReply: "โอเค ไม่เป็นไร ขอบคุณที่บอกตรงๆ",
+      advice:
+        "ปฏิเสธการยืมหรือแชร์ได้โดยไม่ต้องตัดสินเพื่อน แชร์ปากสูบเพิ่มความเสี่ยง",
+    },
   },
   {
     id: "refuse-social-sale",
@@ -75,6 +116,15 @@ export const refusalSkills: RefusalSkillEntry[] = [
     ],
     sourceIds: ["tobacco-act-th", "thaihealth", "ddc-thai"],
     keywords: ["LINE", "TikTok", "ขายออนไลน์", "โซเชียล", "รับหิ้ว"],
+    practice: {
+      friendLines: [
+        "ดูในไลน์มีคนขายพอตถูกๆ ลิงก์นี้เลย",
+        "ช่วยแชร์ต่อหน่อยสิ ได้ค่าแนะนำด้วย",
+      ],
+      friendReply: "ได้ๆ ไม่แชร์แล้ว ขอบคุณที่เตือน",
+      advice:
+        "อย่าซื้อ อย่าแชร์โฆษณา และอย่าเป็นตัวกลางส่งต่อ การโพสต์ขายอาจผิดกฎหมาย",
+    },
   },
   {
     id: "refuse-quit-help",
@@ -93,6 +143,12 @@ export const refusalSkills: RefusalSkillEntry[] = [
     keywords: ["เลิก", "ถอน", "ติด", "ช่วยเหลือ", "quit", "กลัวเลิก"],
   },
 ];
+
+/** สถานการณ์ที่ใช้ในหน้าฝึกปฏิเสธ (มีบทสนทนา) */
+export const practiceSituations = refusalSkills.filter(
+  (skill): skill is RefusalSkillEntry & { practice: RefusalPracticeScript } =>
+    Boolean(skill.practice)
+);
 
 export function getRefusalSkillById(id: string) {
   return refusalSkills.find((r) => r.id === id) ?? null;

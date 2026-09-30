@@ -411,6 +411,95 @@ export interface AdminStats {
   results: AdminResultRow[];
 }
 
+export interface AdminRefusalPracticeRow {
+  id: string;
+  session_id: string;
+  user_id: string | null;
+  nickname: string | null;
+  situation_id: string;
+  selected_phrase: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Persist one refusal-practice completion (upsert per session + situation). */
+export async function saveRefusalPractice(input: {
+  sessionId: string;
+  situationId: string;
+  selectedPhrase: string;
+  userId?: string | null;
+}): Promise<{ ok: true } | { error: string }> {
+  if (!isSupabaseConfigured()) {
+    return { ok: true };
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) return { ok: true };
+
+  const userId =
+    input.userId && !input.userId.startsWith("local-") ? input.userId : null;
+
+  const result = await runDb(async () => {
+    const { error } = await supabase.from("refusal_practice").upsert(
+      {
+        session_id: input.sessionId,
+        situation_id: input.situationId,
+        selected_phrase: input.selectedPhrase,
+        user_id: userId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "session_id,situation_id" }
+    );
+
+    if (error) {
+      if (isNetworkFailure(error.message)) return { ok: true as const };
+      return { error: error.message };
+    }
+    return { ok: true as const };
+  });
+
+  if (result && "error" in result) return result;
+  return { ok: true };
+}
+
+export async function getAdminRefusalPractice(): Promise<
+  AdminRefusalPracticeRow[] | { error: string }
+> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { error: "ยังไม่ได้ตั้งค่า Supabase" };
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return { error: "กรุณาเข้าสู่ระบบผู้ดูแล" };
+  }
+
+  const { data: rows, error } = await supabase
+    .from("admin_refusal_practice")
+    .select("*")
+    .order("updated_at", { ascending: false })
+    .limit(200);
+
+  if (error || !rows) {
+    return { error: error?.message ?? "โหลดข้อมูลฝึกปฏิเสธไม่สำเร็จ" };
+  }
+
+  return rows.map((r) => ({
+    id: r.id as string,
+    session_id: r.session_id as string,
+    user_id: (r.user_id as string | null) ?? null,
+    nickname: (r.nickname as string | null) ?? null,
+    situation_id: r.situation_id as string,
+    selected_phrase: r.selected_phrase as string,
+    created_at: r.created_at as string,
+    updated_at: r.updated_at as string,
+  }));
+}
+
 export async function getAdminStats(): Promise<
   AdminStats | { error: string }
 > {

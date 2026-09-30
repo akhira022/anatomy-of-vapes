@@ -7,6 +7,7 @@ import { useAppRouter } from "@/hooks/useAppRouter";
 import {
   BarChart3,
   Download,
+  MessageCircleHeart,
   RefreshCw,
   Settings2,
   Users,
@@ -14,19 +15,30 @@ import {
 import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ResultsTable } from "@/components/dashboard/ResultsTable";
+import { PracticeTable } from "@/components/dashboard/PracticeTable";
 import { ExportButton } from "@/components/dashboard/ExportButton";
 import { Button } from "@/components/ui/button";
-import { getAdminStats, type AdminStats } from "@/lib/db";
+import {
+  getAdminRefusalPractice,
+  getAdminStats,
+  type AdminRefusalPracticeRow,
+  type AdminStats,
+} from "@/lib/db";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
-type Tab = "overview" | "results" | "export";
+type Tab = "overview" | "results" | "practice" | "export";
 
 const RESULTS_LIMIT_KEY = "aov-admin-results-limit";
 
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "overview", label: "ภาพรวม", icon: <BarChart3 className="size-4" /> },
   { id: "results", label: "ผลคะแนน", icon: <Users className="size-4" /> },
+  {
+    id: "practice",
+    label: "ฝึกปฏิเสธ",
+    icon: <MessageCircleHeart className="size-4" />,
+  },
   { id: "export", label: "ส่งออกข้อมูล", icon: <Download className="size-4" /> },
 ];
 
@@ -42,10 +54,18 @@ export function AdminDashboard() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const tab: Tab =
-    tabParam === "results" || tabParam === "export" ? tabParam : "overview";
+    tabParam === "results" ||
+    tabParam === "export" ||
+    tabParam === "practice"
+      ? tabParam
+      : "overview";
 
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [practiceRows, setPracticeRows] = useState<AdminRefusalPracticeRow[]>(
+    []
+  );
+  const [practiceError, setPracticeError] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [resultsLimit] = useState(readResultsLimit);
 
@@ -65,13 +85,23 @@ export function AdminDashboard() {
 
     setLoading(true);
     setFetchError(null);
+    setPracticeError(null);
 
-    const result = await getAdminStats();
+    const [result, practice] = await Promise.all([
+      getAdminStats(),
+      getAdminRefusalPractice(),
+    ]);
     if ("error" in result) {
       setFetchError(result.error);
       setStats(null);
     } else {
       setStats(result);
+    }
+    if ("error" in practice) {
+      setPracticeError(practice.error);
+      setPracticeRows([]);
+    } else {
+      setPracticeRows(practice);
     }
     setLoading(false);
   }, []);
@@ -85,7 +115,10 @@ export function AdminDashboard() {
         return;
       }
 
-      const result = await getAdminStats();
+      const [result, practice] = await Promise.all([
+        getAdminStats(),
+        getAdminRefusalPractice(),
+      ]);
       if (cancelled) return;
 
       if ("error" in result) {
@@ -93,6 +126,12 @@ export function AdminDashboard() {
         setStats(null);
       } else {
         setStats(result);
+      }
+      if ("error" in practice) {
+        setPracticeError(practice.error);
+        setPracticeRows([]);
+      } else {
+        setPracticeRows(practice);
       }
       setLoading(false);
     })();
@@ -290,6 +329,28 @@ export function AdminDashboard() {
                 limit={resultsLimit}
                 onChanged={() => void load()}
               />
+            </section>
+          )}
+
+          {(tab === "overview" || tab === "practice") && (
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-heading text-lg font-semibold text-textPrimary">
+                  การฝึกปฏิเสธเพื่อน
+                </h2>
+                <p className="text-sm text-textSecondary">
+                  {practiceRows.length} รายการ — ไม่นับเป็นคะแนนข้อสอบ
+                </p>
+              </div>
+              {practiceError ? (
+                <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-error">
+                  {practiceError}
+                  {" — "}
+                  ตรวจว่าได้รัน supabase/migrations/010_refusal_practice.sql แล้ว
+                </p>
+              ) : (
+                <PracticeTable rows={practiceRows} />
+              )}
             </section>
           )}
 
