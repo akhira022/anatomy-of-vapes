@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Box, Bot, ClipboardList, FlaskConical } from "lucide-react";
+import { Box, Bot, ClipboardList, FlaskConical, MessageCircleHeart } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { PartnerLogos } from "@/components/layout/PartnerLogos";
@@ -32,6 +32,11 @@ const features = [
     icon: Bot,
     title: "ถาม AI ผู้ช่วย",
     description: "ถามเรื่องส่วนประกอบ ผลเสีย กฎหมาย พร้อมอ้างอิงแหล่ง",
+  },
+  {
+    icon: MessageCircleHeart,
+    title: "ฝึกปฏิเสธเพื่อน",
+    description: "จำลองสถานการณ์ชวนสูบและเลือกคำปฏิเสธที่ใช้ได้จริง",
   },
 ] as const;
 
@@ -105,38 +110,60 @@ export default function Home() {
               เรียนรู้ยังไง
             </motion.h2>
 
-            <ul className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 sm:gap-8">
-              {features.map(({ icon: Icon, title, description }, index) => (
-                <motion.li
-                  key={title}
-                  className="flex gap-4 sm:flex-col sm:gap-3"
-                  initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={VIEWPORT}
-                  transition={
-                    reduceMotion
-                      ? { duration: 0 }
-                      : {
-                          delay: Math.min(index * 0.1, 0.3),
-                          duration: 0.4,
-                          ease: EASE_OUT,
-                        }
-                  }
-                >
-                  <Icon
-                    className="mt-0.5 size-6 shrink-0 text-primary sm:size-7"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <h3 className="font-heading text-base font-semibold text-textPrimary sm:text-lg">
-                      {title}
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-textSecondary sm:text-base">
-                      {description}
-                    </p>
-                  </div>
-                </motion.li>
-              ))}
+            <ul className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-8">
+              {features.map(({ icon: Icon, title, description }, index) => {
+                const isPractice = title === "ฝึกปฏิเสธเพื่อน";
+                const body = (
+                  <>
+                    <Icon
+                      className="mt-0.5 size-6 shrink-0 text-primary sm:size-7"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <h3 className="font-heading text-base font-semibold text-textPrimary sm:text-lg">
+                        {title}
+                      </h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-textSecondary sm:text-base">
+                        {description}
+                      </p>
+                      {isPractice ? (
+                        <span className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 group-hover:underline">
+                          เริ่มฝึก
+                        </span>
+                      ) : null}
+                    </div>
+                  </>
+                );
+                return (
+                  <motion.li
+                    key={title}
+                    className="flex gap-4 sm:flex-col sm:gap-3"
+                    initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={VIEWPORT}
+                    transition={
+                      reduceMotion
+                        ? { duration: 0 }
+                        : {
+                            delay: Math.min(index * 0.1, 0.3),
+                            duration: 0.4,
+                            ease: EASE_OUT,
+                          }
+                    }
+                  >
+                    {isPractice ? (
+                      <Link
+                        href="/practice"
+                        className="group flex gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-col sm:gap-3"
+                      >
+                        {body}
+                      </Link>
+                    ) : (
+                      body
+                    )}
+                  </motion.li>
+                );
+              })}
             </ul>
           </div>
         </section>
