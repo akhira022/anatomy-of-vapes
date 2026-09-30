@@ -3,9 +3,10 @@ import {
   getSupabaseAdmin,
   isSupabaseAdminConfigured,
 } from "@/lib/supabase-admin";
+import { resolveSupabaseUrl } from "@/lib/supabase";
 
 export function adminUserClient(accessToken: string): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
+  const url = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL)!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim();
   return createClient(url, anon, {
     global: { headers: { Authorization: `Bearer ${accessToken}` } },

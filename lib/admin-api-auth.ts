@@ -1,7 +1,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 import { isAdminSession } from "@/lib/auth-roles";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, resolveSupabaseUrl } from "@/lib/supabase";
 
 function sessionFromUser(user: User, accessToken: string): Session {
   return {
@@ -33,7 +33,7 @@ export async function requireAdminRequest(request: Request): Promise<
   }
 
   const accessToken = match[1];
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
+  const url = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL)!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim();
   const client = createClient(url, anon, {
     auth: { persistSession: false, autoRefreshToken: false },
