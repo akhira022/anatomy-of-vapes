@@ -63,7 +63,23 @@ const PLACEHOLDER_URLS = new Set([
 
 const PLACEHOLDER_KEYS = new Set(["", "your-anon-key"]);
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+/** Retired project host still stored in the Vercel production env. */
+const RETIRED_SUPABASE_HOST = "crpgtvruybetzmjilgvl.supabase.co";
+const CURRENT_SUPABASE_URL = "https://xbjzdfstiosxcthxusxv.supabase.co";
+
+/** Use the current project when Vercel still points at the retired host. */
+export function resolveSupabaseUrl(raw?: string | null): string | undefined {
+  const url = raw?.trim();
+  if (!url) return undefined;
+  try {
+    if (new URL(url).host === RETIRED_SUPABASE_HOST) return CURRENT_SUPABASE_URL;
+  } catch {
+    return url;
+  }
+  return url;
+}
+
+const supabaseUrl = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
 export function isSupabaseConfigured(): boolean {

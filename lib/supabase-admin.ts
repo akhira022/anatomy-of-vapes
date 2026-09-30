@@ -1,9 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, resolveSupabaseUrl } from "@/lib/supabase";
 
 const PLACEHOLDER_KEYS = new Set(["", "your-service-role-key"]);
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const supabaseUrl = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
 /** True when a real service-role key is configured (server-only). */
