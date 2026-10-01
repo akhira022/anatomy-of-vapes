@@ -46,6 +46,7 @@ export default function GuestPage() {
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const currentPhase = useQuizStore((s) => s.currentPhase);
+  const userType = useQuizStore((s) => s.userType);
   const setUser = useQuizStore((s) => s.setUser);
   const setConsentAccepted = useQuizStore((s) => s.setConsentAccepted);
   const setPhase = useQuizStore((s) => s.setPhase);
@@ -69,9 +70,9 @@ export default function GuestPage() {
   useEffect(() => {
     if (!hydrated) return;
     if (isLoggedIn({ nickname, consentAccepted })) {
-      router.replace(phaseToPath(currentPhase));
+      router.replace(phaseToPath(currentPhase, userType));
     }
-  }, [hydrated, nickname, consentAccepted, currentPhase, router]);
+  }, [hydrated, nickname, consentAccepted, currentPhase, userType, router]);
 
   const onSubmit = async (values: GuestFormState) => {
     setSubmitting(true);

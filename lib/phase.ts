@@ -1,9 +1,12 @@
-import type { AppPhase } from "@/types";
+import type { AppPhase, UserType } from "@/types";
 
-export function phaseToPath(phase: AppPhase): string {
+export function phaseToPath(
+  phase: AppPhase,
+  userType: UserType = "member"
+): string {
   switch (phase) {
     case "registration":
-      return "/register";
+      return userType === "guest" ? "/guest" : "/register";
     case "pretest":
       return "/pretest";
     case "anatomy":
@@ -15,7 +18,7 @@ export function phaseToPath(phase: AppPhase): string {
     case "guest_complete":
       return "/guest/complete";
     default:
-      return "/register";
+      return userType === "guest" ? "/guest" : "/register";
   }
 }
 

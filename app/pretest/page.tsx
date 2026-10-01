@@ -49,6 +49,12 @@ export default function PretestPage() {
     return () => cancel(id as number);
   }, [ready]);
 
+  const leavePretest = () => {
+    // Home does not bounce logged-in learners back into /pretest.
+    // /register and /guest do, which trapped people on this page.
+    router.push("/");
+  };
+
   if (!hydrated || !ready) {
     return (
       <PageLoading
@@ -69,9 +75,9 @@ export default function PretestPage() {
         open={backConfirmOpen}
         onOpenChange={setBackConfirmOpen}
         title="ออกจากแบบทดสอบ?"
-        description="ความคืบหน้าข้อปัจจุบันอาจไม่ถูกบันทึก ต้องการกลับไปหน้าก่อนหรือไม่?"
-        confirmLabel="ออกจากแบบทดสอบ"
-        onConfirm={() => router.push("/register")}
+        description="ความคืบหน้าข้อปัจจุบันอาจไม่ถูกบันทึก ต้องการกลับหน้าหลักหรือไม่?"
+        confirmLabel="กลับหน้าหลัก"
+        onConfirm={leavePretest}
       />
       <main id="main-content" className="flex-1">
         <QuizEngine type="pretest" questions={pretestQuestions} />

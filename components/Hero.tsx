@@ -64,6 +64,7 @@ export function Hero() {
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const currentPhase = useQuizStore((s) => s.currentPhase);
+  const userType = useQuizStore((s) => s.userType);
   const postAnswers = useQuizStore((s) => s.postAnswers);
   const resultSaved = useQuizStore((s) => s.resultSaved);
   const logout = useQuizStore((s) => s.logout);
@@ -154,7 +155,7 @@ export function Hero() {
                     <>
                       <PrimaryCtaMotion reduceMotion={Boolean(reduceMotion)}>
                         <Button
-                          render={<Link href={phaseToPath(currentPhase)} />}
+                          render={<Link href={phaseToPath(currentPhase, userType)} />}
                           nativeButton={false}
                           className="h-12 min-w-[12rem] w-auto rounded-lg px-8 text-base font-semibold shadow-glowRed sm:text-lg"
                         >
