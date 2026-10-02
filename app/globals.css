@@ -274,6 +274,28 @@
     .animate-hero-glow-breathe {
       animation: none;
     }
+
+    .animate-vapor-rise,
+    .animate-vapor-rise-delay,
+    .animate-vapor-rise-later,
+    .animate-vapor-core,
+    .animate-vapor-letter {
+      animation: none;
+    }
+
+    .animate-vapor-letter {
+      opacity: 1;
+      filter: none;
+      transform: none;
+    }
+
+    .animate-vapor-rise,
+    .animate-vapor-rise-delay,
+    .animate-vapor-rise-later {
+      opacity: 0.7;
+      filter: blur(3px);
+      transform: translate3d(var(--vapor-x, 0%), -28%, 0) scale(1.1);
+    }
   }
 
   .animate-hotspot-pulse {
@@ -298,6 +320,26 @@
 
   .animate-hero-glow-breathe {
     animation: hero-glow-breathe 5.5s ease-in-out infinite;
+  }
+
+  .animate-vapor-rise {
+    animation: vapor-rise 2.6s ease-in-out infinite;
+  }
+
+  .animate-vapor-rise-delay {
+    animation: vapor-rise 2.9s ease-in-out infinite 0.35s;
+  }
+
+  .animate-vapor-rise-later {
+    animation: vapor-rise 3.2s ease-in-out infinite 0.7s;
+  }
+
+  .animate-vapor-core {
+    animation: vapor-core 1.7s ease-in-out infinite;
+  }
+
+  .animate-vapor-letter {
+    animation: vapor-letter 2.8s ease-in-out infinite;
   }
 }
 
@@ -345,6 +387,64 @@
   }
 }
 
+@keyframes vapor-rise {
+  0% {
+    opacity: 0.45;
+    filter: blur(2px);
+    transform: translate3d(0, 14%, 0) scale(0.62);
+  }
+  32% {
+    opacity: 1;
+    filter: blur(1.5px);
+  }
+  70% {
+    opacity: 0.55;
+    filter: blur(4px);
+    transform: translate3d(var(--vapor-x, 10%), -42%, 0) scale(1.28);
+  }
+  100% {
+    opacity: 0.35;
+    filter: blur(5px);
+    transform: translate3d(var(--vapor-x, 14%), -70%, 0) scale(1.45);
+  }
+}
+
+@keyframes vapor-core {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateX(-50%) scale(1, 1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(0.82, 1.28);
+  }
+}
+
+@keyframes vapor-letter {
+  0%,
+  100% {
+    opacity: 0.55;
+    filter: blur(1.6px);
+    transform: translateY(0.1em) scale(0.98);
+    text-shadow: 0 6px 12px color-mix(in srgb, var(--text-secondary) 40%, transparent);
+  }
+  38% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(-0.03em) scale(1);
+    text-shadow:
+      0 0 8px color-mix(in srgb, var(--primary) 50%, transparent),
+      0 8px 14px color-mix(in srgb, var(--text-secondary) 36%, transparent);
+  }
+  72% {
+    opacity: 0.72;
+    filter: blur(0.9px);
+    transform: translateY(-0.1em) scale(1.02);
+    text-shadow: 0 10px 16px color-mix(in srgb, var(--text-secondary) 30%, transparent);
+  }
+}
+
 /* Theme switch: circular wipe from the toggle click point. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -371,7 +471,8 @@
 }
 
 /* Hide chat FAB while hotspot detail dialog is open (avoids covering content). */
-body.hotspot-dialog-open #chat-assistant-fab {
+body.hotspot-dialog-open #chat-assistant-fab,
+body.promo-dialog-open #chat-assistant-fab {
   opacity: 0 !important;
   pointer-events: none !important;
 }

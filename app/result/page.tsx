@@ -9,6 +9,7 @@ import { CompletedLearnerChoice } from "@/components/auth/CompletedLearnerChoice
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { PageLoading } from "@/components/feedback/PageLoading";
 import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
+import { VaporLabel } from "@/components/feedback/VaporLabel";
 import { Button } from "@/components/ui/button";
 import { saveQuizResult } from "@/lib/db";
 import {
@@ -155,7 +156,9 @@ export default function ResultPage() {
             className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm text-textSecondary"
           >
             <LoadingSpinner size="sm" label="กำลังบันทึกคะแนน" />
-            กำลังบันทึกคะแนน…
+            <VaporLabel className="text-sm text-textSecondary">
+              กำลังบันทึกคะแนน…
+            </VaporLabel>
           </div>
         ) : resultSaved ? (
           <p

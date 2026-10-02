@@ -1,41 +1,47 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const PARTNER_LOGOS = [
   {
     src: "/images/logo_1.png",
     alt: "สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ (สสส.)",
+    href: "https://www.thaihealth.or.th/",
     width: 1183,
     height: 1182,
   },
   {
     src: "/images/logo_2.png",
     alt: "คิดดี iDOL",
+    href: "https://www.kiddeeidol.com/",
     width: 900,
     height: 900,
   },
   {
     src: "/images/logo_3.png",
     alt: "ศูนย์สร้างสรรค์สื่อเพื่อเด็กเยาวชนและครอบครัว",
+    href: "https://thaicare.org/",
     width: 284,
     height: 285,
   },
   {
     src: "/images/logo_4.png",
     alt: "ยกกำลังสุข · Sook Enterprise",
+    href: "https://thaicare.org/",
     width: 2481,
     height: 830,
   },
   {
     src: "/images/logo_6.png",
     alt: "สำนักงานคณะกรรมการการอาชีวศึกษา (สอศ.)",
+    href: "https://www.vec.go.th/",
     width: 300,
     height: 300,
   },
   {
     src: "/images/logo_phatthalung.png",
     alt: "วิทยาลัยเทคนิคพัทลุง",
+    href: "https://ptl.ac.th/web/",
     width: 253,
     height: 253,
   },
@@ -68,6 +74,33 @@ const NAV_PARTNER_LOGOS = [
   },
 ] as const;
 
+function PartnerSiteLink({
+  href,
+  label,
+  className,
+  children,
+}: {
+  href: string;
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${label} — เปิดเว็บไซต์ในแท็บใหม่`}
+      className={cn(
+        "rounded-md opacity-90 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        className
+      )}
+    >
+      {children}
+    </a>
+  );
+}
+
 interface PartnerLogosProps {
   className?: string;
   /** Compact row for footer; roomier wrap for landing section; single nowrap row for nav. */
@@ -83,26 +116,29 @@ export function PartnerLogos({
 
   if (isNav) {
     return (
-      <Link
-        href="/#partners"
-        aria-label="ผู้สนับสนุน: สสส. คิดดี iDOL ศูนย์สร้างสรรค์สื่อ และยกกำลังสุข"
+      <ul
+        aria-label="ผู้สนับสนุน"
         className={cn(
-          "flex shrink-0 items-center justify-center gap-3 rounded-md sm:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "flex shrink-0 items-center justify-center gap-3 sm:gap-4",
           className
         )}
       >
         {NAV_PARTNER_LOGOS.map((logo) => (
-          <span key={logo.src} className={cn("relative block shrink-0 overflow-hidden", logo.frame)}>
-            <Image
-              src={logo.src}
-              alt=""
-              width={logo.width}
-              height={logo.height}
-              className={cn("absolute left-0 top-0 max-w-none object-fill", logo.image)}
-            />
-          </span>
+          <li key={logo.src}>
+            <PartnerSiteLink href={logo.href} label={logo.alt}>
+              <span className={cn("relative block shrink-0 overflow-hidden", logo.frame)}>
+                <Image
+                  src={logo.src}
+                  alt=""
+                  width={logo.width}
+                  height={logo.height}
+                  className={cn("absolute left-0 top-0 max-w-none object-fill", logo.image)}
+                />
+              </span>
+            </PartnerSiteLink>
+          </li>
         ))}
-      </Link>
+      </ul>
     );
   }
 
@@ -121,13 +157,19 @@ export function PartnerLogos({
     >
       {SPONSOR_LOGOS.map((logo) => (
         <li key={logo.src} className={cn("flex items-center justify-center", slotClass)}>
-          <Image
-            src={logo.src}
-            alt={logo.alt}
-            width={logo.width}
-            height={logo.height}
-            className="h-full w-full object-contain opacity-90"
-          />
+          <PartnerSiteLink
+            href={logo.href}
+            label={logo.alt}
+            className="flex h-full w-full items-center justify-center"
+          >
+            <Image
+              src={logo.src}
+              alt=""
+              width={logo.width}
+              height={logo.height}
+              className="h-full w-full object-contain"
+            />
+          </PartnerSiteLink>
         </li>
       ))}
       <li
@@ -137,18 +179,20 @@ export function PartnerLogos({
         )}
       >
         {VOCATIONAL_LOGOS.map((logo) => (
-          <span
+          <PartnerSiteLink
             key={logo.src}
+            href={logo.href}
+            label={logo.alt}
             className={cn("flex items-center justify-center", slotClass)}
           >
             <Image
               src={logo.src}
-              alt={logo.alt}
+              alt=""
               width={logo.width}
               height={logo.height}
-              className="h-full w-full object-contain opacity-90"
+              className="h-full w-full object-contain"
             />
-          </span>
+          </PartnerSiteLink>
         ))}
       </li>
     </ul>

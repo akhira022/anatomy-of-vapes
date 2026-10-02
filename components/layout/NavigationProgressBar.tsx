@@ -115,9 +115,15 @@ export function NavigationProgressBar() {
       )}
     >
       <div
-        className="h-full bg-primary shadow-glowRed transition-[width] duration-300 ease-out"
+        className="relative h-full transition-[width] duration-300 ease-out"
         style={{ width: `${value}%` }}
-      />
+      >
+        <div className="h-full bg-primary shadow-glowRed" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-[-3px] right-0 w-16 translate-x-1/3 rounded-full bg-primary/50 blur-[6px]"
+        />
+      </div>
     </div>
   );
 }

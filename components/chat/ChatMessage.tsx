@@ -5,7 +5,8 @@ import type { ChatUiMessage } from "@/types/chat";
 import { cn } from "@/lib/utils";
 import { ChatCitationList } from "@/components/chat/ChatCitation";
 import { ChatHotspotLink } from "@/components/chat/ChatHotspotLink";
-import { Loader2 } from "lucide-react";
+import { VaporMark } from "@/components/feedback/VaporMark";
+import { VaporLabel } from "@/components/feedback/VaporLabel";
 
 interface ChatMessageProps {
   message: ChatUiMessage;
@@ -36,8 +37,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
       >
         {message.pending && !message.content ? (
           <span className="inline-flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="size-3.5 animate-spin" />
-            กำลังคิดคำตอบ...
+            <VaporMark size="sm" decorative />
+            <VaporLabel className="text-sm text-muted-foreground">
+              กำลังคิดคำตอบ...
+            </VaporLabel>
           </span>
         ) : (
           <p className="whitespace-pre-wrap">

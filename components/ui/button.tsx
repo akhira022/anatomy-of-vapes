@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Loader2 } from "lucide-react"
+import { VaporMark } from "@/components/feedback/VaporMark"
 
 import { cn } from "@/lib/utils"
 
@@ -68,7 +68,7 @@ function Button({
     >
       {loading ? (
         <>
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          <VaporMark size="sm" className="shrink-0" decorative />
           {children}
         </>
       ) : (

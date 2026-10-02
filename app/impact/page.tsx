@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppNavbar } from "@/components/layout/AppNavbar";
+import { PageLoading } from "@/components/feedback/PageLoading";
 import {
   BodyMap,
   OrganTabs,
@@ -38,9 +39,11 @@ function ImpactPageFallback() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <AppNavbar title="ผลต่อร่างกาย" showBack backHref="/" />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
-        <p className="text-sm text-textSecondary">กำลังโหลด…</p>
-      </main>
+      <PageLoading
+        fullScreen={false}
+        className="flex-1 py-16"
+        label="กำลังโหลด…"
+      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PartnerLogos } from "@/components/layout/PartnerLogos";
+import { FacebookPageLink } from "@/components/promo/FacebookPageLink";
 
 const exploreLinks = [
   { href: "/register", label: "เริ่มเรียนรู้" },
@@ -16,11 +17,21 @@ const aboutLinks = [
 ] as const;
 
 const partnerNames = [
-  "คิดดี iDOL",
-  "ยกกำลังสุข · Sook Enterprise",
-  "ศูนย์สร้างสรรค์สื่อเพื่อเด็กเยาวชนและครอบครัว",
-  "สสส. สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ",
-  "วิทยาลัยเทคนิคพัทลุง",
+  { name: "คิดดี iDOL", href: "https://www.kiddeeidol.com/" },
+  { name: "ยกกำลังสุข · Sook Enterprise", href: "https://thaicare.org/" },
+  {
+    name: "ศูนย์สร้างสรรค์สื่อเพื่อเด็กเยาวชนและครอบครัว",
+    href: "https://thaicare.org/",
+  },
+  {
+    name: "สสส. สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ",
+    href: "https://www.thaihealth.or.th/",
+  },
+  {
+    name: "สำนักงานคณะกรรมการการอาชีวศึกษา (สอศ.)",
+    href: "https://www.vec.go.th/",
+  },
+  { name: "วิทยาลัยเทคนิคพัทลุง", href: "https://ptl.ac.th/web/" },
 ] as const;
 
 export function SiteFooter() {
@@ -36,6 +47,7 @@ export function SiteFooter() {
           <p className="mt-2 text-sm leading-relaxed text-textSecondary">
             ส่องไส้ในบุหรี่ไฟฟ้า — สำรวจส่วนประกอบและสารพิษผ่านโมเดล 3 มิติ
           </p>
+          <FacebookPageLink className="mt-4" />
         </div>
 
         <nav aria-labelledby="footer-explore" className="md:col-span-2">
@@ -85,8 +97,17 @@ export function SiteFooter() {
             สนับสนุนโดย
           </h2>
           <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-textSecondary">
-            {partnerNames.map((name) => (
-              <li key={name}>{name}</li>
+            {partnerNames.map((partner) => (
+              <li key={partner.name}>
+                <a
+                  href={partner.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-textPrimary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                >
+                  {partner.name}
+                </a>
+              </li>
             ))}
           </ul>
           <PartnerLogos className="mt-4" density="footer" />
