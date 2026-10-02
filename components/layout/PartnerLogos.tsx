@@ -41,6 +41,9 @@ const PARTNER_LOGOS = [
   },
 ] as const;
 
+const SPONSOR_LOGOS = PARTNER_LOGOS.slice(0, 4);
+const VOCATIONAL_LOGOS = PARTNER_LOGOS.slice(4);
+
 /** Four public sponsor marks, cropped to ink and scaled to one height. */
 const NAV_PARTNER_LOGOS = [
   {
@@ -103,6 +106,10 @@ export function PartnerLogos({
     );
   }
 
+  const slotClass = isFooter
+    ? "h-9 w-[4.5rem] sm:h-10 sm:w-20"
+    : "h-12 w-[5.5rem] sm:h-14 sm:w-24 md:h-16 md:w-28";
+
   return (
     <ul
       className={cn(
@@ -112,16 +119,8 @@ export function PartnerLogos({
       )}
       aria-label="โลโก้ผู้สนับสนุน"
     >
-      {PARTNER_LOGOS.map((logo) => (
-        <li
-          key={logo.src}
-          className={cn(
-            "flex items-center justify-center",
-            isFooter
-              ? "h-9 w-[4.5rem] sm:h-10 sm:w-20"
-              : "h-12 w-[5.5rem] sm:h-14 sm:w-28 md:h-16 md:w-32"
-          )}
-        >
+      {SPONSOR_LOGOS.map((logo) => (
+        <li key={logo.src} className={cn("flex items-center justify-center", slotClass)}>
           <Image
             src={logo.src}
             alt={logo.alt}
@@ -131,6 +130,27 @@ export function PartnerLogos({
           />
         </li>
       ))}
+      <li
+        className={cn(
+          "flex shrink-0 items-center",
+          isFooter ? "gap-4 sm:gap-5" : "gap-6 sm:gap-8"
+        )}
+      >
+        {VOCATIONAL_LOGOS.map((logo) => (
+          <span
+            key={logo.src}
+            className={cn("flex items-center justify-center", slotClass)}
+          >
+            <Image
+              src={logo.src}
+              alt={logo.alt}
+              width={logo.width}
+              height={logo.height}
+              className="h-full w-full object-contain opacity-90"
+            />
+          </span>
+        ))}
+      </li>
     </ul>
   );
 }

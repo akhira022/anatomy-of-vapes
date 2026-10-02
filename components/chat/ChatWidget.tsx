@@ -27,6 +27,12 @@ const ENABLED_PREFIXES = [
   "/guest",
 ];
 
+const OPEN_CHAT_EVENT = "aov:open-chat";
+
+export function openChatWidget() {
+  window.dispatchEvent(new Event(OPEN_CHAT_EVENT));
+}
+
 const CHAT_SHORTCUTS = [
   { href: "/practice", label: "ไปฝึกปฏิเสธเพื่อน" },
   { href: "/impact", label: "ดูผลต่อร่างกาย" },
@@ -98,6 +104,12 @@ export function ChatWidget() {
 
   const closeChat = useCallback(() => {
     setOpen(false);
+  }, []);
+
+  useEffect(() => {
+    const openFromOutside = () => setOpen(true);
+    window.addEventListener(OPEN_CHAT_EVENT, openFromOutside);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, openFromOutside);
   }, []);
 
   useEffect(() => {

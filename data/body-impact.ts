@@ -3,9 +3,14 @@
  * glossary.ts และ myths.ts เท่านั้น ห้ามเพิ่มข้ออ้างที่ไม่มีในข้อมูลต้นทาง
  */
 
+/** จุดบนรูปร่างกาย เรียงจากบนลงล่าง */
+export type BodyOrgan = "brain" | "oral" | "lungs" | "heart";
+
 export interface BodyImpactEntry {
   id: string;
   title: string;
+  /** ชื่อสั้นสำหรับป้ายบนรูปร่างกาย */
+  shortTitle: string;
   badge: string;
   beforeLabel: string;
   afterLabel: string;
@@ -15,13 +20,17 @@ export interface BodyImpactEntry {
   mythBust: string;
   sourceIds: string[];
   hotspotId: string;
+  /** ไม่มีค่าเมื่อหัวข้อไม่ได้ผูกกับอวัยวะ เช่น การแก้ความเชื่อผิด */
+  organ?: BodyOrgan;
 }
 
 export const bodyImpacts: BodyImpactEntry[] = [
   {
     id: "impact-brain",
     title: "สมองและการเสพติด",
+    shortTitle: "สมอง",
     badge: "นิโคติน",
+    organ: "brain",
     beforeLabel: "ก่อนสูบ",
     afterLabel: "หลังสูบ",
     beforeText:
@@ -35,9 +44,28 @@ export const bodyImpacts: BodyImpactEntry[] = [
     hotspotId: "hs-nicotine",
   },
   {
+    id: "impact-oral",
+    title: "ช่องปากและฟัน",
+    shortTitle: "ช่องปาก",
+    badge: "ช่องปาก",
+    organ: "oral",
+    beforeLabel: "ก่อนสูบ",
+    afterLabel: "หลังสูบ",
+    beforeText: "เยื่อบุในปากและเหงือกไม่ถูกละอองไอและนิโคตินสัมผัสซ้ำ",
+    afterText:
+      "ละอองไอ สารเคมี และนิโคตินสัมผัสเยื่อบุในปากโดยตรง อาจทำให้ปากแห้งและระคายเคืองเหงือก",
+    summary:
+      "การใช้บุหรี่ไฟฟ้าอาจเกี่ยวข้องกับปากแห้ง ระคายเคืองเหงือก และความเสี่ยงต่อสุขภาพช่องปาก",
+    mythBust: "ไม่ทำให้ฟันเหลืองเหมือนบุหรี่มวน ก็ไม่ได้แปลว่าปลอดภัยต่อเหงือก",
+    sourceIds: ["cdc-ecig", "acs-ecig"],
+    hotspotId: "hs-nicotine",
+  },
+  {
     id: "impact-lungs",
     title: "ปอดและทางเดินหายใจ",
+    shortTitle: "ปอด",
     badge: "ละอองไอ",
+    organ: "lungs",
     beforeLabel: "ก่อนสูบ",
     afterLabel: "หลังสูบ",
     beforeText: "ทางเดินหายใจรับอากาศได้โล่ง เยื่อบุไม่ถูกระคายเคือง",
@@ -52,7 +80,9 @@ export const bodyImpacts: BodyImpactEntry[] = [
   {
     id: "impact-heart",
     title: "หัวใจและหลอดเลือด",
+    shortTitle: "หัวใจ",
     badge: "หัวใจ",
+    organ: "heart",
     beforeLabel: "ก่อนสูบ",
     afterLabel: "หลังสูบ",
     beforeText: "หัวใจเต้นและความดันเลือดอยู่ในระดับปกติของร่างกาย",
@@ -67,6 +97,7 @@ export const bodyImpacts: BodyImpactEntry[] = [
   {
     id: "impact-vs-cigarette",
     title: "เทียบกับบุหรี่มวน",
+    shortTitle: "เทียบบุหรี่มวน",
     badge: "ความเชื่อผิด",
     beforeLabel: "ความเชื่อ",
     afterLabel: "ความจริง",
@@ -80,6 +111,30 @@ export const bodyImpacts: BodyImpactEntry[] = [
     hotspotId: "hs-formaldehyde",
   },
 ];
+
+/** หัวข้อที่กดได้บนรูปร่างกาย เรียงตามตำแหน่งจากหัวลงล่าง */
+export const bodyOrganImpacts = bodyImpacts.filter(
+  (item): item is BodyImpactEntry & { organ: BodyOrgan } => Boolean(item.organ)
+);
+
+export function getBodyOrganImpact(organ: string | null | undefined) {
+  if (!organ) return undefined;
+  return bodyOrganImpacts.find((item) => item.organ === organ);
+}
+
+/** ตัวอย่างบนหน้าแรก — สมองเห็นผลเสพติดชัดที่สุด */
+export const bodyImpactLandingSample = bodyOrganImpacts[0];
+
+export const bodyImpactMyth = bodyImpacts.find(
+  (item) => item.id === "impact-vs-cigarette"
+);
+
+/** ข้อความสั้นเรื่องไอมือสอง จาก health-effects.ts ไม่ใช่อวัยวะบนร่าง */
+export const bodyImpactSecondhand = {
+  title: "คนรอบข้างและไอมือสอง",
+  short: "คนรอบข้าง",
+  text: "ละอองไอจากบุหรี่ไฟฟ้าอาจส่งผลต่อคนรอบข้าง โดยเฉพาะในรถ ห้องนอน หรือพื้นที่ปิด",
+};
 
 export const bodyImpactClosing =
   "บุหรี่ไฟฟ้าไม่เท่าบุหรี่มวน แต่ไม่แปลว่าปลอดภัย โดยเฉพาะคนที่ยังไม่เคยสูบ";
