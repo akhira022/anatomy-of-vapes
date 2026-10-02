@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import {
+  ArrowRight,
   Box,
   Bot,
   ClipboardList,
   FlaskConical,
-  HeartPulse,
   MessageCircleHeart,
   type LucideIcon,
 } from "lucide-react";
@@ -16,6 +16,11 @@ import { PartnerLogos } from "@/components/layout/PartnerLogos";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
+import { openChatWidget } from "@/components/chat/ChatWidget";
+import { ImpactLandingPreview } from "@/components/impact/ImpactLandingPreview";
+import { useHydrated } from "@/hooks/useRequirePhase";
+import { isLoggedIn, phaseToPath } from "@/lib/phase";
+import { useQuizStore } from "@/store/useQuizStore";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, margin: "-10%" } as const;
@@ -24,28 +29,37 @@ const features: {
   icon: LucideIcon;
   title: string;
   description: string;
-  href?: string;
-  cta?: string;
+  cta: string;
+  /** Route, or "learn" (learner's next step) / "chat" (open AI assistant). */
+  href: string;
 }[] = [
   {
     icon: Box,
     title: "เรียนผ่าน 3D",
     description: "หมุนและสำรวจโมเดลได้อย่างอิสระ",
+    href: "learn",
+    cta: "เริ่มสำรวจโมเดล",
   },
   {
     icon: FlaskConical,
     title: "ดูสารพิษ",
     description: "ข้อมูลสารเคมีอันตรายในบุหรี่ไฟฟ้า",
+    href: "learn",
+    cta: "ดูจุดสารพิษ",
   },
   {
     icon: ClipboardList,
     title: "ทำแบบทดสอบ",
     description: "วัดความรู้ก่อนและหลังเรียน",
+    href: "learn",
+    cta: "เริ่มทำแบบทดสอบ",
   },
   {
     icon: Bot,
     title: "ถาม AI ผู้ช่วย",
     description: "ถามเรื่องส่วนประกอบ ผลเสีย กฎหมาย พร้อมอ้างอิงแหล่ง",
+    href: "chat",
+    cta: "เปิดผู้ช่วย AI",
   },
   {
     icon: MessageCircleHeart,
@@ -53,13 +67,6 @@ const features: {
     description: "จำลองสถานการณ์ชวนสูบและเลือกคำปฏิเสธที่ใช้ได้จริง",
     href: "/practice",
     cta: "เริ่มฝึก",
-  },
-  {
-    icon: HeartPulse,
-    title: "ผลต่อร่างกาย",
-    description: "เทียบก่อนและหลังสูบ สมอง ปอด หัวใจ และความเชื่อเรื่องบุหรี่มวน",
-    href: "/impact",
-    cta: "ดูผลต่อร่างกาย",
   },
 ];
 
@@ -80,6 +87,18 @@ const learningSteps = [
 
 export default function Home() {
   const reduceMotion = useReducedMotion();
+  const hydrated = useHydrated();
+  const nickname = useQuizStore((s) => s.nickname);
+  const consentAccepted = useQuizStore((s) => s.consentAccepted);
+  const currentPhase = useQuizStore((s) => s.currentPhase);
+  const userType = useQuizStore((s) => s.userType);
+
+  const learnHref =
+    hydrated && isLoggedIn({ nickname, consentAccepted })
+      ? currentPhase === "result"
+        ? "/anatomy"
+        : phaseToPath(currentPhase, userType)
+      : "/register";
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
@@ -112,6 +131,8 @@ export default function Home() {
       <main id="main-content" className="flex-1">
         <Hero />
 
+        <ImpactLandingPreview />
+
         <section
           id="how-it-works"
           aria-labelledby="features-heading"
@@ -133,33 +154,36 @@ export default function Home() {
               เรียนรู้ยังไง
             </motion.h2>
 
-            <ul className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8">
+            <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5">
               {features.map(({ icon: Icon, title, description, href, cta }, index) => {
+                const cardClass =
+                  "group flex h-full w-full gap-4 rounded-xl border border-border bg-card p-5 text-left outline-none transition-[border-color,transform,box-shadow] duration-normal hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-glow-red focus-visible:ring-2 focus-visible:ring-ring motion-reduce:hover:translate-y-0 sm:flex-col sm:gap-3 sm:p-6";
                 const body = (
                   <>
-                    <Icon
-                      className="mt-0.5 size-6 shrink-0 text-primary sm:size-7"
-                      aria-hidden="true"
-                    />
-                    <div>
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary sm:size-12">
+                      <Icon className="size-6" aria-hidden="true" />
+                    </span>
+                    <div className="flex flex-1 flex-col">
                       <h3 className="font-heading text-base font-semibold text-textPrimary sm:text-lg">
                         {title}
                       </h3>
                       <p className="mt-1.5 text-sm leading-relaxed text-textSecondary sm:text-base">
                         {description}
                       </p>
-                      {cta ? (
-                        <span className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 group-hover:underline">
-                          {cta}
-                        </span>
-                      ) : null}
+                      <span className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-medium text-primary">
+                        {cta}
+                        <ArrowRight
+                          className="size-4 transition-transform duration-normal group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0"
+                          aria-hidden="true"
+                        />
+                      </span>
                     </div>
                   </>
                 );
                 return (
                   <motion.li
                     key={title}
-                    className="flex gap-4 sm:flex-col sm:gap-3"
+                    className="flex"
                     initial={reduceMotion ? false : { opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={VIEWPORT}
@@ -173,15 +197,21 @@ export default function Home() {
                           }
                     }
                   >
-                    {href ? (
+                    {href === "chat" ? (
+                      <button
+                        type="button"
+                        onClick={openChatWidget}
+                        className={cardClass}
+                      >
+                        {body}
+                      </button>
+                    ) : (
                       <Link
-                        href={href}
-                        className="group flex gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-col sm:gap-3"
+                        href={href === "learn" ? learnHref : href}
+                        className={cardClass}
                       >
                         {body}
                       </Link>
-                    ) : (
-                      body
                     )}
                   </motion.li>
                 );
@@ -296,7 +326,7 @@ export default function Home() {
             <p className="mt-2 max-w-md text-sm text-textSecondary">
               เครือข่ายสื่อสร้างสรรค์และส่งเสริมสุขภาพ
             </p>
-            <PartnerLogos className="mt-8 max-w-3xl" density="section" />
+            <PartnerLogos className="mt-8 max-w-5xl" density="section" />
           </motion.div>
         </section>
       </main>

@@ -1,21 +1,68 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppNavbar } from "@/components/layout/AppNavbar";
-import { ImpactCarousel } from "@/components/impact/ImpactCarousel";
+import {
+  BodyMap,
+  OrganTabs,
+  type BodyState,
+} from "@/components/impact/BodyMap";
+import { BeforeAfterToggle } from "@/components/impact/BeforeAfterToggle";
 import {
   ImpactDetail,
   type ImpactModelLink,
 } from "@/components/impact/ImpactDetail";
-import { bodyImpactClosing, bodyImpacts } from "@/data/body-impact";
+import {
+  bodyImpactClosing,
+  bodyImpactMyth,
+  bodyImpactSecondhand,
+  bodyOrganImpacts,
+  getBodyOrganImpact,
+} from "@/data/body-impact";
+import { Users } from "lucide-react";
 import { useHydrated } from "@/hooks/useRequirePhase";
 import { useQuizStore } from "@/store/useQuizStore";
 
 const learningPhases = ["anatomy", "posttest", "result", "guest_complete"];
 
 export default function ImpactPage() {
-  const [activeIndex, setActiveIndex] = useState(0);
+  return (
+    <Suspense fallback={<ImpactPageFallback />}>
+      <ImpactPageContent />
+    </Suspense>
+  );
+}
+
+function ImpactPageFallback() {
+  return (
+    <div className="flex min-h-full flex-1 flex-col bg-background">
+      <AppNavbar title="ผลต่อร่างกาย" showBack backHref="/" />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        <p className="text-sm text-textSecondary">กำลังโหลด…</p>
+      </main>
+    </div>
+  );
+}
+
+function ImpactPageContent() {
+  const searchParams = useSearchParams();
+  const organFromQuery = getBodyOrganImpact(searchParams.get("organ"));
+  const [activeId, setActiveId] = useState(
+    () => organFromQuery?.id ?? bodyOrganImpacts[0].id
+  );
+  const [bodyState, setBodyState] = useState<BodyState>("before");
+  const [mounted, setMounted] = useState(false);
   const hydrated = useHydrated();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (organFromQuery) setActiveId(organFromQuery.id);
+  }, [organFromQuery]);
+
   const nickname = useQuizStore((s) => s.nickname);
   const consentAccepted = useQuizStore((s) => s.consentAccepted);
   const currentPhase = useQuizStore((s) => s.currentPhase);
@@ -31,6 +78,9 @@ export default function ImpactPage() {
 
   const modelLink = useCallback(
     (hotspotId: string): ImpactModelLink => {
+      if (!mounted) {
+        return { href: "/guest", label: "เริ่มเรียนเพื่อดูโมเดล 3D" };
+      }
       if (canOpenModel) {
         return {
           href: `/anatomy?hotspot=${hotspotId}`,
@@ -42,10 +92,10 @@ export default function ImpactPage() {
       }
       return { href: "/guest", label: "เริ่มเรียนเพื่อดูโมเดล 3D" };
     },
-    [canOpenModel, registered]
+    [canOpenModel, mounted, registered]
   );
 
-  const active = bodyImpacts[activeIndex];
+  const active = bodyOrganImpacts.find((item) => item.id === activeId);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
@@ -53,38 +103,77 @@ export default function ImpactPage() {
 
       <main
         id="main-content"
-        className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8"
+        className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10"
       >
         <header className="max-w-3xl">
-          <p className="text-sm font-medium text-primary">ก่อนสูบ / หลังสูบ</p>
-          <h1 className="mt-1 font-heading text-2xl font-bold text-textPrimary sm:text-4xl">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-textPrimary sm:text-4xl">
             ร่างกายเปลี่ยนไปอย่างไร
             <br className="hidden sm:block" />
             เมื่อเริ่มสูบบุหรี่ไฟฟ้า
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-textSecondary sm:text-base">
             หลายคนคิดว่าบุหรี่ไฟฟ้าอันตรายน้อยกว่าบุหรี่มวน
-            เลื่อนดู 4 ระบบในร่างกายแล้วเทียบก่อนและหลังด้วยตัวเอง
+            แตะอวัยวะบนร่าง แล้วเทียบก่อนสูบกับหลังสูบ
           </p>
         </header>
 
-        <div className="mt-8">
-          <ImpactCarousel
-            items={bodyImpacts}
-            activeIndex={activeIndex}
-            onActiveChange={setActiveIndex}
-          />
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] lg:items-start lg:gap-8">
+          <div className="lg:sticky lg:top-24">
+            <div className="rounded-2xl border border-border bg-background p-4 sm:p-5">
+              <div className="flex justify-center">
+                <BeforeAfterToggle
+                  value={bodyState}
+                  onChange={setBodyState}
+                />
+              </div>
+              <BodyMap
+                items={bodyOrganImpacts}
+                activeId={activeId}
+                state={bodyState}
+                onSelect={setActiveId}
+                className="mt-4"
+              />
+              {bodyState === "after" ? (
+                <p className="mt-3 flex items-start gap-2 rounded-lg bg-primary/10 px-3 py-2.5 text-xs leading-relaxed text-textPrimary sm:text-sm">
+                  <Users
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                  />
+                  <span>{bodyImpactSecondhand.text}</span>
+                </p>
+              ) : null}
+            </div>
+            <OrganTabs
+              items={bodyOrganImpacts}
+              activeId={activeId}
+              onSelect={setActiveId}
+              className="mt-3"
+            />
+          </div>
+
+          {active ? (
+            <ImpactDetail
+              item={active}
+              index={bodyOrganImpacts.indexOf(active)}
+              modelLink={modelLink}
+              activeSide={bodyState}
+              onSideChange={setBodyState}
+              asTabPanel
+            />
+          ) : null}
         </div>
 
-        <ImpactDetail
-          item={active}
-          index={activeIndex}
-          modelLink={modelLink}
-        />
-
-        <p className="mx-auto mt-10 max-w-2xl text-balance text-center font-heading text-lg font-semibold leading-relaxed text-textPrimary sm:text-xl">
-          {bodyImpactClosing}
-        </p>
+        {bodyImpactMyth ? (
+          <section className="mt-10">
+            <h2 className="font-heading text-lg font-semibold text-textPrimary sm:text-xl">
+              แล้วเทียบกับบุหรี่มวนล่ะ
+            </h2>
+            <ImpactDetail item={bodyImpactMyth} className="mt-3" />
+            <p className="mx-auto mt-10 max-w-2xl text-balance text-center font-heading text-lg font-semibold leading-relaxed text-textPrimary sm:text-xl">
+              {bodyImpactClosing}
+            </p>
+          </section>
+        ) : null}
       </main>
     </div>
   );
