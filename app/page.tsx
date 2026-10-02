@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Box, Bot, ClipboardList, FlaskConical, MessageCircleHeart } from "lucide-react";
+import {
+  Box,
+  Bot,
+  ClipboardList,
+  FlaskConical,
+  HeartPulse,
+  MessageCircleHeart,
+  type LucideIcon,
+} from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Hero } from "@/components/Hero";
 import { PartnerLogos } from "@/components/layout/PartnerLogos";
@@ -12,7 +20,13 @@ import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, margin: "-10%" } as const;
 
-const features = [
+const features: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  href?: string;
+  cta?: string;
+}[] = [
   {
     icon: Box,
     title: "เรียนผ่าน 3D",
@@ -37,8 +51,17 @@ const features = [
     icon: MessageCircleHeart,
     title: "ฝึกปฏิเสธเพื่อน",
     description: "จำลองสถานการณ์ชวนสูบและเลือกคำปฏิเสธที่ใช้ได้จริง",
+    href: "/practice",
+    cta: "เริ่มฝึก",
   },
-] as const;
+  {
+    icon: HeartPulse,
+    title: "ผลต่อร่างกาย",
+    description: "เทียบก่อนและหลังสูบ สมอง ปอด หัวใจ และความเชื่อเรื่องบุหรี่มวน",
+    href: "/impact",
+    cta: "ดูผลต่อร่างกาย",
+  },
+];
 
 const learningSteps = [
   {
@@ -110,9 +133,8 @@ export default function Home() {
               เรียนรู้ยังไง
             </motion.h2>
 
-            <ul className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-8">
-              {features.map(({ icon: Icon, title, description }, index) => {
-                const isPractice = title === "ฝึกปฏิเสธเพื่อน";
+            <ul className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8">
+              {features.map(({ icon: Icon, title, description, href, cta }, index) => {
                 const body = (
                   <>
                     <Icon
@@ -126,9 +148,9 @@ export default function Home() {
                       <p className="mt-1.5 text-sm leading-relaxed text-textSecondary sm:text-base">
                         {description}
                       </p>
-                      {isPractice ? (
+                      {cta ? (
                         <span className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 group-hover:underline">
-                          เริ่มฝึก
+                          {cta}
                         </span>
                       ) : null}
                     </div>
@@ -151,9 +173,9 @@ export default function Home() {
                           }
                     }
                   >
-                    {isPractice ? (
+                    {href ? (
                       <Link
-                        href="/practice"
+                        href={href}
                         className="group flex gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-col sm:gap-3"
                       >
                         {body}

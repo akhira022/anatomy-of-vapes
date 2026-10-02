@@ -23,7 +23,13 @@ const ENABLED_PREFIXES = [
   "/anatomy",
   "/result",
   "/practice",
+  "/impact",
   "/guest",
+];
+
+const CHAT_SHORTCUTS = [
+  { href: "/practice", label: "ไปฝึกปฏิเสธเพื่อน" },
+  { href: "/impact", label: "ดูผลต่อร่างกาย" },
 ];
 
 const HIDDEN_PREFIXES = ["/pretest", "/posttest", "/admin"];
@@ -228,15 +234,20 @@ export function ChatWidget() {
                   สวัสดี! ถามได้เรื่องส่วนประกอบ ผลเสีย กฎหมาย
                   หรือทักษะปฏิเสธเพื่อน
                 </p>
-                {!pathname.startsWith("/practice") ? (
-                  <Link
-                    href="/practice"
-                    className="inline-flex min-h-10 items-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() => setOpen(false)}
-                  >
-                    ไปฝึกปฏิเสธเพื่อน
-                  </Link>
-                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  {CHAT_SHORTCUTS.filter(
+                    (shortcut) => !pathname.startsWith(shortcut.href)
+                  ).map((shortcut) => (
+                    <Link
+                      key={shortcut.href}
+                      href={shortcut.href}
+                      className="inline-flex min-h-10 items-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => setOpen(false)}
+                    >
+                      {shortcut.label}
+                    </Link>
+                  ))}
+                </div>
                 <ChatQuickPrompts
                   onSelect={sendMessage}
                   disabled={loading}
