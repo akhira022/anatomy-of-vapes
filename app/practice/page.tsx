@@ -167,11 +167,19 @@ export default function PracticePage() {
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-textSecondary">
               คุณฝึกปฏิเสธครบ {total} สถานการณ์แล้ว
-              สามารถฝึกซ้ำหรือกลับไปเรียนรู้โมเดล 3D ได้
+              สามารถฝึกซ้ำ ดูผลต่อร่างกาย หรือกลับไปเรียนรู้โมเดล 3D ได้
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               <Button type="button" size="touch" onClick={handleRestart}>
                 ฝึกอีกครั้ง
+              </Button>
+              <Button
+                render={<Link href="/impact" />}
+                nativeButton={false}
+                variant="outline"
+                size="touch"
+              >
+                ดูผลต่อร่างกาย
               </Button>
               <Button
                 render={<Link href="/anatomy" />}

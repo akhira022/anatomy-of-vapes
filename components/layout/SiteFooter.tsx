@@ -4,6 +4,7 @@ import { PartnerLogos } from "@/components/layout/PartnerLogos";
 const exploreLinks = [
   { href: "/register", label: "เริ่มเรียนรู้" },
   { href: "/practice", label: "ฝึกปฏิเสธเพื่อน" },
+  { href: "/impact", label: "ผลต่อร่างกาย" },
   { href: "/login", label: "เข้าสู่ระบบ" },
   { href: "/#how-it-works", label: "เรียนรู้ยังไง" },
 ] as const;
