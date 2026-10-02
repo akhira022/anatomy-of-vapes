@@ -11,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
+import { VaporLabel } from "@/components/feedback/VaporLabel";
 import { Button } from "@/components/ui/button";
 import {
   fetchAdminSettings,
@@ -140,7 +141,7 @@ export default function AdminSettingsPage() {
       {loading ? (
         <div className="flex items-center gap-3 text-textSecondary">
           <LoadingSpinner size="md" label="กำลังโหลดการตั้งค่า" />
-          <span className="text-sm">กำลังโหลดการตั้งค่า…</span>
+          <VaporLabel className="text-sm">กำลังโหลดการตั้งค่า…</VaporLabel>
         </div>
       ) : null}
 

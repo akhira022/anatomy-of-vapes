@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { PageLoading } from "@/components/feedback/PageLoading";
 import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
+import { VaporLabel } from "@/components/feedback/VaporLabel";
 import { Button } from "@/components/ui/button";
 import { hotspots } from "@/data/hotspots";
 import { saveGuestPretestResult } from "@/lib/db";
@@ -107,7 +108,9 @@ export default function GuestCompletePage() {
             className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm text-textSecondary"
           >
             <LoadingSpinner size="sm" label="กำลังบันทึก" />
-            กำลังบันทึกข้อมูล…
+            <VaporLabel className="text-sm text-textSecondary">
+              กำลังบันทึกข้อมูล…
+            </VaporLabel>
           </div>
         ) : resultSaved ? (
           <p

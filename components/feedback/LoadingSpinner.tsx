@@ -1,16 +1,10 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { VaporMark } from "@/components/feedback/VaporMark";
 import { cn } from "@/lib/utils";
 
-const sizeClass = {
-  sm: "size-5",
-  md: "size-8",
-  lg: "size-11",
-} as const;
-
 interface LoadingSpinnerProps {
-  size?: keyof typeof sizeClass;
+  size?: "sm" | "md" | "lg";
   className?: string;
   label?: string;
 }
@@ -20,15 +14,5 @@ export function LoadingSpinner({
   className,
   label = "กำลังโหลด",
 }: LoadingSpinnerProps) {
-  return (
-    <Loader2
-      role="status"
-      aria-label={label}
-      className={cn(
-        "animate-spin text-primary",
-        sizeClass[size],
-        className
-      )}
-    />
-  );
+  return <VaporMark size={size} className={cn(className)} label={label} />;
 }

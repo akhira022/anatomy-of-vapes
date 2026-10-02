@@ -1,6 +1,7 @@
 "use client";
 
-import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
+import { VaporMark } from "@/components/feedback/VaporMark";
+import { VaporLabel } from "@/components/feedback/VaporLabel";
 import { cn } from "@/lib/utils";
 
 interface ModelLoadingOverlayProps {
@@ -15,15 +16,21 @@ export function ModelLoadingOverlay({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 bg-surface/85 backdrop-blur-sm",
+        "flex flex-col items-center justify-center gap-4 bg-background/70 backdrop-blur-[2px]",
         className
       )}
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
-      <LoadingSpinner size="lg" label={label} />
-      <p className="text-sm text-textSecondary">{label}</p>
+      <div className="relative flex items-center justify-center">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute size-28 rounded-full bg-primary/22 blur-3xl"
+        />
+        <VaporMark size="lg" decorative />
+      </div>
+      <VaporLabel className="text-base">{label}</VaporLabel>
     </div>
   );
 }

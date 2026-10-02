@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/feedback/LoadingSpinner";
+import { VaporLabel } from "@/components/feedback/VaporLabel";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ResultsTable } from "@/components/dashboard/ResultsTable";
 import { PracticeTable } from "@/components/dashboard/PracticeTable";
@@ -147,7 +148,7 @@ export function AdminDashboard() {
         <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6">
           <div className="flex items-center gap-3 text-textSecondary">
             <LoadingSpinner size="md" label="กำลังโหลดแดชบอร์ด" />
-            <span className="text-sm">กำลังโหลดแดชบอร์ด…</span>
+            <VaporLabel className="text-sm">กำลังโหลดแดชบอร์ด…</VaporLabel>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (

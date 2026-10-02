@@ -18,6 +18,8 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { UserSessionMenu } from "@/components/layout/UserSessionMenu";
 import { openChatWidget } from "@/components/chat/ChatWidget";
 import { ImpactLandingPreview } from "@/components/impact/ImpactLandingPreview";
+import { FacebookPageLink } from "@/components/promo/FacebookPageLink";
+import { FacebookPromoDialog } from "@/components/promo/FacebookPromoDialog";
 import { useHydrated } from "@/hooks/useRequirePhase";
 import { isLoggedIn, phaseToPath } from "@/lib/phase";
 import { useQuizStore } from "@/store/useQuizStore";
@@ -327,11 +329,16 @@ export default function Home() {
               เครือข่ายสื่อสร้างสรรค์และส่งเสริมสุขภาพ
             </p>
             <PartnerLogos className="mt-8 max-w-5xl" density="section" />
+            <FacebookPageLink
+              className="mt-8"
+              label="ติดตามเพจ Anatomy of Vapes"
+            />
           </motion.div>
         </section>
       </main>
 
       <SiteFooter />
+      <FacebookPromoDialog />
     </div>
   );
 }
