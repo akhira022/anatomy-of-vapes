@@ -16,6 +16,7 @@ import { HeroTypingLine } from "@/components/HeroTypingLine";
 import { HeroBrandCopy } from "@/components/HeroBrandCopy";
 import { HeroToxinCallouts } from "@/components/HeroToxinCallouts";
 import { HeroMoleculeField } from "@/components/HeroMoleculeField";
+import { LandingScrollHint } from "@/components/layout/LandingScrollHint";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 
@@ -252,6 +253,8 @@ export function Hero() {
           <HeroToxinCallouts />
         </div>
       </div>
+
+      <LandingScrollHint />
     </section>
   );
 }

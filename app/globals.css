@@ -477,6 +477,32 @@ body.promo-dialog-open #chat-assistant-fab {
   pointer-events: none !important;
 }
 
+/* Hide landing scroll hint while Facebook promo is open. */
+body.promo-dialog-open #landing-scroll-hint {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@keyframes scroll-hint-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+.animate-scroll-hint-bounce {
+  animation: scroll-hint-bounce 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-hint-bounce {
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
