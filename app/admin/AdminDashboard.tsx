@@ -18,6 +18,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ResultsTable } from "@/components/dashboard/ResultsTable";
 import { PracticeTable } from "@/components/dashboard/PracticeTable";
 import { ExportButton } from "@/components/dashboard/ExportButton";
+import { SeedDemoPanel } from "@/components/dashboard/SeedDemoPanel";
 import { Button } from "@/components/ui/button";
 import {
   getAdminRefusalPractice,
@@ -307,6 +308,10 @@ export function AdminDashboard() {
                 icon="improve"
               />
             </div>
+          )}
+
+          {tab === "overview" && (
+            <SeedDemoPanel onSeeded={() => void load()} />
           )}
 
           {(tab === "overview" || tab === "results") && (

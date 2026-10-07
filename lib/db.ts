@@ -673,6 +673,32 @@ export async function adminDeleteResult(
   }
 }
 
+/** Insert synthetic learners + pre/post scores for admin demo/testing. */
+export async function adminSeedDemo(
+  count: number
+): Promise<{ ok: true; created: number } | { error: string }> {
+  const headers = await adminAuthHeaders();
+  if ("error" in headers) return { error: headers.error };
+
+  try {
+    const res = await fetch("/api/admin/seed-demo", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ count }),
+    });
+    const json = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      created?: number;
+    };
+    if (!res.ok) {
+      return { error: json.error ?? `สร้างข้อมูลตัวอย่างไม่สำเร็จ (${res.status})` };
+    }
+    return { ok: true, created: json.created ?? count };
+  } catch (err) {
+    return { error: normalizeDbError(err) };
+  }
+}
+
 export type AdminSettingsInfo = {
   supabaseConfigured: boolean;
   serviceRoleConfigured: boolean;
