@@ -30,6 +30,41 @@ const NICKNAMES = [
   "รุ้งกินน้ำ",
   "ดาวตก",
   "สายฝน",
+  "ดวงใจ",
+  "ปุยฝ้าย",
+  "แสงดาว",
+  "น้ำใส",
+  "แก้วตา",
+  "บัวขาว",
+  "พายัพ",
+  "อรุโณทัย",
+  "สายหมอก",
+  "ฝนทอง",
+  "ดาวเรือง",
+  "กิ่งทอง",
+  "เมฆขาว",
+  "ทรายแก้ว",
+  "น้ำค้าง",
+  "ฟ้าคราม",
+  "ดวงเดือน",
+  "พรรณราย",
+  "แก้วมณี",
+  "บุษบา",
+  "มาลี",
+  "กมล",
+  "ปาริชาต",
+  "ชมพู",
+  "มรกต",
+  "เพชร",
+  "พลอย",
+  "นภา",
+  "ธารา",
+  "วายุ",
+  "อรุณ",
+  "สุริยา",
+  "จันทรา",
+  "พราว",
+  "ใส",
 ] as const;
 
 function pick<T>(items: readonly T[]): T {
@@ -40,11 +75,18 @@ function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function demoNickname(index: number) {
-  const base = pick(NICKNAMES);
-  const tag = String(index + 1).padStart(2, "0");
-  const name = `${base}${tag}`;
-  return name.length <= 20 ? name : `เดโม${tag}`;
+/** Shuffle a copy so each batch prefers unique names (no numeric suffix). */
+function shuffledNicknames(count: number): string[] {
+  const pool = [...NICKNAMES];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+  }
+  const names: string[] = [];
+  for (let i = 0; i < count; i++) {
+    names.push(pool[i % pool.length]!);
+  }
+  return names;
 }
 
 export async function POST(request: Request) {
@@ -75,12 +117,13 @@ export async function POST(request: Request) {
 
   const { count } = parsed.data;
   const db = adminDbClient(auth.accessToken);
+  const nicknames = shuffledNicknames(count);
   const created: { userId: string; nickname: string; pre: number; post: number }[] =
     [];
 
   for (let i = 0; i < count; i++) {
     const userId = crypto.randomUUID();
-    const nickname = demoNickname(i);
+    const nickname = nicknames[i]!;
     const grade = pick(gradeOptions);
     const ageRange = pick(ageRangeOptions);
     const pre = randomInt(0, 4);

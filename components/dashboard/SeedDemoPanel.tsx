@@ -41,7 +41,7 @@ export function SeedDemoPanel({ onSeeded }: SeedDemoPanelProps) {
           </h2>
           <p className="mt-1 max-w-xl text-sm text-textSecondary">
             สร้างผู้เรียนจำลองพร้อมคะแนนก่อน/หลังเรียน สำหรับทดสอบแดชบอร์ด
-            (ชื่อขึ้นต้นด้วยคำสุ่ม + หมายเลข ไม่ผูก Auth)
+            (ชื่อสุ่ม ไม่มีเลขต่อท้าย ไม่ผูก Auth)
           </p>
         </div>
         <FlaskConical
